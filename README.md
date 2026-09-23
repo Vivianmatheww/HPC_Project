@@ -22,7 +22,7 @@ See [project_context.md](project_context.md) for the full paper analysis and how
 
 ## Status
 
-**Planning / Week 0.** No code yet. See [progress.md](progress.md).
+**Phase 1 (infrastructure) implemented.** Phase 2 (SpMV kernels) next. See [progress.md](progress.md).
 
 ## Target platform
 
@@ -35,7 +35,7 @@ See [project_context.md](project_context.md) for the full paper analysis and how
 | Driver | 615.78 (CUDA 13.4 capable) |
 | Toolchain | CUDA Toolkit 13.3, CMake 4.4 + Ninja (from `.venv`), GCC 11.4, Python 3.10 |
 
-## Planned repository layout
+## Repository layout (planned; Phase 1 parts exist)
 
 ```
 HPC_Project/
@@ -57,21 +57,40 @@ HPC_Project/
 └── docs/                  # paper notes, report, slides
 ```
 
-## Build (planned — not working yet)
+## Build and run
 
 ```bash
 # one-time setup
-bash scripts/setup_cuda_wsl.sh                         # CUDA 13.3 toolkit (needs sudo), adds nvcc to PATH
+bash scripts/setup_cuda_wsl.sh                                       # CUDA 13.3 toolkit (needs sudo), adds nvcc to PATH
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt   # CMake, Ninja, NumPy/SciPy/pandas, sklearn, ssgetpy
 source .venv/bin/activate
 
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CUDA_ARCHITECTURES=89
-cmake --build build -j
+# build + unit tests
+cmake -B build -G Ninja            # Release, sm_89 by default; add -DCMAKE_CUDA_ARCHITECTURES=86 etc. on other GPUs
+cmake --build build
+ctest --test-dir build --output-on-failure
 
-python scripts/fetch_matrices.py --max-nnz 50e6 --out data/suitesparse
-./build/bench/bench_spmv   --matrices data/suitesparse --out results/spmv.csv
-./build/bench/bench_spgemm --problem laplace3d --fast-mem-budget 2GB --out results/spgemm.csv
+# data
+python scripts/fetch_matrices.py --count 50 --named     # SuiteSparse sample + paper-2 matrices -> data/suitesparse/
+python scripts/gen_laplace.py --n 64 128                # paper-1 Laplace3D A, P, R -> data/laplace/
+
+# Phase 1 baseline: cuSPARSE SpMV, FP32/FP64, ALG1/ALG2, checked against a CPU reference
+./build/bench_spmv --matrices data/suitesparse --out results/phase1_cusparse.csv
+python scripts/plot_phase1.py
 ```
+
+`bench_spmv` flushes the 24 MB L2 before every timed repetition (`--no-flush` to disable) and
+reports the median of 20 runs after 5 warm-ups. Matrix Market files are parsed once and cached as
+`<file>.csr.bin` next to the `.mtx`.
+
+| Code | What it is |
+|------|-----------|
+| [include/rasp/](include/rasp/) | Shared interfaces: `HostCsr`/`DeviceCsr`, I/O, timer, CSV, cuSPARSE baselines, CPU references |
+| [src/](src/) | Their implementations (`rasp` static library) |
+| [bench/bench_spmv.cu](bench/bench_spmv.cu) | SpMV benchmark driver → CSV |
+| [bench/platform/uvm_probe.cu](bench/platform/uvm_probe.cu) | Phase 0 memory-placement / UVM probe |
+| [tests/](tests/) | Unit tests (`ctest`) and `.mtx` fixtures |
+| [scripts/](scripts/) | Data download/generation and plotting |
 
 ## Planned API
 

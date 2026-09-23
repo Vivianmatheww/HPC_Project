@@ -12,6 +12,11 @@ under `ctest`.
 
 ## Step 0 — Agree on interfaces first (day 1, all three, ~1 hour)
 
+> **Status (Sep 23): implemented.** The real headers are in [include/rasp/](../include/rasp/) and are the
+> source of truth. They differ from this sketch in one place: `CusparseSpmv` takes `x` and `y` in its
+> constructor (`CusparseSpmv(A, alg, x, y)`, then `run(stream)`), because `cusparseSpMV_preprocess` is
+> tied to the vector descriptors. `read_matrix_market` also takes an optional `CacheMode`.
+
 Commit the headers below (declarations only) before anyone implements anything. Then the three of
 you can work in parallel without waiting on each other. Names are suggestions; change them
 together, not separately.
@@ -168,7 +173,7 @@ Put tiny `.mtx` fixtures in `tests/data/`. These are committed, unlike `data/`.
 ---
 
 ## Before closing Phase 1
-- [ ] `ctest` passes on a clean build (`rm -rf build && cmake -B build -G Ninja && cmake --build build && ctest --test-dir build`)
-- [ ] `results/phase1_cusparse.csv` has ≥ 50 matrices × {FP32, FP64} × {ALG1, ALG2}, all with `rel_err` in tolerance
-- [ ] A quick plot of GFLOP/s or % of bandwidth vs nnz (`scripts/plot_phase1.py`) so everyone sees the baseline
-- [ ] progress.md entry with numbers: median % of bandwidth for cuSPARSE, fastest/slowest matrices, ALG1 vs ALG2
+- [x] `ctest` passes on a clean build (`rm -rf build && cmake -B build -G Ninja && cmake --build build && ctest --test-dir build`)
+- [x] `results/phase1_cusparse.csv` has ≥ 50 matrices × {FP32, FP64} × {ALG1, ALG2}, all with `rel_err` in tolerance
+- [x] A quick plot of GFLOP/s or % of bandwidth vs nnz (`scripts/plot_phase1.py`) so everyone sees the baseline
+- [x] progress.md entry with numbers: median % of bandwidth for cuSPARSE, fastest/slowest matrices, ALG1 vs ALG2

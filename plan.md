@@ -140,11 +140,11 @@ the answer is almost always "stay in CSR", which is the point.
 
 ### Phase 1 — Infrastructure (Weeks 1–2: Sep 28 – Oct 9)
 > Detailed task split, interfaces and traps: [docs/phase1_guide.md](docs/phase1_guide.md)
-- [ ] Matrix Market reader (real, integer, pattern, symmetric expansion) → host CSR → device CSR
-- [ ] Timer / benchmark harness (warm-up, median, CSV writer, environment stamp)
-- [ ] cuSPARSE SpMV + SpGEMM wrappers (these are the baselines and the correctness reference)
-- [ ] `fetch_matrices.py` (ssgetpy with filters) and `gen_laplace.py` (A, R, P at chosen size)
-- [ ] Unit tests (tiny hand-made matrices, empty rows, a single dense row)
+- [x] Matrix Market reader (real, integer, pattern, symmetric expansion) → host CSR → device CSR
+- [x] Timer / benchmark harness (warm-up, median, CSV writer, environment stamp)
+- [x] cuSPARSE SpMV + SpGEMM wrappers (these are the baselines and the correctness reference)
+- [x] `fetch_matrices.py` (ssgetpy with filters) and `gen_laplace.py` (A, R, P at chosen size)
+- [x] Unit tests (tiny hand-made matrices, empty rows, a single dense row)
 - **Deliverable:** `bench_spmv` runs cuSPARSE on 50 matrices and writes a CSV
 
 ### Phase 2 — SpMV kernels and paper-2 reproduction (Weeks 3–4: Oct 12 – Oct 23)

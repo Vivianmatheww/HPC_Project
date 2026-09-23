@@ -17,6 +17,39 @@ endif()
 
 find_package(CUDAToolkit REQUIRED)
 
-# ---- platform study (Phase 0)
+# Warnings for host code; -lineinfo lets Nsight Compute map metrics to source lines at no runtime cost.
+add_compile_options(
+  $<$<COMPILE_LANGUAGE:CXX>:-Wall>
+  $<$<COMPILE_LANGUAGE:CXX>:-Wextra>
+  $<$<COMPILE_LANGUAGE:CUDA>:-lineinfo>
+  $<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-Wall>)
+
+# ---- core library
+add_library(rasp STATIC
+  src/core/csr.cpp
+  src/core/csv.cpp
+  src/core/reference.cpp
+  src/core/timer.cu
+  src/io/matrix_market.cpp
+  src/cusparse/cusparse_ref.cu)
+target_include_directories(rasp PUBLIC include)
+target_link_libraries(rasp PUBLIC CUDA::cudart CUDA::cusparse)
+target_compile_definitions(rasp PRIVATE RASP_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+
+# ---- benchmarks
+add_executable(bench_spmv bench/bench_spmv.cu)
+target_link_libraries(bench_spmv PRIVATE rasp)
+
+# platform study (Phase 0)
 add_executable(uvm_probe bench/platform/uvm_probe.cu)
 target_link_libraries(uvm_probe PRIVATE CUDA::cudart)
+
+# ---- tests (run with: ctest --test-dir build --output-on-failure)
+enable_testing()
+foreach(t test_io test_spmv test_spgemm test_harness)
+  file(GLOB src tests/${t}.c*)
+  add_executable(${t} ${src})
+  target_link_libraries(${t} PRIVATE rasp)
+  target_compile_definitions(${t} PRIVATE RASP_TEST_DATA_DIR="${CMAKE_SOURCE_DIR}/tests/data")
+  add_test(NAME ${t} COMMAND ${t})
+endforeach()

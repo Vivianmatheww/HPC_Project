@@ -11,7 +11,7 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 | Phase | Weeks | Dates | Status | Notes |
 |-------|-------|-------|--------|-------|
 | 0 — Setup | 0 | Sep 23 – Sep 27 | ✅ | Toolchain, 11 GB WSL, CMake, UVM probe, git, nsys + ncu. Carried over: teammate setup |
-| 1 — Infrastructure | 1–2 | Sep 28 – Oct 9 | 🟨 | Started early (Sep 23). Guide: [docs/phase1_guide.md](docs/phase1_guide.md) |
+| 1 — Infrastructure | 1–2 | Sep 28 – Oct 9 | ✅ | Done Sep 23 (early). 28 unit tests; cuSPARSE baseline on 60 matrices |
 | 2 — SpMV kernels + paper-2 reproduction | 3–4 | Oct 12 – Oct 23 | ⬜ | |
 | 3 — Runtime SpMV selector | 5–6 | Oct 26 – Nov 6 | ⬜ | Midpoint demo |
 | 4 — Out-of-core adaptive SpGEMM | 7–9 | Nov 9 – Nov 27 | ⬜ | |
@@ -55,6 +55,50 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 ---
 
 ## Log
+
+### 2026-09-23 (Wed) — Phase 1 complete: infrastructure + cuSPARSE baseline
+**Built** (see [docs/phase1_guide.md](docs/phase1_guide.md) for the design)
+- `rasp` library: [include/rasp/](include/rasp/) + [src/](src/). It has `HostCsr`/`DeviceCsr` (RAII, move-only),
+  a Matrix Market reader (real/integer/pattern, general/symmetric/skew, duplicate summing, row sorting, CRLF)
+  with an atomic binary cache (`<file>.csr.bin`), a timer with L2 flush + median/IQR, a CSV writer with an
+  environment stamp (GPU, driver, CUDA, cuSPARSE, git commit/dirty, host, time), cuSPARSE SpMV (ALG1/ALG2,
+  preprocess timed separately) and SpGEMM wrappers, and CPU references.
+- Tests: 4 CTest suites, 28 tests, all passing (`ctest --test-dir build`). They include empty rows, a dense row
+  among short rows, nnz = 0, rectangular, fp32/fp64, a hand-computed SpGEMM, and cache corruption.
+- [bench/bench_spmv.cu](bench/bench_spmv.cu), [scripts/fetch_matrices.py](scripts/fetch_matrices.py),
+  [scripts/gen_laplace.py](scripts/gen_laplace.py) (checked: A symmetric, diag 6, P 2×2×2 aggregates, R = Pᵀ),
+  [scripts/plot_phase1.py](scripts/plot_phase1.py).
+- Data: 60 matrices (50 random real square SuiteSparse, 1e4–5e6 nnz, seed 0 + 10 named in paper 2),
+  967 MB, in `data/suitesparse/` with `manifest.csv`.
+
+**Results** ([results/phase1_cusparse.csv](results/phase1_cusparse.csv), [figure](results/phase1/cusparse_bw.png)):
+240 rows (60 matrices × FP32/FP64 × ALG1/ALG2), **0 correctness failures, 0 errors**. Timing noise is small:
+median IQR/median = 1.9%, worst 11%.
+
+| | median % of 187.8 GB/s | p25–p75 | max | fastest alg (wins) |
+|---|---|---|---|---|
+| FP64 ALG1 | 44.9 | 18.4–58.3 | 96.1 (af_shell1) | 47 / 60 |
+| FP64 ALG2 | 43.2 | 13.0–58.3 | 94.9 | 13 / 60 |
+| FP32 ALG1 | 43.4 | 14.9–53.9 | 82.4 | 50 / 60 |
+| FP32 ALG2 | 42.5 | 11.7–56.0 | 81.5 | 10 / 60 |
+
+- **Size dominates.** FP64 median %BW by nnz: < 100k → 15.6 (ALG1) / 11.6 (ALG2); 100k–1M → ~51; > 1M → ~73.
+  Small matrices are launch/latency-bound: the whole SpMV takes a few µs. Phase 2 comparisons must be read per
+  size band, and the selector needs `nnz` / `rows` as features.
+- ALG1 (default) usually wins; ALG2 wins on some irregular circuit/power matrices (rajat23 57.1 vs 54.4,
+  TSOPF_FS_b39_c7 59.1 vs 55.1, ASIC_100ks 58.0 vs 54.0).
+- Worst: Sandia/adder_dcop_* (~8% FP64), which are small circuit matrices. Paper-2 targets for Phase 2:
+  ncvxqp9 26.8%, t2d_q9 33.9%, TSOPF_RS_b162_c1 46.1%, ckt11752_dc_1 49.0%.
+- `cusparseSpMV_preprocess` is cheap (median 0.015 ms ALG1, 0.011 ms ALG2).
+- Reading af_shell1 (17.6 M nnz) from text takes 1.2 s; the binary cache makes later runs near-instant.
+
+**Notes**
+- Our nnz can exceed SuiteSparse's listed nnz (af_shell1: 17,588,875 vs 17,562,051) because the reader keeps
+  explicitly stored zeros, and SuiteSparse's count excludes them. That's fine for SpMV; the manifest's nnz is metadata only.
+- `ssgetpy.download()` sleeps 0.1 s per 4 KB (~40 KB/s), so `fetch_matrices.py` downloads archives itself. "Problem
+  sequence" archives are large (case39: 70 MB for a 1 M-nnz matrix) because they bundle the whole sequence.
+
+**Next: Phase 2** (SpMV kernels + paper-2 reproduction): CSR-scalar, CSR-vector, ELL, SELL-C-σ, ArgCSR.
 
 ### 2026-09-23 (Wed) — GitHub remote
 - Repo pushed to [github.com/Vivianmatheww/HPC_Project](https://github.com/Vivianmatheww/HPC_Project) over SSH (key: `~/.ssh/id_ed25519`, "WSL HPC laptop").

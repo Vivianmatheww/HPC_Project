@@ -5,3 +5,5 @@ data/
 __pycache__/
 *.nsys-rep
 *.ncu-rep
+*.csr.bin
+*.part
