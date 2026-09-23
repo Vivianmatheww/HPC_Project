@@ -23,6 +23,9 @@ SURFACE, TEXT, TEXT2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#e4e3df"
 
 def load(path):
     df = pd.read_csv(path)
+    if "config" in df.columns:  # CSVs from the Phase 2 bench: keep the cuSPARSE rows, map labels
+        df = df[df["kernel"] == "cusparse"].copy()
+        df["alg"] = df["config"].map({"cusparse_alg1": "csr_alg1", "cusparse_alg2": "csr_alg2"})
     ok = df[df["error"].isna() & (df["check"] == "pass")].copy()
     return df, ok
 

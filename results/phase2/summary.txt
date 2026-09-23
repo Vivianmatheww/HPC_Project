@@ -1,0 +1,70 @@
+60 matrices x 33 configs x 2 precisions: 3892 ok rows (all pass the correctness check), 68 infeasible, 0 errors
+
+== Which family is fastest (oracle wins) ==
+precision    fp32  fp64
+best_family            
+argcsr          0     2
+csr_scalar      8     4
+csr_vector     16    26
+cusparse       35    27
+sell            1     1 
+
+== Speedup of the oracle (best of all 33 configs) ==
+fp32: vs cuSPARSE ALG1 geomean 1.07x (max 1.38x); vs best cuSPARSE 1.06x; cuSPARSE is the oracle on 35/60
+fp64: vs cuSPARSE ALG1 geomean 1.09x (max 1.30x); vs best cuSPARSE 1.08x; cuSPARSE is the oracle on 27/60
+
+== Each line of the profile vs cuSPARSE ALG1 (geomean speedup; >1 = faster) ==
+                            line  fp32 geomean  fp32 feasible  fp64 geomean  fp64 feasible
+         cuSPARSE ALG1 (default)         1.000             60         1.000             60
+                      CSR-scalar         0.486             60         0.451             60
+              CSR-vector, best v         0.917             60         0.948             60
+                             ELL         0.634             26         0.726             26
+              SELL-C-σ, best C,σ         0.179             60         0.217             60
+ArgCSR B=128 D=1 (paper default)         0.525             60         0.633             60
+                ArgCSR, best B,D         0.775             60         0.862             60 
+
+== By size (FP64): oracle speedup vs cuSPARSE ALG1, and most common winning family ==
+         matrices  geomean_speedup  top_family
+size                                          
+<100k          25             1.13  csr_vector
+100k-1M        23             1.09  csr_vector
+>1M            12             1.02    cusparse 
+
+== Best ArgCSR desiredChunkSize per matrix (a single global value cannot be right) ==
+precision  fp32  fp64
+D                    
+1             1     3
+2            16    15
+4            19    19
+8            12    12
+16            9     6
+32            3     5
+fixed D=1 (B=128) vs best D (B=128): geomean slowdown 1.38x, worst 3.62x (Nemeth/nemeth19, fp32)
+
+== Paper-2 check: desiredChunkSize 1 vs 32 (FP64, B=128), GFLOP/s ==
+Schenk_AFE/af_shell1: D=1 12.67, D=32 25.29 -> D=1/D=32 = 0.50   [paper (AFE): D=32 better, 18 vs 11 GFLOPS]
+Rajat/rajat23: D=1 8.84, D=32 0.78 -> D=1/D=32 = 11.29   [paper: D=1 better, 5.1 vs 0.81 GFLOPS (6.3x)]
+
+== Paper-2 named matrices (FP64): GFLOP/s ==
+                                                  kind  cusparse_alg1  argcsr_B128_D1  argcsr_best   best      best_config  argcsr_D1/cusparse
+matrix                                                                                                                                        
+GHS_indef/ncvxqp9                 optimization problem           5.86            7.04         7.04   7.04    csr_vector_v2                1.20
+IBM_EDA/ckt11752_dc_1       circuit simulation problem          12.27            8.79         9.71  12.27    cusparse_alg1                0.72
+Norris/torso2                            2D/3D problem          16.15           12.46        18.35  18.35  argcsr_B128_D16                0.77
+QY/case39               power network problem sequence          17.70           11.18        13.66  18.17    cusparse_alg2                0.63
+Rajat/rajat23               circuit simulation problem          12.80            8.84        10.07  13.43    cusparse_alg2                0.69
+Sandia/ASIC_100k            circuit simulation problem          14.23            3.70         6.23  14.91    cusparse_alg2                0.26
+Schenk_AFE/af_shell1       structural problem sequence          28.70           12.67        26.49  28.70    cusparse_alg1                0.44
+TKK/t2d_q9                 structural problem sequence           8.95            7.08        10.00  10.62    csr_vector_v2                0.79
+TSOPF/TSOPF_FS_b39_c7            power network problem          16.20           10.80        11.73  17.39    cusparse_alg2                0.67
+TSOPF/TSOPF_RS_b162_c1           power network problem          13.37            5.21        12.16  14.33    csr_vector_v8                0.39 
+
+== Conversion cost in SpMV calls (median over matrices of convert_ms / median_ms, FP64) ==
+kernel
+argcsr        60.2
+csr_scalar     0.0
+csr_vector     0.0
+cusparse       0.3
+ell           39.9
+sell          15.3
+(host-side conversion; cuSPARSE = cusparseSpMV_preprocess on the GPU)

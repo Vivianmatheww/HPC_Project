@@ -22,7 +22,7 @@ See [project_context.md](project_context.md) for the full paper analysis and how
 
 ## Status
 
-**Phase 1 (infrastructure) implemented.** Phase 2 (SpMV kernels) next. See [progress.md](progress.md).
+**Phases 1–2 implemented** (infrastructure; SpMV kernels incl. ArgCSR and the paper-2 reproduction). Phase 3 (runtime selector) next. See [progress.md](progress.md).
 
 ## Target platform
 
@@ -77,6 +77,10 @@ python scripts/gen_laplace.py --n 64 128                # paper-1 Laplace3D A, P
 # Phase 1 baseline: cuSPARSE SpMV, FP32/FP64, ALG1/ALG2, checked against a CPU reference
 ./build/bench_spmv --matrices data/suitesparse --out results/phase1_cusparse.csv
 python scripts/plot_phase1.py
+
+# Phase 2: all 33 kernel configs (our formats + cuSPARSE), oracle table and figures
+./build/bench_spmv --matrices data/suitesparse --kernels all --out results/phase2_spmv.csv
+python scripts/analyze_phase2.py
 ```
 
 `bench_spmv` flushes the 24 MB L2 before every timed repetition (`--no-flush` to disable) and

@@ -1,11 +1,14 @@
-// Phase 1 deliverable: cuSPARSE SpMV baseline over a set of Matrix Market files.
+// SpMV benchmark over a set of Matrix Market files, for any mix of kernel configurations.
 //
-//   bench_spmv --matrices <dir-or-.mtx> [--out results/phase1_cusparse.csv] [--reps 20] [--warmup 5]
-//              [--no-flush] [--precisions fp32,fp64] [--algs alg1,alg2] [--max-nnz N] [--peak-bw 187.8]
+//   bench_spmv --matrices <dir-or-.mtx> [--out results/phase1_cusparse.csv] [--kernels cusparse|all|<labels>]
+//              [--reps 20] [--warmup 5] [--no-flush] [--precisions fp32,fp64] [--max-nnz N] [--peak-bw 187.8]
 //
-// One CSV row per (matrix, precision, algorithm). Every result is checked against the CPU reference
-// (relative L2 error; fp64 <= 1e-12, fp32 <= 1e-5). A matrix that fails to load or run gets a row with
-// the `error` column filled in, and the sweep continues.
+// --kernels: "cusparse" (Phase 1 baseline, default), "all" (the 33 Phase 2 configs) or comma-separated
+// labels such as csr_vector_v8,sell_C32_s256,argcsr_B128_D1.
+//
+// One CSV row per (matrix, precision, config). Every result is checked against the CPU reference
+// (relative L2 error; fp64 <= 1e-12, fp32 <= 1e-5). Formats that would need too much padding are recorded
+// with status "infeasible"; load/run failures with status "error". The sweep always continues.
 #include <algorithm>
 #include <chrono>
 #include <cstdio>
@@ -15,10 +18,11 @@
 #include <string>
 #include <vector>
 
-#include "rasp/cusparse_ref.hpp"
 #include "rasp/csv.hpp"
+#include "rasp/formats.hpp"
 #include "rasp/io.hpp"
 #include "rasp/reference.hpp"
+#include "rasp/spmv.hpp"
 #include "rasp/timer.hpp"
 
 namespace fs = std::filesystem;
@@ -30,9 +34,10 @@ struct Args {
   std::string matrices, out = "results/phase1_cusparse.csv";
   BenchOptions bench;
   std::vector<std::string> precisions{"fp32", "fp64"};
-  std::vector<SpmvAlg> algs{SpmvAlg::CsrAlg1, SpmvAlg::CsrAlg2};
+  std::vector<KernelConfig> kernels{KernelConfig::parse("cusparse_alg1"), KernelConfig::parse("cusparse_alg2")};
   int64_t max_nnz = 0;       // 0 = no limit
   double peak_bw = 187.8;    // GB/s, measured device read bandwidth (uvm_probe, progress.md 2026-09-23)
+  bool verbose = false;      // one line per config (default: one line per matrix unless a check fails)
 };
 
 std::vector<std::string> split(const std::string& s) {
@@ -49,7 +54,7 @@ std::vector<std::string> split(const std::string& s) {
 
 [[noreturn]] void usage(const char* msg) {
   std::fprintf(stderr, "error: %s\nusage: bench_spmv --matrices <dir|file.mtx> [--out f.csv] [--reps N] [--warmup N] "
-                       "[--no-flush] [--precisions fp32,fp64] [--algs alg1,alg2] [--max-nnz N] [--peak-bw GB/s]\n", msg);
+                       "[--no-flush] [--precisions fp32,fp64] [--kernels cusparse|all|labels] [--max-nnz N] [--peak-bw GB/s]\n", msg);
   std::exit(2);
 }
 
@@ -69,13 +74,20 @@ Args parse(int argc, char** argv) {
     else if (k == "--precisions") a.precisions = split(val());
     else if (k == "--max-nnz") a.max_nnz = int64_t(std::stod(val()));
     else if (k == "--peak-bw") a.peak_bw = std::stod(val());
-    else if (k == "--algs") {
-      a.algs.clear();
-      for (auto& s : split(val())) {
-        if (s == "alg1") a.algs.push_back(SpmvAlg::CsrAlg1);
-        else if (s == "alg2") a.algs.push_back(SpmvAlg::CsrAlg2);
-        else usage(("unknown alg " + s).c_str());
-      }
+    else if (k == "-v" || k == "--verbose") a.verbose = true;
+    else if (k == "--kernels") {
+      const std::string v = val();
+      a.kernels.clear();
+      if (v == "all") a.kernels = phase2_configs();
+      else if (v == "cusparse") a.kernels = {KernelConfig::parse("cusparse_alg1"), KernelConfig::parse("cusparse_alg2")};
+      else
+        for (auto& s : split(v)) {
+          try {
+            a.kernels.push_back(KernelConfig::parse(s));
+          } catch (const std::exception& e) {
+            usage(e.what());
+          }
+        }
     } else usage(("unknown option " + k).c_str());
   }
   if (a.matrices.empty()) usage("--matrices is required");
@@ -101,9 +113,9 @@ std::vector<fs::path> find_matrices(const std::string& root) {
 
 // Fixed column order so success and error rows share one header.
 const std::vector<std::string> kColumns = {
-    "matrix", "path", "rows", "cols", "nnz", "precision", "kernel", "alg", "flush_l2", "warmup", "reps",
+    "matrix", "path", "rows", "cols", "nnz", "precision", "kernel", "config", "flush_l2", "warmup", "reps",
     "median_ms", "p25_ms", "p75_ms", "min_ms", "gflops", "eff_bw_gbs", "pct_peak_bw", "rel_err", "check",
-    "preprocess_ms", "workspace_bytes", "load_ms", "error"};
+    "convert_ms", "format_bytes", "stored_ratio", "load_ms", "status", "error"};
 
 Fields make_row(const std::map<std::string, std::string>& v) {
   Fields f;
@@ -116,7 +128,7 @@ Fields make_row(const std::map<std::string, std::string>& v) {
 }
 
 struct Summary {
-  int rows_ok = 0, check_fail = 0, errors = 0;
+  int rows_ok = 0, check_fail = 0, errors = 0, infeasible = 0;
 };
 
 template <class T>
@@ -135,24 +147,26 @@ void run_precision(const HostCsr<double>& A64, const std::map<std::string, std::
   const double bytes = double(h.nnz) * double(sizeof(T) + sizeof(int32_t)) + double(h.rows + 1) * sizeof(int32_t) +
                        double(h.cols) * sizeof(T) + double(h.rows) * sizeof(T);
 
-  for (SpmvAlg alg : args.algs) {
+  for (const KernelConfig& cfg : args.kernels) {
     auto row = base;
     row["precision"] = prec;
-    row["kernel"] = "cusparse";
-    row["alg"] = to_string(alg);
+    row["kernel"] = cfg.family();
+    row["config"] = cfg.label();
     row["flush_l2"] = args.bench.flush_l2 ? "1" : "0";
     row["warmup"] = std::to_string(args.bench.warmup);
     row["reps"] = std::to_string(args.bench.reps);
     try {
-      RASP_CUDA(cudaMemset(dy.data(), 0xff, dy.bytes()));
-      CusparseSpmv<T> op(d, alg, dx.data(), dy.data());
-      op.run(nullptr);
+      RASP_CUDA(cudaMemset(dy.data(), 0xff, dy.bytes()));  // NaN garbage: unwritten rows fail the check
+      auto k = make_spmv_kernel(cfg, h, d, dx.data(), dy.data());
+      k->run(nullptr);
       RASP_CUDA(cudaDeviceSynchronize());
+      RASP_CUDA(cudaGetLastError());
       const double err = rel_l2_error(dy.download(), ref);
-      const auto t = time_gpu([&](cudaStream_t s) { op.run(s); }, nullptr, args.bench);
+      const auto t = time_gpu([&](cudaStream_t s) { k->run(s); }, nullptr, args.bench);
 
       const double sec = t.median_ms * 1e-3;
       const double bw = bytes / sec / 1e9;
+      const bool ok = err <= tol;
       row["median_ms"] = fmt(t.median_ms);
       row["p25_ms"] = fmt(t.p25_ms);
       row["p75_ms"] = fmt(t.p75_ms);
@@ -161,20 +175,30 @@ void run_precision(const HostCsr<double>& A64, const std::map<std::string, std::
       row["eff_bw_gbs"] = fmt(bw);
       row["pct_peak_bw"] = fmt(100.0 * bw / args.peak_bw);
       row["rel_err"] = fmt(err);
-      row["check"] = err <= tol ? "pass" : "FAIL";
-      row["preprocess_ms"] = fmt(op.preprocess_ms());
-      row["workspace_bytes"] = std::to_string(op.workspace_bytes());
+      row["check"] = ok ? "pass" : "FAIL";
+      row["convert_ms"] = fmt(k->convert_ms());
+      row["format_bytes"] = std::to_string(k->format_bytes());
+      row["stored_ratio"] = fmt(h.nnz ? double(k->stored_slots()) / double(h.nnz) : 1.0);
+      row["status"] = "ok";
       csv.row(make_row(row));
       ++sum.rows_ok;
-      if (err > tol) ++sum.check_fail;
-      std::printf("    %s %-8s %8.4f ms  %7.2f GFLOP/s  %5.1f%% BW  err %.1e %s\n", prec, to_string(alg), t.median_ms,
-                  2.0 * double(h.nnz) / sec / 1e9, 100.0 * bw / args.peak_bw, err, err <= tol ? "" : "  <-- FAIL");
+      if (!ok) ++sum.check_fail;
+      if (!ok || args.verbose)
+        std::printf("    %s %-16s %9.4f ms %7.2f GFLOP/s %5.1f%% BW  err %.1e%s\n", prec, cfg.label().c_str(),
+                    t.median_ms, 2.0 * double(h.nnz) / sec / 1e9, 100.0 * bw / args.peak_bw, err,
+                    ok ? "" : "  <-- FAIL");
+    } catch (const FormatInfeasible& e) {
+      row["status"] = "infeasible";
+      row["error"] = e.what();
+      csv.row(make_row(row));
+      ++sum.infeasible;
     } catch (const std::exception& e) {
       cudaGetLastError();
+      row["status"] = "error";
       row["error"] = e.what();
       csv.row(make_row(row));
       ++sum.errors;
-      std::printf("    %s %-8s ERROR %s\n", prec, to_string(alg), e.what());
+      std::printf("    %s %-16s ERROR %s\n", prec, cfg.label().c_str(), e.what());
     }
   }
 }
@@ -190,9 +214,9 @@ int main(int argc, char** argv) {
   int skipped = 0;
 
   const auto& env = environment_stamp();
-  std::printf("%s | cuSPARSE %s | git %s | %zu matrices | reps %d, warmup %d, L2 flush %s\n", env[0].second.c_str(),
-              env[4].second.c_str(), env[5].second.c_str(), files.size(), args.bench.reps, args.bench.warmup,
-              args.bench.flush_l2 ? "on" : "off");
+  std::printf("%s | cuSPARSE %s | git %s | %zu matrices x %zu configs | reps %d, warmup %d, L2 flush %s\n",
+              env[0].second.c_str(), env[4].second.c_str(), env[5].second.c_str(), files.size(), args.kernels.size(),
+              args.bench.reps, args.bench.warmup, args.bench.flush_l2 ? "on" : "off");
 
   for (size_t i = 0; i < files.size(); ++i) {
     const auto& path = files[i];
@@ -211,6 +235,7 @@ int main(int argc, char** argv) {
       base["cols"] = std::to_string(A.cols);
       base["nnz"] = std::to_string(A.nnz);
       base["load_ms"] = fmt(load_ms);
+      base["status"] = "ok";
       std::printf("[%zu/%zu] %s  %d x %d  nnz %lld  (load %.0f ms)\n", i + 1, files.size(), name.c_str(), A.rows, A.cols,
                   (long long)A.nnz, load_ms);
       for (auto& p : args.precisions) {
@@ -219,6 +244,7 @@ int main(int argc, char** argv) {
       }
     } catch (const std::exception& e) {
       cudaGetLastError();
+      base["status"] = "error";
       base["error"] = e.what();
       csv.row(make_row(base));
       ++sum.errors;
@@ -226,7 +252,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  std::printf("\n%d result rows, %d correctness failures, %d errors, %d skipped -> %s\n", sum.rows_ok, sum.check_fail,
-              sum.errors, skipped, args.out.c_str());
+  std::printf("\n%d result rows, %d correctness failures, %d infeasible, %d errors, %d skipped -> %s\n", sum.rows_ok,
+              sum.check_fail, sum.infeasible, sum.errors, skipped, args.out.c_str());
   return sum.check_fail == 0 && sum.errors == 0 ? 0 : 1;
 }

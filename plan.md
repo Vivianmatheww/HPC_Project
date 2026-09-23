@@ -148,13 +148,15 @@ the answer is almost always "stay in CSR", which is the point.
 - **Deliverable:** `bench_spmv` runs cuSPARSE on 50 matrices and writes a CSV
 
 ### Phase 2 — SpMV kernels and paper-2 reproduction (Weeks 3–4: Oct 12 – Oct 23)
-- [ ] CSR-scalar, CSR-vector (v = 2…32), ELL, SELL-C-σ kernels with GPU converters
-- [ ] ArgCSR converter + kernel from paper 2 (Listing 2), with parameter sweeps over `desiredChunkSize` and blockDim
-- [ ] Reproduce the paper-2 observations: the 1 vs 32 sensitivity (AFE vs rajat23) and circuit vs power-flow winners
-- [ ] Exhaustive sweep over the dataset → `results/spmv_oracle.csv` (the training data)
+- [x] CSR-scalar, CSR-vector (v = 2…32), ELL, SELL-C-σ kernels. *Converters run on the host for now; GPU converters moved to Phase 3 (they matter for the G4 break-even)*
+- [x] ArgCSR converter + kernel from paper 2 (Listing 2), with parameter sweeps over `desiredChunkSize` and blockDim
+- [x] Reproduce the paper-2 observations: the 1 vs 32 sensitivity (AFE vs rajat23) and circuit vs power-flow winners
+- [x] Exhaustive sweep over the dataset → `results/spmv_oracle.csv` (the training data)
 - **Deliverable:** oracle table + "no format wins everywhere" figure (performance profile, as in paper 2 Fig. 4)
 
 ### Phase 3 — Runtime SpMV selector (Weeks 5–6: Oct 26 – Nov 6)
+> **Re-read the Phase 2 findings in progress.md first:** the oracle is only 1.07–1.09× faster than cuSPARSE on average, so G2's "beat always-cuSPARSE" bar is tight. Decide as a team whether to widen the candidate set (ArgCSR-local, adaptive-v CSR-vector) or re-scope G2 to "within 10% of the oracle while never losing to cuSPARSE".
+- [ ] Port ELL / SELL / ArgCSR conversion to the GPU (host conversion costs 15–60 SpMVs today)
 - [ ] GPU feature-extraction kernel. Measure its cost in SpMV units (G3)
 - [ ] Selector v1 (rules) → v2 (decision tree, exported to C++)
 - [ ] Conversion-time model + break-even logic. `make_spmv_plan()` API

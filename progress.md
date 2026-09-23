@@ -12,7 +12,7 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 |-------|-------|-------|--------|-------|
 | 0 — Setup | 0 | Sep 23 – Sep 27 | ✅ | Toolchain, 11 GB WSL, CMake, UVM probe, git, nsys + ncu. Carried over: teammate setup |
 | 1 — Infrastructure | 1–2 | Sep 28 – Oct 9 | ✅ | Done Sep 23 (early). 28 unit tests; cuSPARSE baseline on 60 matrices |
-| 2 — SpMV kernels + paper-2 reproduction | 3–4 | Oct 12 – Oct 23 | ⬜ | |
+| 2 — SpMV kernels + paper-2 reproduction | 3–4 | Oct 12 – Oct 23 | ✅ | Done Sep 23 (early). 33 configs × 60 matrices; oracle table |
 | 3 — Runtime SpMV selector | 5–6 | Oct 26 – Nov 6 | ⬜ | Midpoint demo |
 | 4 — Out-of-core adaptive SpGEMM | 7–9 | Nov 9 – Nov 27 | ⬜ | |
 | 5 — Integration + apps | 10 | Nov 30 – Dec 4 | ⬜ | |
@@ -22,7 +22,7 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 
 | Goal | Target | Current | Status |
 |------|--------|---------|--------|
-| G1 ArgCSR reproduction | same qualitative trends | — | ⬜ |
+| G1 ArgCSR reproduction | same qualitative trends | chunk-size sensitivity reproduced (rajat23 D=32: 0.78 vs paper 0.81 GFLOPS); "ArgCSR ≫ cuSPARSE" does **not** hold against modern cuSPARSE | ✅ |
 | G2 Selector vs oracle | geomean slowdown ≤ 1.10 | — | ⬜ |
 | G3 Selection overhead | ≤ 2 SpMV | — | ⬜ |
 | G4 Break-even aware | ≤ 5% loss at N = 1 | — | ⬜ |
@@ -55,6 +55,52 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 ---
 
 ## Log
+
+### 2026-09-23 (Wed) — Phase 2 complete: SpMV kernels, ArgCSR reproduction, oracle table
+**Built**
+- [include/rasp/formats.hpp](include/rasp/formats.hpp) + [src/formats/](src/formats/): host converters for ELL, SELL-C-σ
+  and **ArgCSR** (group formation, greedy thread assignment, interleaved chunks; checked exactly against paper 2's Figure 3).
+- [include/rasp/spmv.hpp](include/rasp/spmv.hpp) + [src/spmv/](src/spmv/): one `SpmvKernel` interface for all 33 configs
+  (cuSPARSE ALG1/2, CSR-scalar, CSR-vector v=2..32, ELL, SELL C∈{8,32} × σ∈{1,256,all}, ArgCSR B∈{64,128,256} × D∈{1..32}).
+  The ArgCSR kernel follows the paper's Listing 2.
+- `bench_spmv --kernels all|cusparse|<labels>`, `test_formats` (every config × edge cases × fp32/fp64; 5 suites pass),
+  [scripts/analyze_phase2.py](scripts/analyze_phase2.py).
+- Padding caps: ELL ≤ 3× nnz; SELL/ArgCSR ≤ 64× nnz; any format ≤ 2 GB. (A first run with an 8× cap wrongly refused
+  the exact ArgCSR configs paper 2 measured, so it was relaxed and the sweep rerun.)
+
+**Results** (3,960 runs: 3,892 ok, all correct; 68 infeasible, all ELL. Files: [results/phase2_spmv.csv](results/phase2_spmv.csv),
+[results/spmv_oracle.csv](results/spmv_oracle.csv), [profile](results/phase2/perf_profile.png),
+[chunk sensitivity](results/phase2/argcsr_chunk.png), [summary](results/phase2/summary.txt))
+
+| | FP32 | FP64 |
+|---|---|---|
+| Oracle (best of 33) vs cuSPARSE ALG1, geomean / max | 1.07× / 1.38× | 1.09× / 1.30× |
+| cuSPARSE is the fastest config | 35 / 60 | 27 / 60 |
+| CSR-vector (best v) wins | 16 | 26 |
+| CSR-scalar / ArgCSR / SELL win | 8 / 0 / 1 | 4 / 2 / 1 |
+
+1. **Paper 2's chunk-size sensitivity reproduces.** rajat23 (FP64, B=128): D=1 8.84 GFLOP/s vs D=32 **0.78**
+   (the paper reported 5.1 vs **0.81**); padding grows from 3.3× to 10.2× nnz. af_shell1: D=32 25.3 vs D=1 12.7 (the paper had 18 vs 11,
+   same direction).
+2. **But a global D=1 (the paper's "robust" choice) is rarely right.** D=1 is the best ArgCSR setting on only 3/60 (FP64)
+   and 1/60 (FP32) matrices; the best D spreads over 2–16. Fixing D=1 costs 1.38× geomean vs the per-matrix best D (worst 3.62×,
+   nemeth19). This directly supports choosing parameters per matrix.
+3. **Paper 2's headline (ArgCSR ≫ cuSPARSE) does not hold against 2026 cuSPARSE.** ArgCSR at the paper default reaches
+   0.53× (FP32) / 0.63× (FP64) of cuSPARSE ALG1 (geomean); even tuned it reaches 0.78× / 0.86×. The exceptions are in the family the paper highlighted:
+   GHS_indef/ncvxqp9 1.20× faster than cuSPARSE, and torso2 with tuned ArgCSR (D=16) as the overall winner.
+4. **Headroom lives in small and medium matrices.** Oracle vs cuSPARSE (FP64): < 100k nnz 1.13×, 100k–1M 1.09×,
+   > 1M 1.02×. CSR-vector (small v) is the usual winner below 1M nnz.
+5. **Thread-per-row formats break on power-law rows.** ASIC_100k: SELL 48 ms, CSR-scalar 7 ms, cuSPARSE 0.12 ms (a few rows
+   with tens of thousands of nonzeros run on one thread). This drags SELL's geomean to 0.18–0.22× (median 0.52×). The
+   selector must use max row length / row-length skew as features.
+6. **Conversion cost (host)**, in SpMV calls: ArgCSR ~60, ELL ~40, SELL ~15, cuSPARSE preprocess 0.3. Break-even needs
+   GPU converters (moved to Phase 3).
+
+**Implications for Phase 3 (decide as a team)**
+- With the oracle only 1.07–1.09× above cuSPARSE on average, G2's "beat always-cuSPARSE" leaves a narrow margin. Options:
+  widen the candidates (ArgCSR-local with per-region D; CSR-vector with v chosen per row block) or re-scope G2 to "within 10%
+  of the oracle and never slower than cuSPARSE on large matrices".
+- Feature list confirmed by the data: nnz, rows, mean/max row length, row-length CV/skew, fraction of empty rows.
 
 ### 2026-09-23 (Wed) — Phase 1 complete: infrastructure + cuSPARSE baseline
 **Built** (see [docs/phase1_guide.md](docs/phase1_guide.md) for the design)

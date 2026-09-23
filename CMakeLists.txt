@@ -31,7 +31,12 @@ add_library(rasp STATIC
   src/core/reference.cpp
   src/core/timer.cu
   src/io/matrix_market.cpp
-  src/cusparse/cusparse_ref.cu)
+  src/cusparse/cusparse_ref.cu
+  src/formats/ell.cpp
+  src/formats/sell.cpp
+  src/formats/argcsr.cpp
+  src/spmv/config.cpp
+  src/spmv/kernels.cu)
 target_include_directories(rasp PUBLIC include)
 target_link_libraries(rasp PUBLIC CUDA::cudart CUDA::cusparse)
 target_compile_definitions(rasp PRIVATE RASP_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
@@ -46,7 +51,7 @@ target_link_libraries(uvm_probe PRIVATE CUDA::cudart)
 
 # ---- tests (run with: ctest --test-dir build --output-on-failure)
 enable_testing()
-foreach(t test_io test_spmv test_spgemm test_harness)
+foreach(t test_io test_spmv test_spgemm test_harness test_formats)
   file(GLOB src tests/${t}.c*)
   add_executable(${t} ${src})
   target_link_libraries(${t} PRIVATE rasp)
