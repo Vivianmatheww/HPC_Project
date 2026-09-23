@@ -3,7 +3,8 @@
 //   bench_spmv --matrices <dir-or-.mtx> [--out results/phase1_cusparse.csv] [--kernels cusparse|all|<labels>]
 //              [--reps 20] [--warmup 5] [--no-flush] [--precisions fp32,fp64] [--max-nnz N] [--peak-bw 187.8]
 //
-// --kernels: "cusparse" (Phase 1 baseline, default), "all" (the 33 Phase 2 configs) or comma-separated
+// --kernels: "cusparse" (Phase 1 baseline, default), "phase2" (the 33 Phase 2 configs), "extensions" (CSR-binned,
+// ArgCSR-local), "all" (phase2 + extensions) or comma-separated
 // labels such as csr_vector_v8,sell_C32_s256,argcsr_B128_D1.
 //
 // One CSV row per (matrix, precision, config). Every result is checked against the CPU reference
@@ -78,7 +79,9 @@ Args parse(int argc, char** argv) {
     else if (k == "--kernels") {
       const std::string v = val();
       a.kernels.clear();
-      if (v == "all") a.kernels = phase2_configs();
+      if (v == "all") a.kernels = all_configs();
+      else if (v == "phase2") a.kernels = phase2_configs();
+      else if (v == "extensions") a.kernels = extension_configs();
       else if (v == "cusparse") a.kernels = {KernelConfig::parse("cusparse_alg1"), KernelConfig::parse("cusparse_alg2")};
       else
         for (auto& s : split(v)) {

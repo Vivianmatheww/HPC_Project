@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Phase 2 analysis: oracle table, performance profiles, and the paper-2 (ArgCSR) reproduction.
 
-Inputs:  results/phase2_spmv.csv (bench_spmv --kernels all), data/suitesparse/manifest.csv
+Inputs:  results/phase2_spmv.csv (bench_spmv --kernels phase2) [+ results/phase3a_extensions.csv], manifest.csv
+         Several --csv files are merged; if a (matrix, precision, config) appears twice the first file wins.
 Outputs: results/spmv_oracle.csv            best config per (matrix, precision) + best of every family
          results/phase2/perf_profile.png    Dolan-More performance profiles, FP32 and FP64
          results/phase2/argcsr_chunk.png    ArgCSR GFLOP/s vs desiredChunkSize (paper-2 sensitivity)
+         results/phase2/perf_profile_extensions.png   CSR-binned / ArgCSR-local vs what they extend (if present)
          results/phase2/summary.txt         the tables printed below
 
     python scripts/analyze_phase2.py [--csv results/phase2_spmv.csv]
@@ -35,6 +37,15 @@ PROFILE_LINES = [
     ("ArgCSR B=128 D=1 (paper default)", "config", "argcsr_B128_D1"),
     ("ArgCSR, best B,D", "family", "argcsr"),
 ]
+# Extension profile: each new format next to the fixed and the oracle-tuned version of what it extends.
+PROFILE_EXT = [
+    ("cuSPARSE ALG1 (default)", "config", "cusparse_alg1"),
+    ("CSR-vector, best v (tuned per matrix)", "family", "csr_vector"),
+    ("CSR-binned t=4 (no tuning)", "config", "csr_binned_t4"),
+    ("ArgCSR B=128 D=1 (paper default)", "config", "argcsr_B128_D1"),
+    ("ArgCSR, best B,D (tuned per matrix)", "family", "argcsr"),
+    ("ArgCSR-local B=128 R=32 (no tuning)", "config", "argcsr_local_B128_R32"),
+]
 PAPER2 = ["Rajat/rajat23", "IBM_EDA/ckt11752_dc_1", "Sandia/ASIC_100k", "TSOPF/TSOPF_RS_b162_c1",
           "TSOPF/TSOPF_FS_b39_c7", "QY/case39", "Schenk_AFE/af_shell1", "Norris/torso2", "TKK/t2d_q9",
           "GHS_indef/ncvxqp9"]
@@ -46,8 +57,9 @@ def geomean(x):
     return float(np.exp(np.log(x).mean())) if len(x) else float("nan")
 
 
-def load(csv_path, manifest_path):
-    df = pd.read_csv(csv_path)
+def load(csv_paths, manifest_path):
+    df = pd.concat([pd.read_csv(p) for p in csv_paths], ignore_index=True)
+    df = df.drop_duplicates(subset=["matrix", "precision", "config"], keep="first")
     bad = df[(df["status"] == "ok") & (df["check"] != "pass")]
     if len(bad):
         raise SystemExit(f"{len(bad)} rows failed the correctness check; fix before analysing:\n{bad[['matrix', 'config', 'precision', 'rel_err']]}")
@@ -83,18 +95,18 @@ def line_times(ok, prec, how, what):
     return sel.groupby("matrix")["median_ms"].min()
 
 
-def perf_profile(ok, out):
+def perf_profile(ok, out, lines=PROFILE_LINES, name="perf_profile.png"):
     precs = [p for p in ("fp32", "fp64") if p in set(ok["precision"])]
     fig, axes = plt.subplots(1, len(precs), figsize=(6.2 * len(precs), 5.0), sharey=True, squeeze=False)
     fig.patch.set_facecolor(SURFACE)
     taus = np.logspace(0, np.log10(8), 400)
     for ax, prec in zip(axes[0], precs):
         best = ok[ok["precision"] == prec].groupby("matrix")["median_ms"].min()
-        for (name, how, what), color in zip(PROFILE_LINES, SLOTS):
+        for (label, how, what), color in zip(lines, SLOTS):
             t = line_times(ok, prec, how, what).reindex(best.index)  # missing (infeasible) -> NaN -> never solved
             ratio = (t / best).to_numpy()
             frac = [(np.nan_to_num(ratio, nan=np.inf) <= tau).mean() for tau in taus]
-            ax.step(taus, frac, where="post", color=color, linewidth=2, label=name)
+            ax.step(taus, frac, where="post", color=color, linewidth=2, label=label)
         ax.set_xscale("log", base=2)
         ax.set_xlim(1, 8)
         ax.set_ylim(0, 1.02)
@@ -110,11 +122,12 @@ def perf_profile(ok, out):
             ax.spines[side].set_color(GRID)
     axes[0][0].set_ylabel("fraction of matrices", color=TEXT2)
     handles, labels = axes[0][0].get_legend_handles_labels()
-    fig.legend(handles, labels, frameon=False, loc="lower center", ncol=4, fontsize=9, labelcolor=TEXT)
+    fig.legend(handles, labels, frameon=False, loc="lower center", ncol=4 if len(lines) > 6 else 3, fontsize=9,
+               labelcolor=TEXT)
     fig.suptitle("SpMV performance profiles on RTX 4050 Laptop: higher and further left is better",
                  color=TEXT, fontsize=12, x=0.01, ha="left")
     fig.tight_layout(rect=(0, 0.1, 1, 1))
-    fig.savefig(out / "perf_profile.png", dpi=150, facecolor=SURFACE)
+    fig.savefig(out / name, dpi=150, facecolor=SURFACE)
     plt.close(fig)
 
 
@@ -161,7 +174,7 @@ def report(df, ok, oracle):
     print("== Which family is fastest (oracle wins) ==")
     print(oracle.groupby(["precision", "best_family"]).size().unstack(0).fillna(0).astype(int).to_string(), "\n")
 
-    print("== Speedup of the oracle (best of all 33 configs) ==")
+    print("== Speedup of the oracle (best of all configs) ==")
     for prec, g in oracle.groupby("precision"):
         print(f"{prec}: vs cuSPARSE ALG1 geomean {geomean(g['speedup_vs_cusparse_alg1']):.2f}x "
               f"(max {g['speedup_vs_cusparse_alg1'].max():.2f}x); vs best cuSPARSE {geomean(g['speedup_vs_best_cusparse']):.2f}x; "
@@ -216,6 +229,26 @@ def report(df, ok, oracle):
     t["argcsr_D1/cusparse"] = t["argcsr_B128_D1"] / t["cusparse_alg1"]
     print(t.round(2).to_string(), "\n")
 
+    if (ok["kernel"] == "argcsr_local").any() or (ok["kernel"] == "csr_binned").any():
+        print("== Extensions (vs cuSPARSE ALG1, geomean speedup; >1 = faster) ==")
+        rows = []
+        for cfg in sorted(ok.loc[ok["kernel"].isin(["csr_binned", "argcsr_local"]), "config"].unique()):
+            r = {"config": cfg}
+            for prec in ("fp32", "fp64"):
+                base = line_times(ok, prec, "config", "cusparse_alg1")
+                t = line_times(ok, prec, "config", cfg).reindex(base.index)
+                r[prec] = round(geomean(base / t), 3)
+                r[f"{prec} wins"] = int((base / t > 1).sum())
+            rows.append(r)
+        print(pd.DataFrame(rows).to_string(index=False))
+        arg = ok[ok["kernel"] == "argcsr"]
+        k = ["matrix", "precision"]
+        tuned = arg.groupby(k)["median_ms"].min()
+        d1 = arg[arg["config"] == "argcsr_B128_D1"].set_index(k)["median_ms"]
+        loc = ok[ok["config"] == "argcsr_local_B128_R32"].set_index(k)["median_ms"]
+        print(f"ArgCSR-local B128 R32 (one untuned config): {geomean(d1 / loc):.2f}x vs paper default D=1; "
+              f"reaches {geomean(tuned / loc):.2f} of per-matrix-tuned ArgCSR (18 configs)\n")
+
     print("== Conversion cost in SpMV calls (median over matrices of convert_ms / median_ms, FP64) ==")
     c = ok[ok["precision"] == "fp64"].assign(calls=lambda d: d["convert_ms"] / d["median_ms"])
     print(c.groupby("kernel")["calls"].median().round(1).to_string())
@@ -224,17 +257,21 @@ def report(df, ok, oracle):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--csv", type=Path, default=Path("results/phase2_spmv.csv"))
+    ap.add_argument("--csv", type=Path, nargs="+",
+                    default=[Path("results/phase2_spmv.csv"), Path("results/phase3a_extensions.csv")])
     ap.add_argument("--manifest", type=Path, default=Path("data/suitesparse/manifest.csv"))
     ap.add_argument("--out", type=Path, default=Path("results/phase2"))
     ap.add_argument("--oracle", type=Path, default=Path("results/spmv_oracle.csv"))
     args = ap.parse_args()
 
-    df, ok = load(args.csv, args.manifest)
+    df, ok = load([c for c in args.csv if c.exists()], args.manifest)
     oracle = oracle_table(ok)
     args.out.mkdir(parents=True, exist_ok=True)
     oracle.to_csv(args.oracle, index=False, float_format="%.6g")
+    args.csv = [c for c in args.csv if c.exists()]
     perf_profile(ok, args.out)
+    if (ok["kernel"] == "argcsr_local").any():
+        perf_profile(ok, args.out, PROFILE_EXT, "perf_profile_extensions.png")
     chunk_sensitivity(ok, args.out)
 
     buf = io.StringIO()

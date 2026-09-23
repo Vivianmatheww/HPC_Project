@@ -1,17 +1,18 @@
-60 matrices x 33 configs x 2 precisions: 3892 ok rows (all pass the correctness check), 68 infeasible, 0 errors
+60 matrices x 40 configs x 2 precisions: 4732 ok rows (all pass the correctness check), 68 infeasible, 0 errors
 
 == Which family is fastest (oracle wins) ==
 precision    fp32  fp64
 best_family            
 argcsr          0     2
-csr_scalar      8     4
-csr_vector     16    26
-cusparse       35    27
+csr_binned      3     6
+csr_scalar      7     4
+csr_vector     15    23
+cusparse       34    24
 sell            1     1 
 
-== Speedup of the oracle (best of all 33 configs) ==
-fp32: vs cuSPARSE ALG1 geomean 1.07x (max 1.38x); vs best cuSPARSE 1.06x; cuSPARSE is the oracle on 35/60
-fp64: vs cuSPARSE ALG1 geomean 1.09x (max 1.30x); vs best cuSPARSE 1.08x; cuSPARSE is the oracle on 27/60
+== Speedup of the oracle (best of all configs) ==
+fp32: vs cuSPARSE ALG1 geomean 1.07x (max 1.38x); vs best cuSPARSE 1.06x; cuSPARSE is the oracle on 34/60
+fp64: vs cuSPARSE ALG1 geomean 1.11x (max 1.30x); vs best cuSPARSE 1.09x; cuSPARSE is the oracle on 24/60
 
 == Each line of the profile vs cuSPARSE ALG1 (geomean speedup; >1 = faster) ==
                             line  fp32 geomean  fp32 feasible  fp64 geomean  fp64 feasible
@@ -26,8 +27,8 @@ ArgCSR B=128 D=1 (paper default)         0.525             60         0.633     
 == By size (FP64): oracle speedup vs cuSPARSE ALG1, and most common winning family ==
          matrices  geomean_speedup  top_family
 size                                          
-<100k          25             1.13  csr_vector
-100k-1M        23             1.09  csr_vector
+<100k          25             1.16  csr_vector
+100k-1M        23             1.10  csr_vector
 >1M            12             1.02    cusparse 
 
 == Best ArgCSR desiredChunkSize per matrix (a single global value cannot be right) ==
@@ -59,12 +60,25 @@ TKK/t2d_q9                 structural problem sequence           8.95           
 TSOPF/TSOPF_FS_b39_c7            power network problem          16.20           10.80        11.73  17.39    cusparse_alg2                0.67
 TSOPF/TSOPF_RS_b162_c1           power network problem          13.37            5.21        12.16  14.33    csr_vector_v8                0.39 
 
+== Extensions (vs cuSPARSE ALG1, geomean speedup; >1 = faster) ==
+               config  fp32  fp32 wins  fp64  fp64 wins
+argcsr_local_B128_R32 0.681          4 0.775         12
+argcsr_local_B128_R64 0.656          4 0.750          7
+argcsr_local_B256_R32 0.682          3 0.775         12
+argcsr_local_B256_R64 0.699          5 0.788         14
+        csr_binned_t1 0.782          7 0.880         14
+        csr_binned_t2 0.853         13 0.947         27
+        csr_binned_t4 0.882         10 0.954         27
+ArgCSR-local B128 R32 (one untuned config): 1.26x vs paper default D=1; reaches 0.89 of per-matrix-tuned ArgCSR (18 configs)
+
 == Conversion cost in SpMV calls (median over matrices of convert_ms / median_ms, FP64) ==
 kernel
-argcsr        60.2
-csr_scalar     0.0
-csr_vector     0.0
-cusparse       0.3
-ell           39.9
-sell          15.3
+argcsr          60.2
+argcsr_local    80.7
+csr_binned       4.2
+csr_scalar       0.0
+csr_vector       0.0
+cusparse         0.3
+ell             39.9
+sell            15.3
 (host-side conversion; cuSPARSE = cusparseSpMV_preprocess on the GPU)

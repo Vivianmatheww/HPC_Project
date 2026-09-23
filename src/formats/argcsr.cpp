@@ -1,5 +1,6 @@
 // Adaptive Row-grouped CSR conversion, following Section 3 of Heller & Oberhuber (arXiv:1203.5737).
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <queue>
 
@@ -7,9 +8,11 @@
 
 namespace rasp {
 
-template <class T>
-ArgCsrHost<T> build_argcsr(const HostCsr<T>& A, int block, int desired_chunk, double max_fill) {
-  if (block <= 0 || desired_chunk <= 0) throw std::invalid_argument("build_argcsr: block and chunk must be > 0");
+namespace {
+
+// Shared by the global and the local variant. budget(r) = desiredChunkSize * block for a group starting at row r.
+template <class T, class Budget>
+ArgCsrHost<T> build_impl(const HostCsr<T>& A, int block, int desired_chunk, const Budget& budget_for, double max_fill) {
   ArgCsrHost<T> G;
   G.rows = A.rows;
   G.cols = A.cols;
@@ -21,9 +24,9 @@ ArgCsrHost<T> build_argcsr(const HostCsr<T>& A, int block, int desired_chunk, do
   // 1. Group formation. The paper closes a group once its nonzeros exceed desiredChunkSize * blockDim or it
   //    would get more than blockDim rows. We close *before* adding the row that would exceed the budget, so a
   //    group never exceeds it unless it holds a single long row.
-  const int64_t budget = int64_t(desired_chunk) * block;
   for (int32_t r = 0; r < A.rows;) {
     ArgGroup g{r, 0, 0, 0};
+    const int64_t budget = budget_for(r);
     int64_t nnz = 0;
     while (r < A.rows && g.size < block && (g.size == 0 || nnz + len(r) <= budget)) {
       nnz += len(r);
@@ -92,7 +95,48 @@ ArgCsrHost<T> build_argcsr(const HostCsr<T>& A, int block, int desired_chunk, do
   return G;
 }
 
+}  // namespace
+
+template <class T>
+ArgCsrHost<T> build_argcsr(const HostCsr<T>& A, int block, int desired_chunk, double max_fill) {
+  if (block <= 0 || desired_chunk <= 0) throw std::invalid_argument("build_argcsr: block and chunk must be > 0");
+  const int64_t budget = int64_t(desired_chunk) * block;
+  return build_impl(A, block, desired_chunk, [&](int32_t) { return budget; }, max_fill);
+}
+
+int argcsr_local_chunk(double mean_len, double cv, int block, int target_rows) {
+  const double ideal = double(target_rows) * mean_len / double(block);
+  // Nearest power of two in [1, 32]; clamp the exponent before shifting (empty regions give log2 -> -inf).
+  const int e = ideal > 0 ? std::clamp(int(std::lround(std::log2(ideal))), 0, 5) : 0;
+  int d = 1 << e;
+  if (cv > 1.0) d = std::max(1, d / 2);  // very irregular region: smaller groups, less padding
+  return d;
+}
+
+template <class T>
+ArgCsrHost<T> build_argcsr_local(const HostCsr<T>& A, int block, int target_rows, int window, double max_fill) {
+  if (block <= 0 || target_rows <= 0 || window <= 0) throw std::invalid_argument("build_argcsr_local: bad arguments");
+  // One desiredChunkSize per window of rows, from that window's own row-length mean and CV.
+  const int32_t windows = (A.rows + window - 1) / window;
+  std::vector<int64_t> budget(size_t(std::max(windows, 1)), block);
+  for (int32_t w = 0; w < windows; ++w) {
+    const int32_t r0 = w * window, r1 = std::min(A.rows, r0 + window);
+    double sum = 0, sq = 0;
+    for (int32_t r = r0; r < r1; ++r) {
+      const double l = A.row_ptr[size_t(r) + 1] - A.row_ptr[size_t(r)];
+      sum += l;
+      sq += l * l;
+    }
+    const double n = r1 - r0, mean = sum / n, var = std::max(0.0, sq / n - mean * mean);
+    const double cv = mean > 0 ? std::sqrt(var) / mean : 0.0;
+    budget[size_t(w)] = int64_t(argcsr_local_chunk(mean, cv, block, target_rows)) * block;
+  }
+  return build_impl(A, block, 0, [&](int32_t r) { return budget[size_t(r / window)]; }, max_fill);
+}
+
 template ArgCsrHost<float> build_argcsr(const HostCsr<float>&, int, int, double);
 template ArgCsrHost<double> build_argcsr(const HostCsr<double>&, int, int, double);
+template ArgCsrHost<float> build_argcsr_local(const HostCsr<float>&, int, int, int, double);
+template ArgCsrHost<double> build_argcsr_local(const HostCsr<double>&, int, int, int, double);
 
 }  // namespace rasp

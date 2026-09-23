@@ -1,5 +1,7 @@
 // Phase 2 formats and kernels: converter structure (incl. the ArgCSR example from the paper) and every
 // kernel configuration against the CPU reference.
+#include <algorithm>
+
 #include "rasp/formats.hpp"
 #include "rasp/io.hpp"
 #include "rasp/reference.hpp"
@@ -47,7 +49,7 @@ double kernel_error(const KernelConfig& cfg, const HostCsr<T>& h) {
 template <class T>
 void all_configs_on(const HostCsr<T>& h, const char* what) {
   const double tol = sizeof(T) == 8 ? 1e-12 : 1e-5;
-  for (const auto& cfg : phase2_configs()) {
+  for (const auto& cfg : all_configs()) {
     try {
       const double err = kernel_error(cfg, h);
       if (!(err <= tol))
@@ -122,12 +124,46 @@ TEST(ell_refuses_heavy_padding) {
 }
 
 TEST(config_labels_round_trip) {
-  const auto cfgs = phase2_configs();
-  CHECK(cfgs.size() == 33);
+  CHECK(phase2_configs().size() == 33);
+  CHECK(extension_configs().size() == 7);
+  const auto cfgs = all_configs();
+  CHECK(cfgs.size() == 40);
   for (const auto& c : cfgs) CHECK(KernelConfig::parse(c.label()).label() == c.label());
+  CHECK(KernelConfig::parse("argcsr_local_B128_R32").family() == "argcsr_local");
+  CHECK_THROWS(KernelConfig::parse("csr_binned_t0"));
   CHECK_THROWS(KernelConfig::parse("csr_vector_v3"));
   CHECK_THROWS(KernelConfig::parse("argcsr_B100_D1"));
   CHECK_THROWS(KernelConfig::parse("nonsense"));
+}
+
+TEST(binned_bins) {
+  CHECK(binned_bin(0, 2) == 0 && binned_bin(1, 2) == 0 && binned_bin(2, 2) == 0);   // 1 lane
+  CHECK(binned_bin(3, 2) == 1 && binned_bin(4, 2) == 1);                           // 2 lanes
+  CHECK(binned_bin(5, 2) == 2 && binned_bin(64, 2) == 5 && binned_bin(4000, 2) == 5);  // 4 .. 32 lanes (capped)
+  CHECK(binned_bin(kLongRow + 1, 2) == kBins - 1);                                 // block per row
+  auto A = rasp_test::random_csr<double>(1000, 6000, [](int32_t r) { return r == 5 ? 5000 : r % 40; }, 13);
+  const auto H = build_binned(A, 2);
+  CHECK(H.bin_row_start.front() == 0 && H.bin_row_start.back() == 1000);
+  CHECK(H.bin_row_start[kBins] - H.bin_row_start[kBins - 1] == 1);  // the 5000-long row
+  std::vector<int> seen(1000, 0);
+  for (int32_t r : H.order) ++seen[size_t(r)];
+  CHECK(std::all_of(seen.begin(), seen.end(), [](int c) { return c == 1; }));  // a permutation
+  for (int k = 0; k < kBins; ++k)  // stable: rows stay in ascending order inside each bin
+    for (int32_t i = H.bin_row_start[size_t(k)] + 1; i < H.bin_row_start[size_t(k) + 1]; ++i)
+      CHECK(H.order[size_t(i) - 1] < H.order[size_t(i)]);
+}
+
+TEST(argcsr_local_chunk_rule) {
+  CHECK(argcsr_local_chunk(4.0, 0.2, 128, 32) == 1);    // 32 rows x 4 = 128 nnz = 1 x 128
+  CHECK(argcsr_local_chunk(16.0, 0.2, 128, 32) == 4);
+  CHECK(argcsr_local_chunk(16.0, 3.0, 128, 32) == 2);   // irregular: halved
+  CHECK(argcsr_local_chunk(1000.0, 0.1, 128, 64) == 32);  // clamped
+  CHECK(argcsr_local_chunk(0.0, 0.0, 128, 32) == 1);
+  // On a perfectly uniform matrix the local variant equals the global one with the implied D.
+  auto A = rasp_test::random_csr<double>(9000, 500, [](int32_t) { return 16; }, 14);
+  const auto L = build_argcsr_local(A, 128, 32);
+  const auto G = build_argcsr(A, 128, 4);
+  CHECK(L.groups.size() == G.groups.size() && L.col == G.col && L.threads_end == G.threads_end);
 }
 
 TEST(all_kernels_fp64) { suite<double>(); }

@@ -113,6 +113,50 @@ __global__ void argcsr_kernel(const ArgGroup* __restrict__ groups, const int* __
   }
 }
 
+// CSR-binned: one launch covers every bin; each block finds its bin from the (tiny) block table.
+struct BinTable {
+  int row_start[kBins + 1];
+  int block_start[kBins + 1];
+};
+
+template <class T>
+__global__ void csr_binned_kernel(BinTable tab, const int* __restrict__ order, const int* __restrict__ rp,
+                                  const int* __restrict__ ci, const T* __restrict__ v, const T* __restrict__ x,
+                                  T* __restrict__ y) {
+  int bin = 0;
+  while (bin < kBins - 1 && int(blockIdx.x) >= tab.block_start[bin + 1]) ++bin;
+  const int local = blockIdx.x - tab.block_start[bin];
+
+  if (bin == kBins - 1) {  // one long row per block, block-wide reduction
+    __shared__ T warp_sums[kBinnedBlock / 32];
+    const int row = order[tab.row_start[bin] + local];
+    T s = 0;
+    for (int k = rp[row] + threadIdx.x; k < rp[row + 1]; k += blockDim.x) s += v[k] * x[ci[k]];
+    for (int o = 16; o > 0; o >>= 1) s += __shfl_down_sync(0xffffffffu, s, o);
+    if (threadIdx.x % 32 == 0) warp_sums[threadIdx.x / 32] = s;
+    __syncthreads();
+    if (threadIdx.x < 32) {
+      s = threadIdx.x < blockDim.x / 32 ? warp_sums[threadIdx.x] : T(0);
+      for (int o = 16; o > 0; o >>= 1) s += __shfl_down_sync(0xffffffffu, s, o);
+      if (threadIdx.x == 0) y[row] = s;
+    }
+    return;
+  }
+
+  const int V = 1 << bin;  // lanes per row
+  const int idx = local * (blockDim.x / V) + threadIdx.x / V;
+  if (idx >= tab.row_start[bin + 1] - tab.row_start[bin]) return;  // whole V-lane group exits together
+  const int row = order[tab.row_start[bin] + idx];
+  const int lane = threadIdx.x % V;
+  T s = 0;
+  for (int k = rp[row] + lane; k < rp[row + 1]; k += V) s += v[k] * x[ci[k]];
+  if (V > 1) {
+    const unsigned mask = V == 32 ? 0xffffffffu : (((1u << V) - 1) << ((threadIdx.x % 32) / V * V));
+    for (int o = V / 2; o > 0; o >>= 1) s += __shfl_down_sync(mask, s, o, V);
+  }
+  if (lane == 0) y[row] = s;
+}
+
 // ---------------------------------------------------------------- kernel objects
 template <class T>
 class CusparseKernel final : public SpmvKernel<T> {
@@ -229,11 +273,45 @@ class SellKernel final : public SpmvKernel<T> {
 };
 
 template <class T>
+class CsrBinnedKernel final : public SpmvKernel<T> {
+ public:
+  CsrBinnedKernel(int t, const DeviceCsr<T>& A, const HostCsr<T>& h, const T* x, T* y) : A_(A), x_(x), y_(y) {
+    const auto t0 = std::chrono::steady_clock::now();
+    const auto H = build_binned(h, t);
+    for (int k = 0; k <= kBins; ++k) {
+      tab_.row_start[k] = H.bin_row_start[size_t(k)];
+      tab_.block_start[k] = H.bin_block_start[size_t(k)];
+    }
+    blocks_ = H.blocks;
+    order_.upload(H.order);
+    RASP_CUDA(cudaDeviceSynchronize());
+    this->convert_ms_ = ms_since(t0);
+    this->format_bytes_ = A.bytes() + order_.bytes();
+    this->stored_slots_ = A.nnz();
+  }
+  void run(cudaStream_t s) override {
+    if (blocks_ == 0) return;
+    csr_binned_kernel<T><<<blocks_, kBinnedBlock, 0, s>>>(tab_, order_.data(), A_.row_ptr(), A_.col_idx(), A_.vals(),
+                                                          x_, y_);
+  }
+
+ private:
+  const DeviceCsr<T>& A_;
+  BinTable tab_{};
+  int blocks_ = 0;
+  DeviceBuffer<int32_t> order_;
+  const T* x_;
+  T* y_;
+};
+
+template <class T>
 class ArgCsrKernel final : public SpmvKernel<T> {
  public:
-  ArgCsrKernel(int block, int chunk, const HostCsr<T>& h, const T* x, T* y) : block_(block), x_(x), y_(y) {
+  // local_rows > 0 selects ArgCSR-local (per-window desiredChunkSize targeting local_rows rows per group).
+  ArgCsrKernel(int block, int chunk, int local_rows, const HostCsr<T>& h, const T* x, T* y)
+      : block_(block), x_(x), y_(y) {
     const auto t0 = std::chrono::steady_clock::now();
-    const auto G = build_argcsr(h, block, chunk);
+    const auto G = local_rows > 0 ? build_argcsr_local(h, block, local_rows) : build_argcsr(h, block, chunk);
     groups_ = int(G.groups.size());
     groups_buf_.upload(G.groups);
     threads_end_.upload(G.threads_end);
@@ -271,7 +349,9 @@ std::unique_ptr<SpmvKernel<T>> make_spmv_kernel(const KernelConfig& cfg, const H
     case Format::CsrVector: return std::make_unique<CsrKernel<T>>(cfg.v, dev, x, y);
     case Format::Ell: return std::make_unique<EllKernel<T>>(host, x, y);
     case Format::Sell: return std::make_unique<SellKernel<T>>(cfg.C, cfg.sigma, host, x, y);
-    case Format::ArgCsr: return std::make_unique<ArgCsrKernel<T>>(cfg.block, cfg.chunk, host, x, y);
+    case Format::ArgCsr: return std::make_unique<ArgCsrKernel<T>>(cfg.block, cfg.chunk, 0, host, x, y);
+    case Format::CsrBinned: return std::make_unique<CsrBinnedKernel<T>>(cfg.t, dev, host, x, y);
+    case Format::ArgCsrLocal: return std::make_unique<ArgCsrKernel<T>>(cfg.block, 0, cfg.rows, host, x, y);
   }
   throw std::invalid_argument("make_spmv_kernel: unknown format");
 }

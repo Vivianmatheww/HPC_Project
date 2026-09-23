@@ -22,7 +22,7 @@ See [project_context.md](project_context.md) for the full paper analysis and how
 
 ## Status
 
-**Phases 1–2 implemented** (infrastructure; SpMV kernels incl. ArgCSR and the paper-2 reproduction). Phase 3 (runtime selector) next. See [progress.md](progress.md).
+**Phases 1–2 implemented; Phase 3 in progress** (candidate set widened with CSR-binned and ArgCSR-local; selector next). See [progress.md](progress.md).
 
 ## Target platform
 

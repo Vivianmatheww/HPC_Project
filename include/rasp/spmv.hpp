@@ -10,7 +10,7 @@
 
 namespace rasp {
 
-enum class Format { Cusparse, CsrScalar, CsrVector, Ell, Sell, ArgCsr };
+enum class Format { Cusparse, CsrScalar, CsrVector, Ell, Sell, ArgCsr, CsrBinned, ArgCsrLocal };
 
 struct KernelConfig {
   Format format = Format::CsrScalar;
@@ -18,8 +18,10 @@ struct KernelConfig {
   int v = 0;       // csr_vector: threads per row (2..32, power of two)
   int C = 0;       // sell: slice height (8 or 32)
   int sigma = 0;   // sell: sorting window (1 = none, 0 = all rows)
-  int block = 0;   // argcsr: threads (chunks) per group
+  int block = 0;   // argcsr, argcsr_local: threads (chunks) per group
   int chunk = 0;   // argcsr: desiredChunkSize
+  int t = 0;       // csr_binned: target elements per lane
+  int rows = 0;    // argcsr_local: target rows per group
 
   std::string family() const;  // "argcsr"
   std::string label() const;   // "argcsr_B128_D1" (unique, CSV/filename safe)
@@ -29,6 +31,12 @@ struct KernelConfig {
 // All Phase 2 configurations: cuSPARSE ALG1/2, CSR-scalar, CSR-vector v=2..32, ELL,
 // SELL C={8,32} x sigma={1,256,all}, ArgCSR block={64,128,256} x desiredChunkSize={1,2,4,8,16,32}.
 std::vector<KernelConfig> phase2_configs();
+
+// The candidate-set extensions (Phase 3a): CSR-binned t={1,2,4} and ArgCSR-local B={128,256} x R={32,64}.
+std::vector<KernelConfig> extension_configs();
+
+// phase2_configs() + extension_configs().
+std::vector<KernelConfig> all_configs();
 
 template <class T>
 class SpmvKernel {

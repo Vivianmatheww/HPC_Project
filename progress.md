@@ -13,7 +13,7 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 | 0 — Setup | 0 | Sep 23 – Sep 27 | ✅ | Toolchain, 11 GB WSL, CMake, UVM probe, git, nsys + ncu. Carried over: teammate setup |
 | 1 — Infrastructure | 1–2 | Sep 28 – Oct 9 | ✅ | Done Sep 23 (early). 28 unit tests; cuSPARSE baseline on 60 matrices |
 | 2 — SpMV kernels + paper-2 reproduction | 3–4 | Oct 12 – Oct 23 | ✅ | Done Sep 23 (early). 33 configs × 60 matrices; oracle table |
-| 3 — Runtime SpMV selector | 5–6 | Oct 26 – Nov 6 | ⬜ | Midpoint demo |
+| 3 — Runtime SpMV selector | 5–6 | Oct 26 – Nov 6 | 🟨 | Step (a) done Sep 24: candidate set widened (CSR-binned, ArgCSR-local). Selector next |
 | 4 — Out-of-core adaptive SpGEMM | 7–9 | Nov 9 – Nov 27 | ⬜ | |
 | 5 — Integration + apps | 10 | Nov 30 – Dec 4 | ⬜ | |
 | 6 — Evaluation + report | 11–12 | Dec 7 – Dec 18 | ⬜ | |
@@ -55,6 +55,44 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 ---
 
 ## Log
+
+### 2026-09-24 (Thu) — Phase 3 step (a): widening the candidate set
+**Why:** Phase 2's oracle was only 1.07–1.09× above cuSPARSE, so we added two formats aimed at the gaps it exposed.
+
+**Built**
+- **CSR-binned** (`csr_binned_t{1,2,4}`): CSR-vector with the lane count chosen *per row*: v = pow2ceil(len / t), 1–32,
+  and a 256-thread block for rows > 4096. Rows are stably grouped by bin; one kernel launch covers all bins
+  ([src/formats/binned.cpp](src/formats/binned.cpp), `csr_binned_kernel` in [src/spmv/kernels.cu](src/spmv/kernels.cu)).
+- **ArgCSR-local** (`argcsr_local_B{128,256}_R{32,64}`): desiredChunkSize per 4096-row window. Phase 2 data showed
+  the best global D tracks mean row length (Spearman ρ = 0.59; CV only −0.28) and keeps a median 41 rows per group
+  (IQR 20–75), so each window gets D = pow2_round(R · mean_len / B), halved if CV > 1, clamped to [1, 32]. The
+  converter is shared with global ArgCSR; the kernel is unchanged. A test proves that on a uniform matrix the local
+  variant equals global ArgCSR with the implied D.
+- Tests: `binned_bins`, `argcsr_local_chunk_rule`, and all 40 configs on every edge case (5 suites pass). The rule test
+  caught an undefined `1 << -30` for empty regions, which is now fixed.
+- `bench_spmv --kernels phase2|extensions|all`; `analyze_phase2.py` merges several CSVs.
+
+**Results** ([results/phase3a_extensions.csv](results/phase3a_extensions.csv): 1,080 runs, all correct; cuSPARSE drift
+vs the Phase 2 run: 0.5% geomean, p5–p95 0.98–1.07, so the runs are combined; [figure](results/phase2/perf_profile_extensions.png))
+
+| | FP32 | FP64 |
+|---|---|---|
+| CSR-binned t=4 vs cuSPARSE ALG1 (geomean) | 0.88× | 0.95× (wins 27/60) |
+| ArgCSR-local B128 R32 vs cuSPARSE ALG1 | 0.68× | 0.78× |
+| **Oracle vs cuSPARSE, before → after** | **1.068 → 1.072×** | **1.094 → 1.105×** |
+| Extensions are the oracle on | 3 / 60 | 6 / 60 |
+
+1. **ArgCSR-local does what it was built for.** One *untuned* config is **1.26× faster than paper 2's default** and
+   reaches **0.89 of per-matrix-tuned ArgCSR** (best of 18 B,D per matrix); the best of 4 local configs reaches 0.96.
+   Automatic, local parameter choice recovers most of the tuning benefit, which is our improvement over paper 2.
+2. **CSR-binned fixes the thread-per-row failure** (ASIC_100k: SELL 48 ms, CSR-vector 0.41 ms → binned 0.24 ms)
+   and matches per-matrix-tuned CSR-vector without tuning. It is still 2× behind cuSPARSE on ASIC_100k.
+3. **But the oracle headroom barely moves (+0.4–1.0%).** Modern cuSPARSE ALG1 is near-optimal for large matrices, and
+   what remains (~7–10% geomean, up to 1.38×) is spread over many formats in small and medium matrices.
+
+**Decision needed (team):** widening the candidates alone does not create a margin over cuSPARSE, so **re-scope G2 to
+option (b)**: the selector must be within 10% of the oracle and never lose to cuSPARSE on large matrices. Keep the
+widened set as the selector's candidates (ArgCSR-local and CSR-binned are also cheaper to choose, with no per-matrix tuning).
 
 ### 2026-09-23 (Wed) — Phase 2 complete: SpMV kernels, ArgCSR reproduction, oracle table
 **Built**

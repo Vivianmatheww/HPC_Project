@@ -66,4 +66,30 @@ struct ArgCsrHost {
 template <class T>
 ArgCsrHost<T> build_argcsr(const HostCsr<T>& A, int block, int desired_chunk, double max_fill = 64.0);
 
+// ArgCSR-local (RASP extension): desiredChunkSize chosen per window of `window` rows instead of globally.
+// Phase 2 data showed the best global D keeps ~20-75 rows per group (median 41) and grows with the mean row
+// length, so each window gets D = pow2_round(target_rows * mean_len / block), clamped to [1, 32], halved when
+// the window is very irregular (row-length CV > 1). The kernel is unchanged: groups already carry their own chunk.
+int argcsr_local_chunk(double mean_len, double cv, int block, int target_rows);
+template <class T>
+ArgCsrHost<T> build_argcsr_local(const HostCsr<T>& A, int block, int target_rows, int window = 4096,
+                                 double max_fill = 64.0);
+
+// CSR-binned (RASP extension): CSR-vector with the number of lanes chosen per row instead of per matrix.
+// Row r gets v = pow2ceil(ceil(len / elems_per_lane)) lanes (1..32); rows longer than kLongRow get a whole
+// 256-thread block. Rows are grouped by bin (stable, so row order is kept inside a bin) and one kernel launch
+// covers every bin. No padding: only the row order is stored.
+constexpr int kBinnedBlock = 256;
+constexpr int kLongRow = 4096;
+constexpr int kBins = 7;  // v = 1, 2, 4, 8, 16, 32, block-per-row
+struct BinnedHost {
+  int32_t rows = 0, blocks = 0, elems_per_lane = 0;
+  std::vector<int32_t> order;             // rows grouped by bin
+  std::vector<int32_t> bin_row_start;     // kBins + 1 entries into `order`
+  std::vector<int32_t> bin_block_start;   // kBins + 1 entries: first thread block of each bin
+};
+int binned_bin(int32_t len, int elems_per_lane);
+template <class T>
+BinnedHost build_binned(const HostCsr<T>& A, int elems_per_lane);
+
 }  // namespace rasp

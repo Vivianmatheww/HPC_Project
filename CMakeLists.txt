@@ -35,6 +35,7 @@ add_library(rasp STATIC
   src/formats/ell.cpp
   src/formats/sell.cpp
   src/formats/argcsr.cpp
+  src/formats/binned.cpp
   src/spmv/config.cpp
   src/spmv/kernels.cu)
 target_include_directories(rasp PUBLIC include)
