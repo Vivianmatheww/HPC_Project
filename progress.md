@@ -10,7 +10,7 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 
 | Phase | Weeks | Dates | Status | Notes |
 |-------|-------|-------|--------|-------|
-| 0 — Setup | 0 | Sep 23 – Sep 27 | 🟨 | Toolchain, 11 GB WSL, CMake skeleton, UVM probe done; git init + Nsight check pending |
+| 0 — Setup | 0 | Sep 23 – Sep 27 | 🟨 | Toolchain, 11 GB WSL, CMake, UVM probe, git done; ncu counter permission + GitHub remote pending |
 | 1 — Infrastructure | 1–2 | Sep 28 – Oct 9 | ⬜ | |
 | 2 — SpMV kernels + paper-2 reproduction | 3–4 | Oct 12 – Oct 23 | ⬜ | |
 | 3 — Runtime SpMV selector | 5–6 | Oct 26 – Nov 6 | ⬜ | Midpoint demo |
@@ -39,7 +39,8 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 | D2H pinned bandwidth | **13.2 GB/s** (pageable 12.5); H2D+D2H concurrently = 13.3 GB/s total | same |
 | `asyncEngineCount` | **1** (H2D and D2H serialise; only copy ‖ compute overlaps) | `cudaDeviceGetAttribute` |
 | UVM on WSL2 | **Managed memory stays in host RAM and is read over PCIe (≡ zero-copy).** Warm reads 13.2 GB/s vs 187.8 device. Prefetch/Advise → `invalid device ordinal`. 1.25× VRAM alloc → `out of memory` | `uvm_probe` |
-| Nsight Compute works in WSL2 | Installed (ncu 2026.2.1, nsys 2026.1.3); profiling not tested yet | `ncu` on hello-kernel |
+| Nsight Systems in WSL2 | **Works** (nsys 2026.1.3: CUDA trace + `nsys stats`) | saxpy test kernel |
+| Nsight Compute in WSL2 | **Blocked: `ERR_NVGPUCTRPERM`.** Enable GPU performance counters for all users in the Windows NVIDIA Control Panel | `ncu --section SpeedOfLight` |
 | GPU basics | 20 SMs, 6.44 GB, 96-bit bus, 24 MB L2, 99 KB smem/block opt-in | `cudaGetDeviceProperties` |
 | Windows host RAM / WSL limit | 15.2 GB / **11 GB + 8 GB swap** (applied) | PowerShell, `free -g`, `swapon` |
 | Random-gather penalty, host vs device | 7.8× (256 MiB) · 21× (1 GiB) · 28× (4 GiB) | `uvm_probe`, 16M random 8-byte reads |
@@ -54,6 +55,19 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 ---
 
 ## Log
+
+### 2026-09-23 (Wed) — Git + profilers
+**Done**
+- `git init` on branch `main`; first commit `39f1c87` (docs, setup script, CMake, UVM probe + results).
+- Nsight Systems works in WSL2: a saxpy trace gives 1.17 ms/kernel (≈172 GB/s, consistent with the probe).
+
+**Blocked**
+- Nsight Compute: `ERR_NVGPUCTRPERM`. Fix on Windows: NVIDIA Control Panel → Desktop menu →
+  *Enable Developer Settings* → Developer → *Manage GPU Performance Counters* → *Allow access to
+  the GPU performance counters to all users*. Then `wsl --shutdown`.
+
+**Next**
+- Create a private GitHub repo, push `main`, and add Harsh and Karmanya as collaborators.
 
 ### 2026-09-23 (Wed) — WSL RAM + UVM probe
 **Done**
