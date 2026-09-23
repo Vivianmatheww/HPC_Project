@@ -10,7 +10,7 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 
 | Phase | Weeks | Dates | Status | Notes |
 |-------|-------|-------|--------|-------|
-| 0 — Setup | 0 | Sep 23 – Sep 27 | 🟨 | Toolchain, 11 GB WSL, CMake, UVM probe, git done; ncu counter permission + GitHub remote pending |
+| 0 — Setup | 0 | Sep 23 – Sep 27 | 🟨 | Toolchain, 11 GB WSL, CMake, UVM probe, git, nsys + ncu all working; GitHub remote + teammate setup pending |
 | 1 — Infrastructure | 1–2 | Sep 28 – Oct 9 | ⬜ | |
 | 2 — SpMV kernels + paper-2 reproduction | 3–4 | Oct 12 – Oct 23 | ⬜ | |
 | 3 — Runtime SpMV selector | 5–6 | Oct 26 – Nov 6 | ⬜ | Midpoint demo |
@@ -40,7 +40,7 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 | `asyncEngineCount` | **1** (H2D and D2H serialise; only copy ‖ compute overlaps) | `cudaDeviceGetAttribute` |
 | UVM on WSL2 | **Managed memory stays in host RAM and is read over PCIe (≡ zero-copy).** Warm reads 13.2 GB/s vs 187.8 device. Prefetch/Advise → `invalid device ordinal`. 1.25× VRAM alloc → `out of memory` | `uvm_probe` |
 | Nsight Systems in WSL2 | **Works** (nsys 2026.1.3: CUDA trace + `nsys stats`) | saxpy test kernel |
-| Nsight Compute in WSL2 | **Blocked: `ERR_NVGPUCTRPERM`.** Enable GPU performance counters for all users in the Windows NVIDIA Control Panel | `ncu --section SpeedOfLight` |
+| Nsight Compute in WSL2 | **Works** after enabling counters for all users in the NVIDIA Control Panel (ncu 2026.2.1: SpeedOfLight + MemoryWorkloadAnalysis sections) | `ncu` on saxpy |
 | GPU basics | 20 SMs, 6.44 GB, 96-bit bus, 24 MB L2, 99 KB smem/block opt-in | `cudaGetDeviceProperties` |
 | Windows host RAM / WSL limit | 15.2 GB / **11 GB + 8 GB swap** (applied) | PowerShell, `free -g`, `swapon` |
 | Random-gather penalty, host vs device | 7.8× (256 MiB) · 21× (1 GiB) · 28× (4 GiB) | `uvm_probe`, 16M random 8-byte reads |
@@ -55,6 +55,13 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 ---
 
 ## Log
+
+### 2026-09-23 (Wed) — Nsight Compute unblocked
+- Enabled GPU performance counters for all users (NVIDIA Control Panel → Developer), then restarted WSL.
+  `ncu` now profiles kernels in WSL2 (tested: SpeedOfLight and MemoryWorkloadAnalysis sections).
+- **Team note:** `ncu` locks clocks to base and flushes caches by default. Use it for *metrics*
+  (bandwidth %, hit rates, stalls), never for timings. Take timings from CUDA events or `nsys`.
+  Add `--clock-control none` if you need boost-clock behaviour.
 
 ### 2026-09-23 (Wed) — Git + profilers
 **Done**
