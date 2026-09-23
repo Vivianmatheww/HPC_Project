@@ -10,8 +10,8 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 
 | Phase | Weeks | Dates | Status | Notes |
 |-------|-------|-------|--------|-------|
-| 0 — Setup | 0 | Sep 23 – Sep 27 | 🟨 | Toolchain, 11 GB WSL, CMake, UVM probe, git, nsys + ncu all working; GitHub remote + teammate setup pending |
-| 1 — Infrastructure | 1–2 | Sep 28 – Oct 9 | ⬜ | |
+| 0 — Setup | 0 | Sep 23 – Sep 27 | ✅ | Toolchain, 11 GB WSL, CMake, UVM probe, git, nsys + ncu. Carried over: GitHub remote, teammate setup |
+| 1 — Infrastructure | 1–2 | Sep 28 – Oct 9 | 🟨 | Started early (Sep 23). Guide: [docs/phase1_guide.md](docs/phase1_guide.md) |
 | 2 — SpMV kernels + paper-2 reproduction | 3–4 | Oct 12 – Oct 23 | ⬜ | |
 | 3 — Runtime SpMV selector | 5–6 | Oct 26 – Nov 6 | ⬜ | Midpoint demo |
 | 4 — Out-of-core adaptive SpGEMM | 7–9 | Nov 9 – Nov 27 | ⬜ | |
@@ -55,6 +55,14 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 ---
 
 ## Log
+
+### 2026-09-23 (Wed) — Phase 0 closed, Phase 1 started
+- Phase 0 is complete apart from two carried-over items that don't block anything: pushing to a
+  GitHub remote, and setup notes for Harsh's and Karmanya's machines.
+- Wrote [docs/phase1_guide.md](docs/phase1_guide.md): shared headers to agree on first, 8 tasks with
+  suggested owners, traps (24 MB L2 caching, MM symmetric expansion, duplicates, 32-bit index
+  limit, binary cache), unit-test list, and the Phase 1 exit checklist.
+- The platform owner starts Phase 1 now (CMake library layout + timer/CSV harness).
 
 ### 2026-09-23 (Wed) — Nsight Compute unblocked
 - Enabled GPU performance counters for all users (NVIDIA Control Panel → Developer), then restarted WSL.

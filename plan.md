@@ -130,15 +130,16 @@ the answer is almost always "stay in CSR", which is the point.
 ## 4. Schedule
 
 ### Phase 0 — Setup (Week 0: Sep 23 – Sep 27)
-- [ ] Install CUDA Toolkit 13.x for WSL-Ubuntu (**toolkit only**: `cuda-toolkit-13-x`, never `cuda` or a driver package), CMake ≥ 3.24 (`pip install cmake`), Python deps
-- [ ] `deviceQuery` and `bandwidthTest` sanity checks. Record `asyncEngineCount`, PCIe H2D/D2H GB/s, device bandwidth
-- [ ] Test whether `cudaMallocManaged` oversubscription works under WSL2 (decides the UVM baseline)
-- [ ] Check that Nsight Systems / Nsight Compute can profile from WSL2
-- [ ] Check Windows host RAM. If ≥ 16 GB, set `.wslconfig` `memory=` higher
-- [ ] `git init`, `.gitignore` (data/, build/), CMake skeleton that compiles a hello-kernel
-- [ ] Decide team roles (Track A = SpMV, Track B = SpGEMM), deadline, and meeting cadence
+- [x] Install CUDA Toolkit 13.x for WSL-Ubuntu (**toolkit only**: `cuda-toolkit-13-x`, never `cuda` or a driver package), CMake ≥ 3.24 (`pip install cmake`), Python deps
+- [x] `deviceQuery` and `bandwidthTest` sanity checks. Record `asyncEngineCount`, PCIe H2D/D2H GB/s, device bandwidth
+- [x] Test whether `cudaMallocManaged` oversubscription works under WSL2 (decides the UVM baseline)
+- [x] Check that Nsight Systems / Nsight Compute can profile from WSL2
+- [x] Check Windows host RAM. If ≥ 16 GB, set `.wslconfig` `memory=` higher
+- [x] `git init`, `.gitignore` (data/, build/), CMake skeleton that compiles a hello-kernel
+- [x] Decide team roles (Track A = SpMV → Harsh, Track B = SpGEMM → Karmanya). *Carried over: deadline, meeting cadence, GitHub remote, teammate setup notes*
 
 ### Phase 1 — Infrastructure (Weeks 1–2: Sep 28 – Oct 9)
+> Detailed task split, interfaces and traps: [docs/phase1_guide.md](docs/phase1_guide.md)
 - [ ] Matrix Market reader (real, integer, pattern, symmetric expansion) → host CSR → device CSR
 - [ ] Timer / benchmark harness (warm-up, median, CSV writer, environment stamp)
 - [ ] cuSPARSE SpMV + SpGEMM wrappers (these are the baselines and the correctness reference)
