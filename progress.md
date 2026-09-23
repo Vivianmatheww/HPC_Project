@@ -10,7 +10,7 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 
 | Phase | Weeks | Dates | Status | Notes |
 |-------|-------|-------|--------|-------|
-| 0 — Setup | 0 | Sep 23 – Sep 27 | ✅ | Toolchain, 11 GB WSL, CMake, UVM probe, git, nsys + ncu. Carried over: GitHub remote, teammate setup |
+| 0 — Setup | 0 | Sep 23 – Sep 27 | ✅ | Toolchain, 11 GB WSL, CMake, UVM probe, git, nsys + ncu. Carried over: teammate setup |
 | 1 — Infrastructure | 1–2 | Sep 28 – Oct 9 | 🟨 | Started early (Sep 23). Guide: [docs/phase1_guide.md](docs/phase1_guide.md) |
 | 2 — SpMV kernels + paper-2 reproduction | 3–4 | Oct 12 – Oct 23 | ⬜ | |
 | 3 — Runtime SpMV selector | 5–6 | Oct 26 – Nov 6 | ⬜ | Midpoint demo |
@@ -55,6 +55,10 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 ---
 
 ## Log
+
+### 2026-09-23 (Wed) — GitHub remote
+- Repo pushed to [github.com/Vivianmatheww/HPC_Project](https://github.com/Vivianmatheww/HPC_Project) over SSH (key: `~/.ssh/id_ed25519`, "WSL HPC laptop").
+- Next: invite Harsh and Karmanya as collaborators. Decide public vs private visibility (currently public).
 
 ### 2026-09-23 (Wed) — Phase 0 closed, Phase 1 started
 - Phase 0 is complete apart from two carried-over items that don't block anything: pushing to a

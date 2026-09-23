@@ -136,7 +136,7 @@ the answer is almost always "stay in CSR", which is the point.
 - [x] Check that Nsight Systems / Nsight Compute can profile from WSL2
 - [x] Check Windows host RAM. If ≥ 16 GB, set `.wslconfig` `memory=` higher
 - [x] `git init`, `.gitignore` (data/, build/), CMake skeleton that compiles a hello-kernel
-- [x] Decide team roles (Track A = SpMV → Harsh, Track B = SpGEMM → Karmanya). *Carried over: deadline, meeting cadence, GitHub remote, teammate setup notes*
+- [x] Decide team roles (Track A = SpMV → Harsh, Track B = SpGEMM → Karmanya). *Carried over: deadline, meeting cadence, teammate setup notes*
 
 ### Phase 1 — Infrastructure (Weeks 1–2: Sep 28 – Oct 9)
 > Detailed task split, interfaces and traps: [docs/phase1_guide.md](docs/phase1_guide.md)
