@@ -1,0 +1,8 @@
+cmake>=3.28
+ninja
+numpy
+scipy
+pandas
+matplotlib
+scikit-learn
+ssgetpy

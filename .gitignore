@@ -1,0 +1,7 @@
+build/
+.venv/
+data/
+*.o
+__pycache__/
+*.nsys-rep
+*.ncu-rep
