@@ -22,7 +22,7 @@ See [project_context.md](project_context.md) for the full paper analysis and how
 
 ## Status
 
-**Phases 1–2 implemented; Phase 3 in progress** (candidate set widened with CSR-binned and ArgCSR-local; selector next). See [progress.md](progress.md).
+**Phases 1–3 implemented** (SpMV: kernels, paper-2 reproduction, runtime selector with break-even). Phase 4 (out-of-core SpGEMM) next. See [progress.md](progress.md).
 
 ## Target platform
 
@@ -81,6 +81,15 @@ python scripts/plot_phase1.py
 # Phase 2: all 33 kernel configs (our formats + cuSPARSE), oracle table and figures
 ./build/bench_spmv --matrices data/suitesparse --kernels all --out results/phase2_spmv.csv
 python scripts/analyze_phase2.py
+
+# Phase 3: features + GPU conversion costs, train the selector (regenerates src/selector/tree_generated.hpp),
+# rebuild, then evaluate end to end on the held-out set
+./build/bench_features --matrices data/suitesparse --out results/phase3/features_train.csv --convert-out results/phase3/gpu_convert_train.csv
+python scripts/train_selector.py && cmake --build build
+python scripts/fetch_matrices.py --count 40 --seed 1 --out data/heldout --exclude data/suitesparse/manifest.csv
+./build/bench_spmv --matrices data/heldout --kernels all --out results/phase3/heldout_spmv.csv
+./build/bench_plan --matrices data/heldout --out results/phase3/plan_heldout.csv
+python scripts/analyze_phase3.py
 ```
 
 `bench_spmv` flushes the 24 MB L2 before every timed repetition (`--no-flush` to disable) and
@@ -96,19 +105,21 @@ reports the median of 20 runs after 5 warm-ups. Matrix Market files are parsed o
 | [tests/](tests/) | Unit tests (`ctest`) and `.mtx` fixtures |
 | [scripts/](scripts/) | Data download/generation and plotting |
 
-## Planned API
+## API
 
 ```cpp
 #include <rasp/rasp.hpp>
 
-rasp::CsrMatrix A = rasp::read_matrix_market("data/foo.mtx").to_device();
+auto A = rasp::DeviceCsr<double>::upload(rasp::read_matrix_market("data/foo.mtx"));
 
-// SpMV: the plan is built once and reused. The hint says how many calls to expect.
-auto plan = rasp::make_spmv_plan(A, {.expected_calls = 500});
-plan.run(x, y);                 // uses whichever format/kernel was selected
-plan.report();                  // selected format, features, predicted vs measured time
+// SpMV (implemented): the plan is built once and reused. The hint says how many calls to expect.
+rasp::PlanOptions opt;
+opt.expected_calls = 500;
+rasp::SpmvPlan<double> plan(A, d_x, d_y, opt);
+plan.run(stream);                                  // y = A x with the selected kernel
+std::puts(plan.report().to_string().c_str());      // chosen config, features, costs, and why
 
-// SpGEMM: works even when A, B, C exceed GPU memory
+// SpGEMM (Phase 4, planned): works even when A, B, C exceed GPU memory
 auto C = rasp::spgemm(A, B, {.fast_mem_budget = 2_GiB});
 ```
 

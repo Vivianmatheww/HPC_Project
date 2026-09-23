@@ -1,4 +1,6 @@
 // Adaptive Row-grouped CSR conversion, following Section 3 of Heller & Oberhuber (arXiv:1203.5737).
+// The layout (groups, threads per row, chunk sizes) depends only on row lengths, so it is computed from
+// row_ptr alone and shared by the host converter and the GPU converter (convert_gpu.cu).
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -10,36 +12,37 @@ namespace rasp {
 
 namespace {
 
-// Shared by the global and the local variant. budget(r) = desiredChunkSize * block for a group starting at row r.
-template <class T, class Budget>
-ArgCsrHost<T> build_impl(const HostCsr<T>& A, int block, int desired_chunk, const Budget& budget_for, double max_fill) {
-  ArgCsrHost<T> G;
-  G.rows = A.rows;
-  G.cols = A.cols;
-  G.block = block;
-  G.desired_chunk = desired_chunk;
-  G.threads_end.assign(size_t(A.rows), 0);
-  auto len = [&](int32_t r) { return A.row_ptr[size_t(r) + 1] - A.row_ptr[size_t(r)]; };
+// budget_for(r) = desiredChunkSize * block for a group starting at row r.
+template <class Budget>
+ArgCsrLayout layout_impl(const std::vector<int32_t>& row_ptr, int block, const Budget& budget_for, size_t value_bytes,
+                         double max_fill) {
+  const int32_t rows = int32_t(row_ptr.size()) - 1;
+  const int64_t nnz = row_ptr.back();
+  ArgCsrLayout L;
+  L.threads_end.assign(size_t(rows), 0);
+  L.row_offset.assign(size_t(rows), 0);
+  L.row_tbegin.assign(size_t(rows), 0);
+  L.row_fill.assign(size_t(rows), 0);
+  auto len = [&](int32_t r) { return row_ptr[size_t(r) + 1] - row_ptr[size_t(r)]; };
 
   // 1. Group formation. The paper closes a group once its nonzeros exceed desiredChunkSize * blockDim or it
   //    would get more than blockDim rows. We close *before* adding the row that would exceed the budget, so a
   //    group never exceeds it unless it holds a single long row.
-  for (int32_t r = 0; r < A.rows;) {
+  for (int32_t r = 0; r < rows;) {
     ArgGroup g{r, 0, 0, 0};
     const int64_t budget = budget_for(r);
-    int64_t nnz = 0;
-    while (r < A.rows && g.size < block && (g.size == 0 || nnz + len(r) <= budget)) {
-      nnz += len(r);
+    int64_t group_nnz = 0;
+    while (r < rows && g.size < block && (g.size == 0 || group_nnz + len(r) <= budget)) {
+      group_nnz += len(r);
       ++g.size;
       ++r;
     }
-    G.groups.push_back(g);
+    L.groups.push_back(g);
   }
 
   // 2. Threads per row and the group's chunk size.
-  int64_t stored = 0;
   std::vector<int32_t> threads;
-  for (auto& g : G.groups) {
+  for (auto& g : L.groups) {
     threads.assign(size_t(g.size), 1);
     auto fill = [&](int i) {
       const int32_t l = len(g.first_row + i);
@@ -62,46 +65,58 @@ ArgCsrHost<T> build_impl(const HostCsr<T>& A, int block, int desired_chunk, cons
       heap.push(i);
     }
     g.chunk = 0;
+    g.offset = int32_t(L.stored);
     int32_t prefix = 0;
     for (int i = 0; i < g.size; ++i) {
-      g.chunk = std::max(g.chunk, fill(i));
-      prefix += threads[size_t(i)];
-      G.threads_end[size_t(g.first_row + i)] = prefix;
-    }
-    g.offset = int32_t(stored);
-    stored += int64_t(g.chunk) * block;
-    if (stored >= std::numeric_limits<int32_t>::max()) throw FormatInfeasible("ArgCSR exceeds 32-bit offsets");
-  }
-  if (double(stored) > max_fill * double(std::max<int64_t>(A.nnz, 1)) || double(stored) * double(sizeof(T) + 4) > kMaxFormatBytes)
-    throw FormatInfeasible("ArgCSR would store " + std::to_string(stored) + " slots for " + std::to_string(A.nnz) +
-                           " nonzeros");
-
-  // 3. Fill chunks: thread t of a row gets that row's elements [q*f, (q+1)*f), f = ceil(len/threads).
-  G.col.assign(size_t(stored), -1);
-  G.val.assign(size_t(stored), T(0));
-  for (auto& g : G.groups)
-    for (int i = 0; i < g.size; ++i) {
       const int32_t r = g.first_row + i;
-      const int32_t t_begin = i == 0 ? 0 : G.threads_end[size_t(r) - 1];
-      const int32_t t_count = G.threads_end[size_t(r)] - t_begin;
-      const int32_t l = len(r), f = (l + t_count - 1) / t_count;
-      for (int32_t e = 0; e < l; ++e) {
-        const int32_t t = t_begin + e / f, slot_in_chunk = e % f;
-        const size_t pos = size_t(g.offset) + size_t(slot_in_chunk) * size_t(block) + size_t(t);
-        G.col[pos] = A.col_idx[size_t(A.row_ptr[size_t(r)] + e)];
-        G.val[pos] = A.vals[size_t(A.row_ptr[size_t(r)] + e)];
-      }
+      g.chunk = std::max(g.chunk, fill(i));
+      L.row_tbegin[size_t(r)] = prefix;
+      L.row_fill[size_t(r)] = fill(i);
+      L.row_offset[size_t(r)] = g.offset;
+      prefix += threads[size_t(i)];
+      L.threads_end[size_t(r)] = prefix;
     }
+    L.stored += int64_t(g.chunk) * block;
+    if (L.stored >= std::numeric_limits<int32_t>::max()) throw FormatInfeasible("ArgCSR exceeds 32-bit offsets");
+  }
+  if (double(L.stored) > max_fill * double(std::max<int64_t>(nnz, 1)) ||
+      double(L.stored) * double(value_bytes + 4) > kMaxFormatBytes)
+    throw FormatInfeasible("ArgCSR would store " + std::to_string(L.stored) + " slots for " + std::to_string(nnz) +
+                           " nonzeros");
+  return L;
+}
+
+// 3. Fill chunks: thread t of a row gets that row's elements [q*f, (q+1)*f), f = ceil(len/threads).
+template <class T>
+ArgCsrHost<T> fill_host(const HostCsr<T>& A, int block, int desired_chunk, ArgCsrLayout&& L) {
+  ArgCsrHost<T> G;
+  G.rows = A.rows;
+  G.cols = A.cols;
+  G.block = block;
+  G.desired_chunk = desired_chunk;
+  G.col.assign(size_t(L.stored), -1);
+  G.val.assign(size_t(L.stored), T(0));
+  for (int32_t r = 0; r < A.rows; ++r) {
+    const int32_t l = A.row_ptr[size_t(r) + 1] - A.row_ptr[size_t(r)], f = L.row_fill[size_t(r)];
+    for (int32_t e = 0; e < l; ++e) {
+      const size_t pos = size_t(L.row_offset[size_t(r)]) + size_t(e % f) * size_t(block) +
+                         size_t(L.row_tbegin[size_t(r)] + e / f);
+      G.col[pos] = A.col_idx[size_t(A.row_ptr[size_t(r)] + e)];
+      G.val[pos] = A.vals[size_t(A.row_ptr[size_t(r)] + e)];
+    }
+  }
+  G.groups = std::move(L.groups);
+  G.threads_end = std::move(L.threads_end);
   return G;
 }
 
 }  // namespace
 
-template <class T>
-ArgCsrHost<T> build_argcsr(const HostCsr<T>& A, int block, int desired_chunk, double max_fill) {
-  if (block <= 0 || desired_chunk <= 0) throw std::invalid_argument("build_argcsr: block and chunk must be > 0");
+ArgCsrLayout argcsr_layout(const std::vector<int32_t>& row_ptr, int block, int desired_chunk, size_t value_bytes,
+                           double max_fill) {
+  if (block <= 0 || desired_chunk <= 0) throw std::invalid_argument("argcsr: block and chunk must be > 0");
   const int64_t budget = int64_t(desired_chunk) * block;
-  return build_impl(A, block, desired_chunk, [&](int32_t) { return budget; }, max_fill);
+  return layout_impl(row_ptr, block, [&](int32_t) { return budget; }, value_bytes, max_fill);
 }
 
 int argcsr_local_chunk(double mean_len, double cv, int block, int target_rows) {
@@ -113,17 +128,18 @@ int argcsr_local_chunk(double mean_len, double cv, int block, int target_rows) {
   return d;
 }
 
-template <class T>
-ArgCsrHost<T> build_argcsr_local(const HostCsr<T>& A, int block, int target_rows, int window, double max_fill) {
-  if (block <= 0 || target_rows <= 0 || window <= 0) throw std::invalid_argument("build_argcsr_local: bad arguments");
+ArgCsrLayout argcsr_local_layout(const std::vector<int32_t>& row_ptr, int block, int target_rows, int window,
+                                 size_t value_bytes, double max_fill) {
+  if (block <= 0 || target_rows <= 0 || window <= 0) throw std::invalid_argument("argcsr_local: bad arguments");
   // One desiredChunkSize per window of rows, from that window's own row-length mean and CV.
-  const int32_t windows = (A.rows + window - 1) / window;
+  const int32_t rows = int32_t(row_ptr.size()) - 1;
+  const int32_t windows = (rows + window - 1) / window;
   std::vector<int64_t> budget(size_t(std::max(windows, 1)), block);
   for (int32_t w = 0; w < windows; ++w) {
-    const int32_t r0 = w * window, r1 = std::min(A.rows, r0 + window);
+    const int32_t r0 = w * window, r1 = std::min(rows, r0 + window);
     double sum = 0, sq = 0;
     for (int32_t r = r0; r < r1; ++r) {
-      const double l = A.row_ptr[size_t(r) + 1] - A.row_ptr[size_t(r)];
+      const double l = row_ptr[size_t(r) + 1] - row_ptr[size_t(r)];
       sum += l;
       sq += l * l;
     }
@@ -131,7 +147,17 @@ ArgCsrHost<T> build_argcsr_local(const HostCsr<T>& A, int block, int target_rows
     const double cv = mean > 0 ? std::sqrt(var) / mean : 0.0;
     budget[size_t(w)] = int64_t(argcsr_local_chunk(mean, cv, block, target_rows)) * block;
   }
-  return build_impl(A, block, 0, [&](int32_t r) { return budget[size_t(r / window)]; }, max_fill);
+  return layout_impl(row_ptr, block, [&](int32_t r) { return budget[size_t(r / window)]; }, value_bytes, max_fill);
+}
+
+template <class T>
+ArgCsrHost<T> build_argcsr(const HostCsr<T>& A, int block, int desired_chunk, double max_fill) {
+  return fill_host(A, block, desired_chunk, argcsr_layout(A.row_ptr, block, desired_chunk, sizeof(T), max_fill));
+}
+
+template <class T>
+ArgCsrHost<T> build_argcsr_local(const HostCsr<T>& A, int block, int target_rows, int window, double max_fill) {
+  return fill_host(A, block, 0, argcsr_local_layout(A.row_ptr, block, target_rows, window, sizeof(T), max_fill));
 }
 
 template ArgCsrHost<float> build_argcsr(const HostCsr<float>&, int, int, double);

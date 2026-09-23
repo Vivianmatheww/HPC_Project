@@ -1,0 +1,71 @@
+training samples: 120 (60 matrices x precisions), 36 SuiteSparse groups, 40 configs
+
+== Portfolio (greedy; geomean slowdown of the portfolio's best vs the full oracle) ==
+  + cusparse_alg1            -> 1.0888
+  + csr_vector_v4            -> 1.0475
+  + csr_binned_t2            -> 1.0275
+  + csr_scalar               -> 1.0184
+  + cusparse_alg2            -> 1.0114
+no-conversion subset: ['cusparse_alg1', 'csr_vector_v4', 'csr_scalar', 'cusparse_alg2']
+
+label distribution: {'cusparse_alg1': 42, 'csr_vector_v4': 24, 'csr_binned_t2': 23, 'cusparse_alg2': 18, 'csr_scalar': 13} 
+
+== Grouped 5-fold CV (full portfolio), top 8 of 30 settings ==
+ max_depth  min_samples_leaf weighting  cv_geomean_vs_oracle  within_10pct
+         2                 8   uniform                1.0509        0.8000
+         2                 2   uniform                1.0517        0.8000
+         2                 4   uniform                1.0517        0.8000
+         6                 4    regret                1.0532        0.7667
+         5                 8   uniform                1.0542        0.8083
+         6                 8   uniform                1.0542        0.8083
+         4                 8   uniform                1.0542        0.8083
+         3                 8   uniform                1.0583        0.7917 
+
+== Out-of-fold comparison (geomean T / T_oracle; lower is better) ==
+  always cuSPARSE ALG1                 1.0888   within 10%: 62%   vs cuSPARSE: 1.000x   slower than cuSPARSE by >5%: 0
+  best single config (cusparse_alg1)   1.0888   within 10%: 62%   vs cuSPARSE: 1.000x   slower than cuSPARSE by >5%: 0
+  oracle within portfolio              1.0114   within 10%: 98%   vs cuSPARSE: 1.077x   slower than cuSPARSE by >5%: 0
+  decision tree (CV)                   1.0509   within 10%: 80%   vs cuSPARSE: 1.036x   slower than cuSPARSE by >5%: 9
+  decision tree, no-conversion (CV)    1.0643   within 10%: 74%   vs cuSPARSE: 1.023x   slower than cuSPARSE by >5%: 11
+  large matrices (>= 1M nnz, n=24): tree slower than cuSPARSE by >5% on 5
+
+== Minimum expected gain tau (grouped CV) ==
+ tau  large_gate  cv_geomean_vs_oracle  vs_cusparse  within_10pct  slower_than_cusparse_5pct  large_slower_5pct
+1.00       False                1.0509       1.0361        0.8000                          9                  5
+1.00        True                1.0461       1.0408        0.8000                          4                  0
+1.02       False                1.0518       1.0353        0.8000                          9                  5
+1.02        True                1.0480       1.0390        0.8000                          4                  0
+1.03       False                1.0533       1.0338        0.7917                          8                  4
+1.03        True                1.0512       1.0358        0.7917                          4                  0
+1.05       False                1.0605       1.0267        0.7667                          5                  4
+1.05        True                1.0584       1.0288        0.7667                          1                  0
+1.08       False                1.0734       1.0144        0.7083                          3                  2
+1.08        True                1.0701       1.0175        0.7250                          1                  0
+expected (out-of-fold) gain over cuSPARSE for this setting: 0.0392
+chosen tau = 1.0, large-matrix gate (>= 1M nnz -> cuSPARSE ALG1) = True
+
+== Confusion matrix (out-of-fold) ==
+predicted (CV)  csr_binned_t2  csr_vector_v4  cusparse_alg1  cusparse_alg2
+oracle label                                                              
+csr_binned_t2               7              7              8              1
+csr_scalar                  0             12              0              1
+csr_vector_v4               2             21              0              1
+cusparse_alg1               1              7             19             15
+cusparse_alg2               0              1              3             14 
+
+final trees: full (2, 8, 'uniform') (4 leaves), no-conversion (3, 8, 'uniform') (7 leaves)
+feature importance (full tree): {'log2_nnz': 0.582, 'log2_max_len': 0.418} 
+
+cuSPARSE time model: ms = 0.009483 + bytes / 1.258e+08  (median error x1.06, p90 x1.21)
+conversion model argcsr        fp64=0: ms = 0.1808 + 2.77e-06*nnz + 1.9e-05*rows  (median error x1.59)
+conversion model argcsr        fp64=1: ms = 0.1954 + 2.93e-06*nnz + 3.03e-05*rows  (median error x1.49)
+conversion model argcsr_local  fp64=0: ms = 0.1928 + 2.17e-06*nnz + 7.49e-05*rows  (median error x1.29)
+conversion model argcsr_local  fp64=1: ms = 0.1897 + 2.52e-06*nnz + 8.15e-05*rows  (median error x1.25)
+conversion model csr_binned    fp64=0: ms = 0.07791 + 0*nnz + 3.3e-06*rows  (median error x1.21)
+conversion model csr_binned    fp64=1: ms = 0.08051 + 4.98e-09*nnz + 2.31e-06*rows  (median error x1.24)
+conversion model ell           fp64=0: ms = 0.05351 + 8.16e-07*nnz + 0*rows  (median error x1.39)
+conversion model ell           fp64=1: ms = 0.08232 + 1.24e-06*nnz + 3.41e-06*rows  (median error x1.31)
+conversion model sell          fp64=0: ms = 0.1419 + 7.67e-07*nnz + 5.63e-06*rows  (median error x1.46)
+conversion model sell          fp64=1: ms = 0.159 + 9.82e-07*nnz + 8.52e-06*rows  (median error x1.35)
+feature model: ms = 0.04261 + 2.32e-07*rows
+max gain over cuSPARSE on training set: 0.273 (best config 1.38x faster)

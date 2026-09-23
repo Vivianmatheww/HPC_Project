@@ -4,14 +4,6 @@
 
 namespace rasp {
 
-int binned_bin(int32_t len, int elems_per_lane) {
-  if (len > kLongRow) return kBins - 1;
-  const int lanes = (len + elems_per_lane - 1) / elems_per_lane;
-  int bin = 0;
-  while (bin < kBins - 2 && (1 << bin) < lanes) ++bin;  // smallest power of two >= lanes, capped at 32
-  return bin;
-}
-
 template <class T>
 BinnedHost build_binned(const HostCsr<T>& A, int elems_per_lane) {
   if (elems_per_lane < 1) throw std::invalid_argument("build_binned: elems_per_lane must be >= 1");

@@ -60,4 +60,10 @@ template <class T>
 std::unique_ptr<SpmvKernel<T>> make_spmv_kernel(const KernelConfig& cfg, const HostCsr<T>& host,
                                                 const DeviceCsr<T>& dev, const T* x, T* y);
 
+// Same, but every conversion runs on the GPU from `dev` alone (no host copy of the matrix needed); used by
+// SpmvPlan. convert_ms() then measures the GPU conversion.
+template <class T>
+std::unique_ptr<SpmvKernel<T>> make_spmv_kernel_gpu(const KernelConfig& cfg, const DeviceCsr<T>& dev, const T* x,
+                                                    T* y, cudaStream_t stream = nullptr);
+
 }  // namespace rasp

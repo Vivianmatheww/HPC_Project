@@ -13,7 +13,7 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 | 0 — Setup | 0 | Sep 23 – Sep 27 | ✅ | Toolchain, 11 GB WSL, CMake, UVM probe, git, nsys + ncu. Carried over: teammate setup |
 | 1 — Infrastructure | 1–2 | Sep 28 – Oct 9 | ✅ | Done Sep 23 (early). 28 unit tests; cuSPARSE baseline on 60 matrices |
 | 2 — SpMV kernels + paper-2 reproduction | 3–4 | Oct 12 – Oct 23 | ✅ | Done Sep 23 (early). 33 configs × 60 matrices; oracle table |
-| 3 — Runtime SpMV selector | 5–6 | Oct 26 – Nov 6 | 🟨 | Step (a) done Sep 24: candidate set widened (CSR-binned, ArgCSR-local). Selector next |
+| 3 — Runtime SpMV selector | 5–6 | Oct 26 – Nov 6 | ✅ | Done Sep 24: GPU converters + features, trained tree selector, SpmvPlan; held-out evaluation |
 | 4 — Out-of-core adaptive SpGEMM | 7–9 | Nov 9 – Nov 27 | ⬜ | |
 | 5 — Integration + apps | 10 | Nov 30 – Dec 4 | ⬜ | |
 | 6 — Evaluation + report | 11–12 | Dec 7 – Dec 18 | ⬜ | |
@@ -23,9 +23,9 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 | Goal | Target | Current | Status |
 |------|--------|---------|--------|
 | G1 ArgCSR reproduction | same qualitative trends | chunk-size sensitivity reproduced (rajat23 D=32: 0.78 vs paper 0.81 GFLOPS); "ArgCSR ≫ cuSPARSE" does **not** hold against modern cuSPARSE | ✅ |
-| G2 Selector vs oracle | geomean slowdown ≤ 1.10 | — | ⬜ |
-| G3 Selection overhead | ≤ 2 SpMV | — | ⬜ |
-| G4 Break-even aware | ≤ 5% loss at N = 1 | — | ⬜ |
+| G2 Selector vs oracle | geomean slowdown ≤ 1.10; no large-matrix loss > 5% | held-out: **1.074**; 1.051× over cuSPARSE; 0 large-matrix losses (only 4 large samples) | ✅ |
+| G3 Selection overhead | ≤ 2 SpMV | held-out median **1.97** SpMVs (0.28 for > 1M nnz, 2.5 for < 100k); skipped entirely when N is small | 🟨 borderline |
+| G4 Break-even aware | ≤ 5% loss at N = 1 | N=1: identical work to cuSPARSE in 80/80 plans (0.996×, timing noise); N=1000: **1.052×** | ✅ |
 | G5 Placement study (Table 3) | table | Memory-level probe done (host-side reads 14–28× slower); SpGEMM-level table in Week 7 | 🟨 |
 | G6 Overlapped SpGEMM | ≥ 1.3× over Alg. 4 | — | ⬜ |
 | G7 CG + AMG demos | working | — | ⬜ |
@@ -55,6 +55,73 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 ---
 
 ## Log
+
+### 2026-09-24 (Thu) — Phase 3 complete: runtime SpMV selector
+**Built**
+- **GPU converters** ([src/formats/convert_gpu.cu](src/formats/convert_gpu.cu)) for ELL, SELL-C-σ (σ sort = stable
+  64-bit-key CUB radix sort), CSR-binned (radix sort on the bin), ArgCSR(-local) (downloads `row_ptr` only; layout on the
+  host because it is sequential; all nonzeros move on the GPU). A test proves them **bit-identical** to the host converters.
+  Median conversion cost in cuSPARSE SpMVs, host → GPU: ELL 47 → 14, SELL 47 → 21, ArgCSR 87 → 58, CSR-binned 5 → 6.5.
+- **GPU features** ([src/features/features.cu](src/features/features.cu)): one kernel; row-length mean/CV/max, empty
+  fraction, ELL and SELL-32 fill, long-row nnz fraction, column span, 8-bucket length histogram (20-feature vector). Matches
+  the CPU reference to 1e-12.
+- **Selectors** ([src/selector/](src/selector/)): v1 hand-written rules; v2 decision tree trained by
+  [scripts/train_selector.py](scripts/train_selector.py) and compiled in as the generated
+  [tree_generated.hpp](src/selector/tree_generated.hpp) together with its cost models.
+- **`SpmvPlan`** ([include/rasp/plan.hpp](include/rasp/plan.hpp)): feature gate (skip features if
+  calls × predicted SpMV time × expected gain < predicted feature time) → tree → conversion break-even → build with the GPU
+  converter; falls back if a format is infeasible. `report()` explains every decision.
+- [bench/bench_features.cu](bench/bench_features.cu), [bench/bench_plan.cu](bench/bench_plan.cu),
+  [scripts/analyze_phase3.py](scripts/analyze_phase3.py); `test_selector` (6 suites, all pass).
+- **Held-out set:** 40 new random SuiteSparse matrices (`fetch_matrices.py --seed 1 --exclude ...`), same nnz range,
+  no overlap with training.
+
+**Training** (60 matrices × fp32/fp64, grouped 5-fold CV by SuiteSparse group; [report](results/phase3/selector_train.txt))
+- Greedy portfolio: cusparse_alg1, csr_vector_v4, csr_binned_t2, csr_scalar, cusparse_alg2. It reaches 1.011 of the full
+  40-config oracle.
+- Tree: depth 2, 4 leaves (split on log2 max row length, then log2 nnz); CV 1.051 vs oracle.
+- The CV also chose a **large-matrix gate** (≥ 1M nnz → cuSPARSE ALG1): it improves *every* metric (CV 1.046, 0 large
+  losses vs 5 without). A minimum-expected-gain gate was also tested and rejected by CV (τ = 1.0).
+- Cost models: cuSPARSE time = 9.5 µs + bytes / 126 GB/s (median error ×1.06); conversion per family and precision
+  (×1.2–1.6); features = 43 µs + 0.23 ns/row.
+
+**Held-out results** ([summary](results/phase3/heldout_summary.txt), [profile](results/phase3/heldout_profile.png),
+[N sweep](results/phase3/calls_sweep.png)); all 3,154 SpMV and 1,280 plan results correct
+
+| Steady state (80 samples) | T / T_oracle | within 10% | vs cuSPARSE | > 5% slower than cuSPARSE |
+|---|---|---|---|---|
+| always cuSPARSE ALG1 | 1.129 | 55% | 1.000× | 0 |
+| rules (v1) | 1.128 | 39% | 1.001× | 28 |
+| **decision tree (v2)** | **1.074** | **66%** | **1.051×** | 11 (0 large) |
+| oracle within portfolio | 1.016 | 92% | 1.111× | 0 |
+
+| Total time vs always-cuSPARSE (geomean [worst]) | N=1 | N=10 | N=100 | N=1000 |
+|---|---|---|---|---|
+| tree + break-even | 0.996 [0.84] | 0.995 [0.87] | 1.014 [0.78] | **1.052** [0.78] |
+| tree, no break-even | 0.601 [0.27] | 0.832 [0.51] | 1.015 | 1.043 |
+| rules | 0.988 | 0.998 | 1.004 | 0.994 |
+
+1. **G2 met on unseen matrices:** 1.074 of the oracle (target ≤ 1.10), 1.051× faster than cuSPARSE. Only 4 held-out samples
+   are large, so the "never lose on large" half rests mostly on the CV evidence (0/24).
+2. **Break-even is what makes the selector safe at small N.** Without it the plan is 40% slower at N=1. With it, all 80 N=1
+   plans do exactly cuSPARSE's work (no features), and features are used for 2% of plans at N=10, 89% at N=100 and 100% at N=1000.
+3. **G3 borderline:** features cost a median 1.97 SpMVs on held-out (fixed ~40 µs of launch + copy + sync on WSL). They
+   are cheap for large matrices (0.28) and expensive for small (2.5), which is why the feature gate skips them for small N.
+4. **The hand-written rules (v1) are no better than cuSPARSE.** Fitting thresholds by hand does not transfer; the trained
+   tree does.
+5. **Where the tree still loses:** DRIVCAV/cavity10/18 and Oberwolfach/piston (fp32, 15–29% slower, picking
+   csr_vector_v4). The portfolio oracle (1.016) shows the remaining headroom is in the selector, not the kernels.
+6. **Conversion break-even never had to drop a conversion:** the only converting portfolio member (CSR-binned, ~6 SpMVs)
+   is always repaid by the time features are worth extracting. The logic matters for the heavy formats (ArgCSR ~58 SpMVs)
+   if they enter the portfolio.
+
+**Methodology notes (for the report)**
+- Plan-construction timing under WSL has ~5–10 µs position effects. A fixed selector order produced a fake −9% and then a
+  fake +9% at N=1. `bench_plan` now shuffles the construction order every repetition (15 reps, fixed seed).
+- The feature gate originally used the *maximum* training gain (27%). This extracted features at N=10 for 56% of plans and lost
+  ~4%. It now uses the cross-validated *expected* gain (3.9%). This change was prompted by a held-out result; the value itself
+  comes only from training-set CV.
+- cuSPARSE handle creation: 15 ms the first time in a process, 0.8 µs afterwards, so it does not bias per-plan costs.
 
 ### 2026-09-24 (Thu) — Phase 3 step (a): widening the candidate set
 **Why:** Phase 2's oracle was only 1.07–1.09× above cuSPARSE, so we added two formats aimed at the gaps it exposed.

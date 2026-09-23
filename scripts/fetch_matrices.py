@@ -14,6 +14,8 @@ Examples:
     python scripts/fetch_matrices.py --count 50 --named          # Phase 1 set
     python scripts/fetch_matrices.py --count 300 --max-nnz 50e6  # Phase 2 sweep
     python scripts/fetch_matrices.py --count 50 --named --dry-run
+    python scripts/fetch_matrices.py --count 40 --seed 1 --out data/heldout \
+        --exclude data/suitesparse/manifest.csv                   # held-out set for Phase 3
 """
 import argparse
 import csv
@@ -112,9 +114,15 @@ def main():
     ap.add_argument("--named", action="store_true", help="also fetch the paper-2 named matrices")
     ap.add_argument("--allow-rectangular", action="store_true")
     ap.add_argument("--dry-run", action="store_true", help="list the selection without downloading")
+    ap.add_argument("--exclude", type=Path, nargs="*", default=[],
+                    help="manifest.csv files whose matrices must not be selected (held-out sets)")
     args = ap.parse_args()
 
     pool = search_pool(args.min_nnz, args.max_nnz, not args.allow_rectangular)
+    excluded = set()
+    for path in args.exclude:
+        excluded |= set(read_manifest(path))
+    pool = [m for m in pool if (m.group, m.name) not in excluded]
     pool.sort(key=lambda m: m.id)  # stable order so the seed fully determines the sample
     picked = random.Random(args.seed).sample(pool, min(args.count, len(pool)))
     selection = [(m, "random") for m in picked]

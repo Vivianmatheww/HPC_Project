@@ -36,15 +36,21 @@ add_library(rasp STATIC
   src/formats/sell.cpp
   src/formats/argcsr.cpp
   src/formats/binned.cpp
+  src/formats/convert_gpu.cu
   src/spmv/config.cpp
-  src/spmv/kernels.cu)
+  src/spmv/kernels.cu
+  src/features/features.cu
+  src/selector/selector.cpp
+  src/selector/plan.cu)
 target_include_directories(rasp PUBLIC include)
 target_link_libraries(rasp PUBLIC CUDA::cudart CUDA::cusparse)
 target_compile_definitions(rasp PRIVATE RASP_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
 # ---- benchmarks
-add_executable(bench_spmv bench/bench_spmv.cu)
-target_link_libraries(bench_spmv PRIVATE rasp)
+foreach(b bench_spmv bench_features bench_plan)
+  add_executable(${b} bench/${b}.cu)
+  target_link_libraries(${b} PRIVATE rasp)
+endforeach()
 
 # platform study (Phase 0)
 add_executable(uvm_probe bench/platform/uvm_probe.cu)
@@ -52,7 +58,7 @@ target_link_libraries(uvm_probe PRIVATE CUDA::cudart)
 
 # ---- tests (run with: ctest --test-dir build --output-on-failure)
 enable_testing()
-foreach(t test_io test_spmv test_spgemm test_harness test_formats)
+foreach(t test_io test_spmv test_spgemm test_harness test_formats test_selector)
   file(GLOB src tests/${t}.c*)
   add_executable(${t} ${src})
   target_link_libraries(${t} PRIVATE rasp)

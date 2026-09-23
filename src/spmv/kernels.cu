@@ -5,7 +5,7 @@
 #include <tuple>
 
 #include "rasp/cusparse_ref.hpp"
-#include "rasp/formats.hpp"
+#include "rasp/formats_device.hpp"
 #include "rasp/spmv.hpp"
 
 namespace rasp {
@@ -203,34 +203,26 @@ class CsrKernel final : public SpmvKernel<T> {
   T* y_;
 };
 
+// Padded-format kernels own a device format (built on the host and uploaded, or converted on the GPU).
 template <class T>
 class EllKernel final : public SpmvKernel<T> {
  public:
-  EllKernel(const HostCsr<T>& h, const T* x, T* y) : x_(x), y_(y) {
-    const auto t0 = std::chrono::steady_clock::now();
-    const auto E = build_ell(h);
-    rows_ = E.rows;
-    width_ = E.width;
-    col_.upload(E.col);
-    val_.upload(E.val);
-    RASP_CUDA(cudaDeviceSynchronize());
-    this->convert_ms_ = ms_since(t0);
-    this->format_bytes_ = col_.bytes() + val_.bytes();
-    this->stored_slots_ = int64_t(E.col.size());
+  EllKernel(EllDevice<T> E, double convert_ms, const T* x, T* y) : E_(std::move(E)), x_(x), y_(y) {
+    this->convert_ms_ = convert_ms;
+    this->format_bytes_ = E_.col.bytes() + E_.val.bytes();
+    this->stored_slots_ = E_.stored;
   }
   void run(cudaStream_t s) override {
-    if (rows_ == 0) return;
-    if (width_ == 0) {
-      RASP_CUDA(cudaMemsetAsync(y_, 0, size_t(rows_) * sizeof(T), s));
+    if (E_.rows == 0) return;
+    if (E_.width == 0) {
+      RASP_CUDA(cudaMemsetAsync(y_, 0, size_t(E_.rows) * sizeof(T), s));
       return;
     }
-    ell_kernel<T><<<grid_for(rows_), kBlock, 0, s>>>(rows_, width_, col_.data(), val_.data(), x_, y_);
+    ell_kernel<T><<<grid_for(E_.rows), kBlock, 0, s>>>(E_.rows, E_.width, E_.col.data(), E_.val.data(), x_, y_);
   }
 
  private:
-  int rows_ = 0, width_ = 0;
-  DeviceBuffer<int32_t> col_;
-  DeviceBuffer<T> val_;
+  EllDevice<T> E_;
   const T* x_;
   T* y_;
 };
@@ -238,36 +230,24 @@ class EllKernel final : public SpmvKernel<T> {
 template <class T>
 class SellKernel final : public SpmvKernel<T> {
  public:
-  SellKernel(int C, int sigma, const HostCsr<T>& h, const T* x, T* y) : x_(x), y_(y) {
-    if (C != 8 && C != 32) throw std::invalid_argument("sell: C must be 8 or 32");
-    const auto t0 = std::chrono::steady_clock::now();
-    const auto S = build_sell(h, C, sigma);
-    rows_ = S.rows;
-    C_ = C;
-    slice_ptr_.upload(S.slice_ptr);
-    slice_width_.upload(S.slice_width);
-    perm_.upload(S.perm);
-    col_.upload(S.col);
-    val_.upload(S.val);
-    RASP_CUDA(cudaDeviceSynchronize());
-    this->convert_ms_ = ms_since(t0);
-    this->format_bytes_ = slice_ptr_.bytes() + slice_width_.bytes() + perm_.bytes() + col_.bytes() + val_.bytes();
-    this->stored_slots_ = int64_t(S.col.size());
+  SellKernel(SellDevice<T> S, double convert_ms, const T* x, T* y) : S_(std::move(S)), x_(x), y_(y) {
+    if (S_.C != 8 && S_.C != 32) throw std::invalid_argument("sell: C must be 8 or 32");
+    this->convert_ms_ = convert_ms;
+    this->format_bytes_ = S_.slice_ptr.bytes() + S_.slice_width.bytes() + S_.perm.bytes() + S_.col.bytes() + S_.val.bytes();
+    this->stored_slots_ = S_.stored;
   }
   void run(cudaStream_t s) override {
-    if (rows_ == 0) return;
-    if (C_ == 8)
-      sell_kernel<T, 8><<<grid_for(rows_), kBlock, 0, s>>>(rows_, slice_ptr_.data(), slice_width_.data(),
-                                                             perm_.data(), col_.data(), val_.data(), x_, y_);
+    if (S_.rows == 0) return;
+    if (S_.C == 8)
+      sell_kernel<T, 8><<<grid_for(S_.rows), kBlock, 0, s>>>(S_.rows, S_.slice_ptr.data(), S_.slice_width.data(),
+                                                               S_.perm.data(), S_.col.data(), S_.val.data(), x_, y_);
     else
-      sell_kernel<T, 32><<<grid_for(rows_), kBlock, 0, s>>>(rows_, slice_ptr_.data(), slice_width_.data(),
-                                                              perm_.data(), col_.data(), val_.data(), x_, y_);
+      sell_kernel<T, 32><<<grid_for(S_.rows), kBlock, 0, s>>>(S_.rows, S_.slice_ptr.data(), S_.slice_width.data(),
+                                                                S_.perm.data(), S_.col.data(), S_.val.data(), x_, y_);
   }
 
  private:
-  int rows_ = 0, C_ = 32;
-  DeviceBuffer<int32_t> slice_ptr_, slice_width_, perm_, col_;
-  DeviceBuffer<T> val_;
+  SellDevice<T> S_;
   const T* x_;
   T* y_;
 };
@@ -275,31 +255,26 @@ class SellKernel final : public SpmvKernel<T> {
 template <class T>
 class CsrBinnedKernel final : public SpmvKernel<T> {
  public:
-  CsrBinnedKernel(int t, const DeviceCsr<T>& A, const HostCsr<T>& h, const T* x, T* y) : A_(A), x_(x), y_(y) {
-    const auto t0 = std::chrono::steady_clock::now();
-    const auto H = build_binned(h, t);
+  CsrBinnedKernel(BinnedDevice B, double convert_ms, const DeviceCsr<T>& A, const T* x, T* y)
+      : A_(A), B_(std::move(B)), x_(x), y_(y) {
     for (int k = 0; k <= kBins; ++k) {
-      tab_.row_start[k] = H.bin_row_start[size_t(k)];
-      tab_.block_start[k] = H.bin_block_start[size_t(k)];
+      tab_.row_start[k] = B_.bin_row_start[size_t(k)];
+      tab_.block_start[k] = B_.bin_block_start[size_t(k)];
     }
-    blocks_ = H.blocks;
-    order_.upload(H.order);
-    RASP_CUDA(cudaDeviceSynchronize());
-    this->convert_ms_ = ms_since(t0);
-    this->format_bytes_ = A.bytes() + order_.bytes();
+    this->convert_ms_ = convert_ms;
+    this->format_bytes_ = A.bytes() + B_.order.bytes();
     this->stored_slots_ = A.nnz();
   }
   void run(cudaStream_t s) override {
-    if (blocks_ == 0) return;
-    csr_binned_kernel<T><<<blocks_, kBinnedBlock, 0, s>>>(tab_, order_.data(), A_.row_ptr(), A_.col_idx(), A_.vals(),
-                                                          x_, y_);
+    if (B_.blocks == 0) return;
+    csr_binned_kernel<T><<<B_.blocks, kBinnedBlock, 0, s>>>(tab_, B_.order.data(), A_.row_ptr(), A_.col_idx(),
+                                                            A_.vals(), x_, y_);
   }
 
  private:
   const DeviceCsr<T>& A_;
+  BinnedDevice B_;
   BinTable tab_{};
-  int blocks_ = 0;
-  DeviceBuffer<int32_t> order_;
   const T* x_;
   T* y_;
 };
@@ -307,36 +282,32 @@ class CsrBinnedKernel final : public SpmvKernel<T> {
 template <class T>
 class ArgCsrKernel final : public SpmvKernel<T> {
  public:
-  // local_rows > 0 selects ArgCSR-local (per-window desiredChunkSize targeting local_rows rows per group).
-  ArgCsrKernel(int block, int chunk, int local_rows, const HostCsr<T>& h, const T* x, T* y)
-      : block_(block), x_(x), y_(y) {
-    const auto t0 = std::chrono::steady_clock::now();
-    const auto G = local_rows > 0 ? build_argcsr_local(h, block, local_rows) : build_argcsr(h, block, chunk);
-    groups_ = int(G.groups.size());
-    groups_buf_.upload(G.groups);
-    threads_end_.upload(G.threads_end);
-    col_.upload(G.col);
-    val_.upload(G.val);
-    RASP_CUDA(cudaDeviceSynchronize());
-    this->convert_ms_ = ms_since(t0);
-    this->format_bytes_ = groups_buf_.bytes() + threads_end_.bytes() + col_.bytes() + val_.bytes();
-    this->stored_slots_ = int64_t(G.col.size());
+  ArgCsrKernel(ArgCsrDevice<T> G, double convert_ms, const T* x, T* y) : G_(std::move(G)), x_(x), y_(y) {
+    this->convert_ms_ = convert_ms;
+    this->format_bytes_ = G_.group_info.bytes() + G_.threads_end.bytes() + G_.col.bytes() + G_.val.bytes();
+    this->stored_slots_ = G_.stored;
   }
   void run(cudaStream_t s) override {
-    if (groups_ == 0) return;
-    const size_t smem = sizeof(ArgGroup) + size_t(block_) * (sizeof(int) + sizeof(T));
-    argcsr_kernel<T><<<groups_, block_, smem, s>>>(groups_buf_.data(), threads_end_.data(), col_.data(),
-                                                    val_.data(), x_, y_);
+    if (G_.groups == 0) return;
+    const size_t smem = sizeof(ArgGroup) + size_t(G_.block) * (sizeof(int) + sizeof(T));
+    argcsr_kernel<T><<<G_.groups, G_.block, smem, s>>>(G_.group_info.data(), G_.threads_end.data(), G_.col.data(),
+                                                       G_.val.data(), x_, y_);
   }
 
  private:
-  int block_, groups_ = 0;
-  DeviceBuffer<ArgGroup> groups_buf_;
-  DeviceBuffer<int32_t> threads_end_, col_;
-  DeviceBuffer<T> val_;
+  ArgCsrDevice<T> G_;
   const T* x_;
   T* y_;
 };
+
+// Times `build` (conversion + upload/transfer, synchronised) and hands the result to the kernel constructor.
+template <class Build>
+auto timed(Build&& build) {
+  const auto t0 = std::chrono::steady_clock::now();
+  auto out = build();
+  RASP_CUDA(cudaDeviceSynchronize());
+  return std::make_pair(std::move(out), ms_since(t0));
+}
 
 }  // namespace
 
@@ -347,18 +318,68 @@ std::unique_ptr<SpmvKernel<T>> make_spmv_kernel(const KernelConfig& cfg, const H
     case Format::Cusparse: return std::make_unique<CusparseKernel<T>>(cfg.alg, dev, x, y);
     case Format::CsrScalar: return std::make_unique<CsrKernel<T>>(0, dev, x, y);
     case Format::CsrVector: return std::make_unique<CsrKernel<T>>(cfg.v, dev, x, y);
-    case Format::Ell: return std::make_unique<EllKernel<T>>(host, x, y);
-    case Format::Sell: return std::make_unique<SellKernel<T>>(cfg.C, cfg.sigma, host, x, y);
-    case Format::ArgCsr: return std::make_unique<ArgCsrKernel<T>>(cfg.block, cfg.chunk, 0, host, x, y);
-    case Format::CsrBinned: return std::make_unique<CsrBinnedKernel<T>>(cfg.t, dev, host, x, y);
-    case Format::ArgCsrLocal: return std::make_unique<ArgCsrKernel<T>>(cfg.block, 0, cfg.rows, host, x, y);
+    case Format::Ell: {
+      auto [E, ms] = timed([&] { return upload_ell(build_ell(host)); });
+      return std::make_unique<EllKernel<T>>(std::move(E), ms, x, y);
+    }
+    case Format::Sell: {
+      auto [S, ms] = timed([&] { return upload_sell(build_sell(host, cfg.C, cfg.sigma)); });
+      return std::make_unique<SellKernel<T>>(std::move(S), ms, x, y);
+    }
+    case Format::ArgCsr: {
+      auto [G, ms] = timed([&] { return upload_argcsr(build_argcsr(host, cfg.block, cfg.chunk)); });
+      return std::make_unique<ArgCsrKernel<T>>(std::move(G), ms, x, y);
+    }
+    case Format::ArgCsrLocal: {
+      auto [G, ms] = timed([&] { return upload_argcsr(build_argcsr_local(host, cfg.block, cfg.rows)); });
+      return std::make_unique<ArgCsrKernel<T>>(std::move(G), ms, x, y);
+    }
+    case Format::CsrBinned: {
+      auto [B, ms] = timed([&] { return upload_binned(build_binned(host, cfg.t)); });
+      return std::make_unique<CsrBinnedKernel<T>>(std::move(B), ms, dev, x, y);
+    }
   }
   throw std::invalid_argument("make_spmv_kernel: unknown format");
 }
 
-template std::unique_ptr<SpmvKernel<float>> make_spmv_kernel(const KernelConfig&, const HostCsr<float>&,
-                                                             const DeviceCsr<float>&, const float*, float*);
-template std::unique_ptr<SpmvKernel<double>> make_spmv_kernel(const KernelConfig&, const HostCsr<double>&,
-                                                              const DeviceCsr<double>&, const double*, double*);
+template <class T>
+std::unique_ptr<SpmvKernel<T>> make_spmv_kernel_gpu(const KernelConfig& cfg, const DeviceCsr<T>& dev, const T* x, T* y,
+                                                    cudaStream_t stream) {
+  switch (cfg.format) {
+    case Format::Cusparse: return std::make_unique<CusparseKernel<T>>(cfg.alg, dev, x, y);
+    case Format::CsrScalar: return std::make_unique<CsrKernel<T>>(0, dev, x, y);
+    case Format::CsrVector: return std::make_unique<CsrKernel<T>>(cfg.v, dev, x, y);
+    case Format::Ell: {
+      auto [E, ms] = timed([&] { return convert_ell_gpu(dev, 3.0, stream); });
+      return std::make_unique<EllKernel<T>>(std::move(E), ms, x, y);
+    }
+    case Format::Sell: {
+      auto [S, ms] = timed([&] { return convert_sell_gpu(dev, cfg.C, cfg.sigma, 64.0, stream); });
+      return std::make_unique<SellKernel<T>>(std::move(S), ms, x, y);
+    }
+    case Format::ArgCsr: {
+      auto [G, ms] = timed([&] { return convert_argcsr_gpu(dev, cfg.block, cfg.chunk, 0, 64.0, stream); });
+      return std::make_unique<ArgCsrKernel<T>>(std::move(G), ms, x, y);
+    }
+    case Format::ArgCsrLocal: {
+      auto [G, ms] = timed([&] { return convert_argcsr_gpu(dev, cfg.block, 0, cfg.rows, 64.0, stream); });
+      return std::make_unique<ArgCsrKernel<T>>(std::move(G), ms, x, y);
+    }
+    case Format::CsrBinned: {
+      auto [B, ms] = timed([&] { return convert_binned_gpu(dev, cfg.t, stream); });
+      return std::make_unique<CsrBinnedKernel<T>>(std::move(B), ms, dev, x, y);
+    }
+  }
+  throw std::invalid_argument("make_spmv_kernel_gpu: unknown format");
+}
+
+#define RASP_INSTANTIATE(T)                                                                                    \
+  template std::unique_ptr<SpmvKernel<T>> make_spmv_kernel(const KernelConfig&, const HostCsr<T>&,             \
+                                                           const DeviceCsr<T>&, const T*, T*);                 \
+  template std::unique_ptr<SpmvKernel<T>> make_spmv_kernel_gpu(const KernelConfig&, const DeviceCsr<T>&,       \
+                                                               const T*, T*, cudaStream_t);
+RASP_INSTANTIATE(float)
+RASP_INSTANTIATE(double)
+#undef RASP_INSTANTIATE
 
 }  // namespace rasp

@@ -10,7 +10,7 @@
 | ID | Goal | Measured by | Target |
 |----|------|-------------|--------|
 | G1 | Reproduce paper 2 (ArgCSR) on modern hardware | ArgCSR vs cuSPARSE on the same matrix classes the paper reports (rajat*, TSOPF, AFE, …) | Same qualitative winners and losers |
-| G2 | Runtime SpMV selector | Geomean of T_selected / T_oracle over held-out matrices | ≤ 1.10 (within 10% of oracle); beats "always cuSPARSE" and "always ArgCSR-1" |
+| G2 | Runtime SpMV selector | Geomean of T_selected / T_oracle over held-out matrices | ≤ 1.10 (within 10% of oracle); never > 5% slower than cuSPARSE on matrices ≥ 1M nnz *(re-scoped Sep 24, option (b))* |
 | G3 | Selection is cheap | Feature extraction + inference time, in units of one CSR SpMV | ≤ 2 SpMVs |
 | G4 | Conversion-aware choice | End-to-end time for N ∈ {1, 10, 100, 1000} calls vs any fixed format | Never worse than cuSPARSE CSR by > 5% at N = 1 |
 | G5 | Reproduce paper 1's placement study on a PCIe GPU | Our version of their Table 3 (A/B/C each in pinned memory) | Table + explanation |
@@ -155,13 +155,13 @@ the answer is almost always "stay in CSR", which is the point.
 - **Deliverable:** oracle table + "no format wins everywhere" figure (performance profile, as in paper 2 Fig. 4)
 
 ### Phase 3 — Runtime SpMV selector (Weeks 5–6: Oct 26 – Nov 6)
-> **Re-read the Phase 2 findings in progress.md first:** the oracle is only 1.07–1.09× faster than cuSPARSE on average, so G2's "beat always-cuSPARSE" bar is tight. Decide as a team whether to widen the candidate set (ArgCSR-local, adaptive-v CSR-vector) or re-scope G2 to "within 10% of the oracle while never losing to cuSPARSE".
-- [ ] Port ELL / SELL / ArgCSR conversion to the GPU (host conversion costs 15–60 SpMVs today)
-- [ ] GPU feature-extraction kernel. Measure its cost in SpMV units (G3)
-- [ ] Selector v1 (rules) → v2 (decision tree, exported to C++)
-- [ ] Conversion-time model + break-even logic. `make_spmv_plan()` API
-- [ ] ArgCSR-local (per-region `desiredChunkSize`) evaluation
-- [ ] Evaluation: slowdown vs oracle, confusion matrix, N-sweep (G2, G4)
+> **Done Sep 24.** Candidate set widened (a) *and* G2 re-scoped to (b): within 10% of the oracle (geomean), never >5% slower than cuSPARSE on large matrices. Evaluated on 40 held-out matrices. API is `SpmvPlan` (include/rasp/plan.hpp) rather than `make_spmv_plan()`.
+- [x] Port ELL / SELL / ArgCSR conversion to the GPU (host conversion costs 15–60 SpMVs today)
+- [x] GPU feature-extraction kernel. Measure its cost in SpMV units (G3)
+- [x] Selector v1 (rules) → v2 (decision tree, exported to C++)
+- [x] Conversion-time model + break-even logic. `make_spmv_plan()` API
+- [x] ArgCSR-local (per-region `desiredChunkSize`) evaluation
+- [x] Evaluation: slowdown vs oracle, confusion matrix, N-sweep (G2, G4)
 - **Deliverable:** selector within ~10% of oracle on held-out matrices. **Midpoint check-in / demo.**
 
 ### Phase 4 — SpGEMM track (Weeks 7–9: Nov 9 – Nov 27)

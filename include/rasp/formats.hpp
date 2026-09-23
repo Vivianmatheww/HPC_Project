@@ -10,6 +10,12 @@
 
 #include "rasp/csr.hpp"
 
+#if defined(__CUDACC__)
+#define RASP_HD __host__ __device__
+#else
+#define RASP_HD
+#endif
+
 namespace rasp {
 
 // Thrown when a format would need too much padding / memory for this matrix. Benchmarks record it
@@ -66,6 +72,16 @@ struct ArgCsrHost {
 template <class T>
 ArgCsrHost<T> build_argcsr(const HostCsr<T>& A, int block, int desired_chunk, double max_fill = 64.0);
 
+// The part of ArgCSR conversion that needs only row lengths (shared by the host and the GPU converter):
+// groups, threads per row, and for every row its group's offset, its first thread and its chunk filling.
+struct ArgCsrLayout {
+  std::vector<ArgGroup> groups;
+  std::vector<int32_t> threads_end, row_offset, row_tbegin, row_fill;
+  int64_t stored = 0;
+};
+ArgCsrLayout argcsr_layout(const std::vector<int32_t>& row_ptr, int block, int desired_chunk, size_t value_bytes,
+                           double max_fill = 64.0);
+
 // ArgCSR-local (RASP extension): desiredChunkSize chosen per window of `window` rows instead of globally.
 // Phase 2 data showed the best global D keeps ~20-75 rows per group (median 41) and grows with the mean row
 // length, so each window gets D = pow2_round(target_rows * mean_len / block), clamped to [1, 32], halved when
@@ -74,6 +90,8 @@ int argcsr_local_chunk(double mean_len, double cv, int block, int target_rows);
 template <class T>
 ArgCsrHost<T> build_argcsr_local(const HostCsr<T>& A, int block, int target_rows, int window = 4096,
                                  double max_fill = 64.0);
+ArgCsrLayout argcsr_local_layout(const std::vector<int32_t>& row_ptr, int block, int target_rows, int window,
+                                 size_t value_bytes, double max_fill = 64.0);
 
 // CSR-binned (RASP extension): CSR-vector with the number of lanes chosen per row instead of per matrix.
 // Row r gets v = pow2ceil(ceil(len / elems_per_lane)) lanes (1..32); rows longer than kLongRow get a whole
@@ -88,7 +106,13 @@ struct BinnedHost {
   std::vector<int32_t> bin_row_start;     // kBins + 1 entries into `order`
   std::vector<int32_t> bin_block_start;   // kBins + 1 entries: first thread block of each bin
 };
-int binned_bin(int32_t len, int elems_per_lane);
+RASP_HD inline int binned_bin(int32_t len, int elems_per_lane) {
+  if (len > kLongRow) return kBins - 1;
+  const int lanes = (len + elems_per_lane - 1) / elems_per_lane;
+  int bin = 0;
+  while (bin < kBins - 2 && (1 << bin) < lanes) ++bin;  // smallest power of two >= lanes, capped at 32
+  return bin;
+}
 template <class T>
 BinnedHost build_binned(const HostCsr<T>& A, int elems_per_lane);
 
