@@ -64,7 +64,7 @@ foreach(b bench_spmv bench_features bench_plan bench_spgemm)
 endforeach()
 
 # ---- end-to-end applications (Phase 5)
-foreach(a cg_solver)
+foreach(a cg_solver amg_setup)
   add_executable(${a} apps/${a}.cu)
   target_link_libraries(${a} PRIVATE rasp)
 endforeach()
@@ -86,3 +86,5 @@ endforeach()
 # Application smoke tests: small solves whose own correctness checks set the exit code.
 add_test(NAME app_cg_solver COMMAND cg_solver --laplace 16 --reps 1 --precisions fp64,fp32
          --out ${CMAKE_BINARY_DIR}/smoke_cg.csv)
+add_test(NAME app_amg_setup COMMAND amg_setup --n 32 --budget-mb 8 --reps 1 --methods alg4,rasp,zerocopy,incore
+         --out ${CMAKE_BINARY_DIR}/smoke_amg.csv)
