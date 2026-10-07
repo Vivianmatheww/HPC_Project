@@ -58,7 +58,7 @@ endif()
 target_compile_definitions(rasp PRIVATE RASP_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
 # ---- benchmarks
-foreach(b bench_spmv bench_features bench_plan)
+foreach(b bench_spmv bench_features bench_plan bench_spgemm)
   add_executable(${b} bench/${b}.cu)
   target_link_libraries(${b} PRIVATE rasp)
 endforeach()
