@@ -43,11 +43,13 @@ add_library(rasp STATIC
   src/selector/selector.cpp
   src/selector/plan.cu
   src/spgemm/estimate.cpp
+  src/spgemm/executor.cu
   src/spgemm/gallery.cpp
+  src/spgemm/kernels.cu
   src/spgemm/planner.cpp
   src/spgemm/range_allocator.cpp)
 target_include_directories(rasp PUBLIC include)
-target_link_libraries(rasp PUBLIC CUDA::cudart CUDA::cusparse)
+target_link_libraries(rasp PUBLIC CUDA::cudart CUDA::cusparse ${CMAKE_DL_LIBS})  # dl: NVTX's injection loader
 # The SpGEMM flop estimator walks every nonzero of A on the host; OpenMP spreads that over the CPU cores.
 find_package(OpenMP COMPONENTS CXX)
 if(OpenMP_CXX_FOUND)
@@ -67,7 +69,7 @@ target_link_libraries(uvm_probe PRIVATE CUDA::cudart)
 
 # ---- tests (run with: ctest --test-dir build --output-on-failure)
 enable_testing()
-foreach(t test_io test_spmv test_spgemm test_harness test_formats test_selector test_spgemm_plan)
+foreach(t test_io test_spmv test_spgemm test_harness test_formats test_selector test_spgemm_plan test_spgemm_ooc)
   file(GLOB src tests/${t}.c*)
   add_executable(${t} ${src})
   target_link_libraries(${t} PRIVATE rasp)
