@@ -41,7 +41,8 @@ add_library(rasp STATIC
   src/spmv/kernels.cu
   src/features/features.cu
   src/selector/selector.cpp
-  src/selector/plan.cu)
+  src/selector/plan.cu
+  src/spgemm/gallery.cpp)
 target_include_directories(rasp PUBLIC include)
 target_link_libraries(rasp PUBLIC CUDA::cudart CUDA::cusparse)
 target_compile_definitions(rasp PRIVATE RASP_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
@@ -58,7 +59,7 @@ target_link_libraries(uvm_probe PRIVATE CUDA::cudart)
 
 # ---- tests (run with: ctest --test-dir build --output-on-failure)
 enable_testing()
-foreach(t test_io test_spmv test_spgemm test_harness test_formats test_selector)
+foreach(t test_io test_spmv test_spgemm test_harness test_formats test_selector test_spgemm_plan)
   file(GLOB src tests/${t}.c*)
   add_executable(${t} ${src})
   target_link_libraries(${t} PRIVATE rasp)
