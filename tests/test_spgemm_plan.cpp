@@ -4,6 +4,7 @@
 
 #include "rasp/gallery.hpp"
 #include "rasp/io.hpp"
+#include "rasp/range_allocator.hpp"
 #include "rasp/reference.hpp"
 #include "rasp/spgemm_plan.hpp"
 #include "test_util.hpp"
@@ -76,6 +77,58 @@ TEST(transpose_roundtrip) {
   CHECK(T.rows == 45 && T.cols == 70 && T.nnz == A.nnz);
   auto TT = transpose(T);
   CHECK(TT.row_ptr == A.row_ptr && TT.col_idx == A.col_idx && TT.vals == A.vals);
+}
+
+// ---- device-arena allocator ------------------------------------------------------------------
+TEST(range_allocator_first_fit_and_coalescing) {
+  RangeAllocator a(4096 + 100);  // capacity rounds down to 4096
+  CHECK(a.capacity() == 4096);
+  auto x = a.alloc(1), y = a.alloc(300), z = a.alloc(1000);
+  CHECK(x && y && z);
+  CHECK(*x == 0 && *y == 256 && *z == 768);  // 256-byte granules
+  CHECK(a.in_use() == 256 + 512 + 1024);
+  CHECK(!a.alloc(4096));
+  a.free(*y);
+  CHECK(a.largest_free() == 4096 - 1792);  // the tail, still larger than the hole
+  auto w = a.alloc(200);
+  CHECK(w && *w == 256);  // first fit reuses the hole
+  a.free(*x);
+  a.free(*w);
+  a.free(*z);
+  CHECK(a.in_use() == 0 && a.live_blocks() == 0);
+  CHECK(a.largest_free() == 4096);  // everything coalesced back
+  CHECK(a.peak() == 1792);
+  CHECK_THROWS(a.free(12345));
+  auto zero = a.alloc(0);
+  CHECK(zero && a.in_use() == 256);
+  RangeAllocator none(0);
+  CHECK(!none.alloc(1));
+}
+
+TEST(range_allocator_random_stress) {
+  const size_t cap = 1 << 20;
+  RangeAllocator a(cap);
+  std::mt19937 rng(5);
+  std::vector<std::pair<size_t, size_t>> live;  // offset, requested bytes
+  for (int it = 0; it < 4000; ++it) {
+    if (!live.empty() && (rng() % 2 || live.size() > 40)) {
+      const size_t i = rng() % live.size();
+      a.free(live[i].first);
+      live.erase(live.begin() + long(i));
+    } else {
+      const size_t bytes = 1 + rng() % 40000;
+      if (auto off = a.alloc(bytes)) live.emplace_back(*off, bytes);
+    }
+    auto spans = live;
+    std::sort(spans.begin(), spans.end());
+    for (size_t i = 0; i < spans.size(); ++i) {
+      CHECK(spans[i].first % RangeAllocator::kAlign == 0);
+      CHECK(spans[i].first + spans[i].second <= cap);
+      if (i + 1 < spans.size()) CHECK(spans[i].first + spans[i].second <= spans[i + 1].first);  // no overlap
+    }
+  }
+  for (auto& [o, bytes] : live) a.free(o);
+  CHECK(a.in_use() == 0 && a.largest_free() == cap);
 }
 
 // ---- estimator -------------------------------------------------------------------------------

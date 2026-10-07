@@ -44,7 +44,8 @@ add_library(rasp STATIC
   src/selector/plan.cu
   src/spgemm/estimate.cpp
   src/spgemm/gallery.cpp
-  src/spgemm/planner.cpp)
+  src/spgemm/planner.cpp
+  src/spgemm/range_allocator.cpp)
 target_include_directories(rasp PUBLIC include)
 target_link_libraries(rasp PUBLIC CUDA::cudart CUDA::cusparse)
 # The SpGEMM flop estimator walks every nonzero of A on the host; OpenMP spreads that over the CPU cores.
