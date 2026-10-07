@@ -165,21 +165,30 @@ the answer is almost always "stay in CSR", which is the point.
 - **Deliverable:** selector within ~10% of oracle on held-out matrices. **Midpoint check-in / demo.**
 
 ### Phase 4 — SpGEMM track (Weeks 7–9: Nov 9 – Nov 27)
-- [ ] Week 7: placement study (our Table 3): A, B, C each in pinned zero-copy vs device, on Laplace R×A and A×P (G5). Flop-count / row-size estimator
-- [ ] Week 8: chunked driver (chunk1, chunk2, 2-D) + paper-1 Alg. 4 as a baseline. Verify against in-core on sizes that fit
-- [ ] Week 9: double-buffered pipeline, runtime bandwidth calibration, throughput cost model, re-planning after each chunk (G6)
-- **Deliverable:** GFLOP/s vs problem-size / budget plot with all baselines (paper 1, Figs. 12–13 style)
+> **Code complete Oct 8 (branch `phases-4-6`); GPU runs pending** (`scripts/run_phase4.sh` on the RTX 4050 machine).
+> Implemented with cuSPARSE as the in-core engine (no custom hash kernel). Unchecked items below need the GPU run.
+- [x] Placement study harness (`bench_spgemm --study placement`: A, B, C each in device / pinned / managed); flop-count and C-size estimator (`estimate()`, OpenMP)
+- [ ] Week 7 *results*: our Table 3 on Laplace R×A and A×P (G5)
+- [x] Chunked driver (ChunkB = chunk2 incl. several B blocks, ChunkAC = chunk1 with on-device partial sums, zero-copy) + paper-1 Alg. 4 baseline (`plan_alg4`)
+- [ ] Week 8 *verification on the GPU*: `test_spgemm_ooc` (every mode/planner/depth vs the CPU reference)
+- [x] Double/triple-buffered pipeline, runtime bandwidth calibration, simulated throughput cost model, probe block + re-planning after each tile, overflow splitting
+- [ ] Week 9 *results*: GFLOP/s vs problem size / budget with all baselines and the ablation (G6), `analyze_phase4.py`
 
 ### Phase 5 — Integration and end-to-end apps (Week 10: Nov 30 – Dec 4)
-- [ ] CG solver using `make_spmv_plan` (the iteration count is the natural `expected_calls`)
-- [ ] AMG-setup triple product R·A·P through `rasp::spgemm` with a budget
-- [ ] Nsight profiles of 2–3 representative kernels (achieved bandwidth, occupancy, stalls)
+> **Code complete Oct 8; GPU runs pending** (`scripts/run_phase5.sh`).
+- [x] CG solver using `SpmvPlan` (iteration cap as `expected_calls`; also the exact count and no break-even) — `apps/cg_solver.cu`
+- [x] AMG-setup triple product R·A·P through `SpgemmContext` with a budget, every level checked — `apps/amg_setup.cu`
+- [x] Nsight profiling script (`scripts/profile_kernels.sh`) and analysis (`scripts/analyze_phase5.py`); live demo `apps/rasp_demo.cu`
+- [ ] *Results*: CG over the SPD set, AMG set-up at n = 192 and 256, Nsight tables (G7)
 
 ### Phase 6 — Evaluation and write-up (Weeks 11–12: Dec 7 – Dec 18)
-- [ ] Freeze code. Rerun all experiments from scripts on a clean build
-- [ ] Final figures: performance profiles, oracle-gap CDF, break-even curves, SpGEMM scaling, overlap timeline (Nsight Systems screenshot)
-- [ ] Report: intro, background (both papers), design, evaluation, related work (SMAT, Sedaghati, Zhao, Benatia), limitations, conclusion
-- [ ] Slides + live demo (`plan.report()` output on a circuit matrix vs a FEM matrix)
+- [x] Freeze/rerun script: `scripts/run_all.sh` (clean build, all tests, Phases 1–5, report assets, report + slides)
+- [ ] Freeze the code (`git tag v1.0-freeze`) and run `run_all.sh` on the GPU machine
+- [x] Figure and number pipeline: `scripts/make_report_assets.py` (performance profiles, oracle-gap CDF, break-even curve, SpGEMM scaling, overlap timeline; every number a `\stat{key}`)
+- [ ] Nsight Systems overlap screenshot (`docs/report/figures/nsys_overlap.png`, manual)
+- [x] Report draft (`docs/report/`): all sections; Phases 1–3 complete with numbers
+- [ ] Report: Phase 4–5 interpretation (the `\todo` notes), names/course, final read-through
+- [x] Slides (`docs/slides/`, Beamer) + live-demo app; transcript recorded by `run_phase5.sh`
 
 ---
 

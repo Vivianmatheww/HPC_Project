@@ -14,9 +14,9 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 | 1 — Infrastructure | 1–2 | Sep 28 – Oct 9 | ✅ | Done Sep 23 (early). 28 unit tests; cuSPARSE baseline on 60 matrices |
 | 2 — SpMV kernels + paper-2 reproduction | 3–4 | Oct 12 – Oct 23 | ✅ | Done Sep 23 (early). 33 configs × 60 matrices; oracle table |
 | 3 — Runtime SpMV selector | 5–6 | Oct 26 – Nov 6 | ✅ | Done Sep 24: GPU converters + features, trained tree selector, SpmvPlan; held-out evaluation |
-| 4 — Out-of-core adaptive SpGEMM | 7–9 | Nov 9 – Nov 27 | ⬜ | |
-| 5 — Integration + apps | 10 | Nov 30 – Dec 4 | ⬜ | |
-| 6 — Evaluation + report | 11–12 | Dec 7 – Dec 18 | ⬜ | |
+| 4 — Out-of-core adaptive SpGEMM | 7–9 | Nov 9 – Nov 27 | 🟨 | Code complete Oct 8 (branch `phases-4-6`); GPU run pending: `scripts/run_phase4.sh` |
+| 5 — Integration + apps | 10 | Nov 30 – Dec 4 | 🟨 | CG, AMG set-up, demo, profiling scripts written; GPU run pending: `scripts/run_phase5.sh` |
+| 6 — Evaluation + report | 11–12 | Dec 7 – Dec 18 | 🟨 | `run_all.sh`, report (Phases 1–3 complete) and slides drafted; Phase 4–5 numbers and interpretation pending |
 
 ## Goal tracker
 
@@ -26,9 +26,9 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 | G2 Selector vs oracle | geomean slowdown ≤ 1.10; no large-matrix loss > 5% | held-out: **1.074**; 1.051× over cuSPARSE; 0 large-matrix losses (only 4 large samples) | ✅ |
 | G3 Selection overhead | ≤ 2 SpMV | held-out median **1.97** SpMVs (0.28 for > 1M nnz, 2.5 for < 100k); skipped entirely when N is small | 🟨 borderline |
 | G4 Break-even aware | ≤ 5% loss at N = 1 | N=1: identical work to cuSPARSE in 80/80 plans (0.996×, timing noise); N=1000: **1.052×** | ✅ |
-| G5 Placement study (Table 3) | table | Memory-level probe done (host-side reads 14–28× slower); SpGEMM-level table in Week 7 | 🟨 |
-| G6 Overlapped SpGEMM | ≥ 1.3× over Alg. 4 | — | ⬜ |
-| G7 CG + AMG demos | working | — | ⬜ |
+| G5 Placement study (Table 3) | table | Memory-level probe done (host-side reads 14–28× slower); SpGEMM-level study implemented (`bench_spgemm --study placement`), not yet run | 🟨 |
+| G6 Overlapped SpGEMM | ≥ 1.3× over Alg. 4 | implemented (executor, Alg. 4 baseline, simulated planner, re-planning); not yet run | 🟨 |
+| G7 CG + AMG demos | working | `apps/cg_solver`, `apps/amg_setup` written with self-checks; not yet run | 🟨 |
 
 ## Measured platform numbers (fill in during Phase 0)
 
@@ -55,6 +55,75 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 ---
 
 ## Log
+
+### 2026-10-08 (Thu) — Phases 4–6 implemented; GPU runs pending
+Written on a laptop without an NVIDIA GPU (Harsh). Everything was compiled here with the CUDA 13.3 toolkit from pip
+wheels; nothing that launches a kernel has run yet. Branch `phases-4-6`, one commit per step.
+
+**Built**
+- **Out-of-core SpGEMM** ([include/rasp/spgemm.hpp](include/rasp/spgemm.hpp), [src/spgemm/](src/spgemm/)):
+  - `SpgemmContext(budget)`: one arena of the budget carved by a first-fit allocator (the budget holds exactly; peak
+    is recorded), a copy stream and a compute stream, and PCIe calibration at creation.
+  - Modes: in-core, zero-copy, ChunkB (paper 1's chunk2, including several B blocks with partial C parked in pinned
+    memory) and ChunkAC (chunk1, with on-device partial sums by our own merge kernels). B blocks are full-height
+    matrices with empty rows, so A is never split by column.
+  - Uploads run depth−1 tiles ahead of cuSPARSE. Per-tile CUDA events give a timeline; NVTX labels the tiles for nsys.
+  - Tiles that do not fit are split and redone, so the estimates never affect correctness.
+  - The cuSPARSE SpGEMM wrapper was refactored into a core that works on views with caller-provided buffers.
+- **Planners** ([include/rasp/spgemm_plan.hpp](include/rasp/spgemm_plan.hpp)), host-only and unit-tested here:
+  - The flop and C-size estimator (OpenMP, parallel scan) and paper 1's BinarySearch splitter.
+  - A pipeline simulator that models one copy engine.
+  - `plan_alg4` (75/25 split, copy volume, depth 1; a depth-2 variant for the ablation).
+  - `plan_rasp` simulates every mode × block size × depth 2–3 and gives the streamed side all the free memory. It
+    adds a probe block, and re-plans when the measured rate, compression or workspace drifts by more than 20%.
+- **Benchmarks:** [bench/bench_spgemm.cu](bench/bench_spgemm.cu) has three studies:
+  - `placement`: paper 1's Table 3, each operand in device / pinned / managed memory.
+  - `ooc`: Alg. 4, Alg. 4 + overlap, RASP static, RASP, zero-copy, in-core and device-only, in shuffled order;
+    checks nnz(C) agreement and 2,000 rows against the CPU.
+  - `plans`: a dry run that needs no GPU.
+- **Apps:** [apps/cg_solver.cu](apps/cg_solver.cu) (Jacobi-PCG through `SpmvPlan`, iteration cap as the hint),
+  [apps/amg_setup.cu](apps/amg_setup.cu) (Galerkin R·(A·P) per level, checked by cross-method agreement and the row-sum
+  identity) and [apps/rasp_demo.cu](apps/rasp_demo.cu) (the live demo). The first two have ctest smoke tests.
+- **Data and Laplace generation:**
+  - [include/rasp/gallery.hpp](include/rasp/gallery.hpp) generates Laplace3D, its aggregation and the transpose in
+    memory, identical to `gen_laplace.py` (tested).
+  - `fetch_matrices.py --spd` / `--names` fetch the CG set and SNAP graphs.
+- **Scripts:**
+  - `run_phase4.sh`, `run_phase5.sh`, `profile_kernels.sh` (ncu metrics, nsys traces) and `run_all.sh` (the frozen rerun).
+  - `analyze_phase4.py` and `analyze_phase5.py`.
+  - `make_report_assets.py`: every report number becomes a `\stat{key}`, and every figure a PDF.
+- **Report and slides:** [docs/report/](docs/report/) (13 pages, builds cleanly) and [docs/slides/](docs/slides/)
+  (13 frames). Phases 1–3 are complete with numbers generated from the committed CSVs. Phases 4–5 show red `??key`
+  markers and `\todo` notes until the runs exist.
+
+**Verified on this laptop (no GPU)**
+- The whole project compiles warning-free.
+- `test_spgemm_plan`: 20 host-only tests pass (gallery vs `gen_laplace.py`, estimator vs brute force, splitter,
+  simulator schedules, a hand-computed Alg. 4 case, plans within budget, probe, re-plan, the allocator stress test).
+- `analyze_phase2.py` and `analyze_phase3.py` reproduce `spmv_oracle.csv`, `summary.txt` and `heldout_summary.txt`
+  byte for byte from the committed CSVs.
+- `analyze_phase4.py` and `analyze_phase5.py` ran end to end on synthetic CSVs that use the benchmarks' exact
+  column schemas.
+- `bench_spgemm --study plans`, using the prior parameters (these are predictions, not measurements), predicts
+  RASP 1.3–2.1× faster than Alg. 4 on Laplace n = 128–256 when the problem exceeds a 512 MiB budget.
+
+**Not verified (needs the GPU machine)**
+- `test_spgemm_ooc` and the app smoke tests: every executor mode, planner and depth checked against the CPU.
+- Whether cuSPARSE's blocking size queries leave H2D free to overlap compute: `NSYS=1 bash scripts/run_phase4.sh`
+  gives the trace.
+- cuSPARSE's real SpGEMM workspace size. The priors are guesses; the probe block measures it, and the overflow
+  splits cover a wrong guess.
+- Pinned memory limits under WSL2 at n = 256 (about 5 GB pinned).
+
+**Problem found:** `.gitignore`'s `data/` also ignored `tests/data/`, so the `.mtx` fixtures of `test_io` and
+`test_spmv` were never committed. Those two suites fail on any fresh clone. Fixed the pattern (`/data/`).
+**Vivian: please `git add tests/data/*.mtx` from your machine** (only you have the originals).
+
+**Next (GPU machine, in order):**
+1. `QUICK=1 bash scripts/run_phase4.sh` (about 3 min: tests plus a small sweep), then the full run. Commit `results/phase4/`.
+2. `QUICK=1 bash scripts/run_phase5.sh`, then the full run. Commit `results/phase5/`.
+3. `python scripts/make_report_assets.py` and rebuild the report. Fill the `\todo` notes from the summaries.
+4. At the freeze: `git tag v1.0-freeze && bash scripts/run_all.sh`.
 
 ### 2026-09-24 (Thu) — Phase 3 complete: runtime SpMV selector
 **Built**
