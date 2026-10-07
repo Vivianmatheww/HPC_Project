@@ -58,7 +58,10 @@ def phase1(tex):
     if not path.exists():
         return
     d = pd.read_csv(path)
-    if "error" in d:
+    if "config" in d.columns:  # written by the current bench_spmv (a rerun): map to the original columns
+        d = d[(d.kernel == "cusparse") & (d.status == "ok")].copy()
+        d["alg"] = d.config.map({"cusparse_alg1": "csr_alg1", "cusparse_alg2": "csr_alg2"})
+    elif "error" in d:
         d = d[d.error.isna()]
     tex.stat("p1-matrices", d.matrix.nunique())
     tex.stat("p1-failures", int((d.check != "pass").sum()))

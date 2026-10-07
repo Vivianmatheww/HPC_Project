@@ -7,3 +7,6 @@ __pycache__/
 *.ncu-rep
 *.csr.bin
 *.part
+results/archive-*/
+results/run_all-*.log
+results/phase*/old-*/
