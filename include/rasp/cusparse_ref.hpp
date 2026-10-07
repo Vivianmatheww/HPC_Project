@@ -1,6 +1,7 @@
 #pragma once
 // cuSPARSE baselines. These are both the performance baseline every RASP kernel must beat and the
 // GPU correctness reference.
+#include <functional>
 #include <string>
 
 #include "rasp/csr.hpp"
@@ -49,5 +50,29 @@ struct SpgemmInfo {
 // C = A B with cuSPARSE SpGEMM (CUSPARSE_SPGEMM_DEFAULT). Output columns are sorted.
 template <class T>
 DeviceCsr<T> cusparse_spgemm(const DeviceCsr<T>& A, const DeviceCsr<T>& B, SpgemmInfo* info = nullptr);
+
+// ---- Low-level SpGEMM on views: the building block of the out-of-core executor and the placement study ----------
+
+// The buffers the core asks for: cuSPARSE's two workspaces, then C's column indices and values once nnz(C) is known.
+enum class SpgemmBuffer { Work1, Work2, CCol, CVal };
+
+// Returns at least `bytes` bytes (device, mapped pinned or managed memory: the caller decides) or nullptr if it
+// cannot. The caller owns everything it hands out; the core never frees.
+using SpgemmAlloc = std::function<void*(SpgemmBuffer what, size_t bytes)>;
+
+struct SpgemmCall {
+  bool complete = false;  // false: an allocation failed (the sizes below say how far the call got)
+  int64_t nnz_c = 0;
+  size_t buffer1_bytes = 0, buffer2_bytes = 0;
+  int32_t* c_col = nullptr;  // as returned by alloc; nullptr when nnz_c == 0
+  void* c_val = nullptr;
+};
+
+// C = A B (CUSPARSE_SPGEMM_DEFAULT) on views. Writes c_row_ptr (A.rows + 1 entries, caller-provided) and asks
+// `alloc` for everything else. All work is enqueued on `stream` through `handle`; cuSPARSE's size queries
+// synchronise that stream only. An empty product (no nonzeros in A, B or the result) only zeroes c_row_ptr.
+template <class T>
+SpgemmCall cusparse_spgemm_view(cusparseHandle_t handle, const CsrView<T>& A, const CsrView<T>& B, int32_t* c_row_ptr,
+                                const SpgemmAlloc& alloc, cudaStream_t stream);
 
 }  // namespace rasp
