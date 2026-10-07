@@ -11,10 +11,15 @@ G2: steady-state choice within 10% of the oracle (geomean), never >5% slower tha
 G3: feature extraction <= 2 cuSPARSE SpMVs.
 G4: total time (plan + N calls) never >5% worse than always-cuSPARSE at N = 1.
 
-    python scripts/analyze_phase3.py
+Report output: --tex DIR writes phase3.tex (\\setstat values, including the cross-validation numbers parsed from
+results/phase3/selector_train.txt); --fig-dir DIR writes the figures again (p3_oracle_gap = the held-out profile, i.e.
+the CDF of T_selected / T_oracle; p3_calls_sweep) in --fig-format.
+
+    python scripts/analyze_phase3.py [--tex docs/report/generated --fig-dir docs/report/figures]
 """
 import argparse
 import io
+import re
 from contextlib import redirect_stdout
 from pathlib import Path
 
@@ -24,6 +29,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
+
+from rasp_report import TexWriter, tex_escape  # noqa: E402
 
 SLOTS = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"]
 SURFACE, TEXT, TEXT2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#e4e3df"
@@ -52,7 +59,20 @@ def main():
     ap.add_argument("--spmv", type=Path, default=Path("results/phase3/heldout_spmv.csv"))
     ap.add_argument("--plan", type=Path, default=Path("results/phase3/plan_heldout.csv"))
     ap.add_argument("--out", type=Path, default=Path("results/phase3"))
+    ap.add_argument("--train-report", type=Path, default=Path("results/phase3/selector_train.txt"))
+    ap.add_argument("--tex", type=Path, help="directory for phase3.tex (report values and tables)")
+    ap.add_argument("--fig-dir", type=Path, help="also write the figures here (the report's figure directory)")
+    ap.add_argument("--fig-format", default="pdf")
     args = ap.parse_args()
+    tex = TexWriter(args.tex / "phase3.tex" if args.tex else None)
+
+    def save_fig(fig, name):
+        fig.savefig(args.out / f"{name}.png", dpi=150, facecolor=SURFACE)
+        if args.fig_dir:
+            args.fig_dir.mkdir(parents=True, exist_ok=True)
+            report_name = {"heldout_profile": "p3_oracle_gap", "calls_sweep": "p3_calls_sweep"}[name]
+            for ext in args.fig_format.split(","):
+                fig.savefig(args.fig_dir / f"{report_name}.{ext}", dpi=150, facecolor=SURFACE, bbox_inches="tight")
 
     s = pd.read_csv(args.spmv)
     assert (s.loc[s["status"] == "ok", "check"] == "pass").all(), "held-out SpMV correctness failures"
@@ -85,13 +105,29 @@ def main():
         print(f"HELD-OUT: {n_mat} matrices x {times.index.get_level_values(1).nunique()} precisions = {len(times)} samples "
               f"({int(big.sum())} with >= 1M nnz); {times.shape[1]} configs; all plan and SpMV results correct\n")
         print(f"best of all 40 configs vs cuSPARSE ALG1: {geomean(cu / oracle):.3f}x geomean, max {(cu / oracle).max():.2f}x\n")
+        tex.stat("p3-heldout-matrices", n_mat)
+        tex.stat("p3-heldout-samples", len(times))
+        tex.stat("p3-heldout-large", int(big.sum()))
+        tex.stat("p3-heldout-oracle-vs-cusparse", geomean(cu / oracle), "{:.3f}")
 
         print("== G2: steady-state selection vs the held-out oracle ==")
+        g2_rows = []
         for name, t in lines.items():
             r = t / oracle
             print(f"  {name:26s} T/T_oracle geomean {geomean(r):.4f} | within 10%: {np.mean(r <= 1.10):4.0%} | "
                   f"vs cuSPARSE {geomean(cu / t):.3f}x | >5% slower than cuSPARSE: {int((t > 1.05 * cu).sum())} "
                   f"(large: {int((t[big] > 1.05 * cu[big]).sum())})")
+            key = {"always cuSPARSE ALG1": "cusparse", "rules (v1)": "rules", "decision tree (v2)": "tree",
+                   "oracle within portfolio": "portfolio"}[name]
+            tex.stat(f"p3-g2-{key}", geomean(r), "{:.3f}")
+            tex.stat(f"p3-g2-{key}-within10", 100 * np.mean(r <= 1.10), "{:.0f}")
+            tex.stat(f"p3-g2-{key}-vs-cusparse", geomean(cu / t), "{:.3f}")
+            tex.stat(f"p3-g2-{key}-slower", int((t > 1.05 * cu).sum()))
+            tex.stat(f"p3-g2-{key}-slower-large", int((t[big] > 1.05 * cu[big]).sum()))
+            g2_rows.append([tex_escape(name), f"{geomean(r):.3f}", f"{100 * np.mean(r <= 1.10):.0f}\\%",
+                            f"{geomean(cu / t):.3f}$\\times$", str(int((t > 1.05 * cu).sum()))])
+        tex.table("p3-g2", ["selector", "$T/T_{\\text{oracle}}$", "within 10\\%", "vs.\\ cuSPARSE", "$>$5\\% slower"],
+                  g2_rows)
         tree_cfg = steady("tree")
         print("\n  tree picks:", tree_cfg.value_counts().to_dict())
         print("  held-out oracle labels within portfolio:", times[PORTFOLIO].idxmin(axis=1).value_counts().to_dict())
@@ -104,7 +140,13 @@ def main():
         print(f"  feature_ms median {f['feature_ms'].median():.4f} ms; in cuSPARSE SpMVs: median {units.median():.2f}, "
               f"p90 {units.quantile(0.9):.2f}; <= 2 for {np.mean(units <= 2):.0%}")
         size = pd.cut(f["nnz"], [0, 1e5, 1e6, 1e9], labels=["<100k", "100k-1M", ">1M"])
-        print("  median by size:", units.groupby(size, observed=True).median().round(2).to_dict())
+        by_size = units.groupby(size, observed=True).median()
+        print("  median by size:", by_size.round(2).to_dict())
+        tex.stat("p3-g3-feature-us", 1000 * f["feature_ms"].median(), "{:.0f}")
+        tex.stat("p3-g3-median", units.median())
+        tex.stat("p3-g3-p90", units.quantile(0.9))
+        for k, v in by_size.items():
+            tex.stat(f"p3-g3-size-{k}", v)
 
         print("\n== G4: total time (plan + N calls) vs always-cuSPARSE; geomean speedup [worst case] ==")
         base = p[p["selector"] == "always_cusparse"].set_index(KEY + ["calls"])["total_ms"]
@@ -115,12 +157,19 @@ def main():
             row = {"selector": sel}
             for n, g in r.groupby(level="calls"):
                 row[f"N={n}"] = f"{geomean(g):.3f} [{g.min():.2f}]"
+                tex.stat(f"p3-g4-{sel}-{n}", geomean(g), "{:.3f}")
+                tex.stat(f"p3-g4-{sel}-{n}-worst", g.min())
             rows.append(row)
         print(pd.DataFrame(rows).to_string(index=False))
+        tex.table("p3-g4", ["selector"] + [c.replace("N=", "$N=") + "$" for c in rows[0] if c != "selector"],
+                  [[tex_escape(r["selector"])] + [v.replace("[", "[").replace(" ", "~") for k, v in r.items()
+                                                  if k != "selector"] for r in rows])
         uf = p[p["selector"] == "tree"].groupby("calls").agg(features=("used_features", "mean"),
                                                              steady=("config", lambda c: 0))
         conv_dropped = p[(p["selector"] == "tree") & (p["config"] != p["steady_state"])].groupby("calls").size()
         print("  tree: fraction of plans that extracted features by N:", uf["features"].round(2).to_dict())
+        for n, v in uf["features"].items():
+            tex.stat(f"p3-features-at-{n}", 100 * v, "{:.0f}")
         print("  tree: plans where break-even dropped the steady-state conversion, by N:", conv_dropped.to_dict())
         n1 = (base / p[p["selector"] == "tree"].set_index(KEY + ["calls"])["total_ms"].reindex(base.index)).xs(1, level="calls")
         t1 = p[(p["selector"] == "tree") & (p["calls"] == 1)].set_index(KEY)
@@ -128,6 +177,8 @@ def main():
         same = (t1["config"] == b1["config"].reindex(t1.index)) & (t1["used_features"] == 0)
         print(f"  G4 check at N=1: tree worse than cuSPARSE by >5% on {int((n1 < 1 / 1.05).sum())} of {len(n1)} samples; "
               f"{int(same.sum())} of {len(t1)} N=1 tree plans do exactly the baseline's work (same config, no features),")
+        tex.stat("p3-g4-n1-same", int(same.sum()))
+        tex.stat("p3-g4-n1-total", len(t1))
         print(f"  so their spread (ratio p5-p95 {n1[same.reindex(n1.index).values].quantile(0.05):.3f}-"
               f"{n1[same.reindex(n1.index).values].quantile(0.95):.3f}) is timing noise of the ~0.05 ms plan construction.")
 
@@ -154,7 +205,7 @@ def main():
     ax.set_title(f"Selector quality on {len(times)} held-out samples (steady state)", color=TEXT, fontsize=11, loc="left")
     ax.legend(frameon=False, loc="lower right", fontsize=9, labelcolor=TEXT)
     fig.tight_layout()
-    fig.savefig(args.out / "heldout_profile.png", dpi=150, facecolor=SURFACE)
+    save_fig(fig, "heldout_profile")
     plt.close(fig)
 
     # Figure 2: total-time speedup vs N
@@ -176,9 +227,45 @@ def main():
     ax.set_title("End-to-end speedup on held-out matrices", color=TEXT, fontsize=11, loc="left")
     ax.legend(frameon=False, loc="lower right", fontsize=9, labelcolor=TEXT)
     fig.tight_layout()
-    fig.savefig(args.out / "calls_sweep.png", dpi=150, facecolor=SURFACE)
+    save_fig(fig, "calls_sweep")
     plt.close(fig)
     print(f"wrote {args.out / 'heldout_profile.png'}, {args.out / 'calls_sweep.png'}, {args.out / 'heldout_summary.txt'}")
+    train_stats(args.train_report, tex)
+    if (path := tex.write()):
+        print(f"wrote {path}")
+
+
+def train_stats(path, tex):
+    """Cross-validation numbers from train_selector.py's report (the selector is frozen, so it is not retrained)."""
+    if not path.exists():
+        return
+    text = path.read_text()
+    m = re.search(r"training samples: (\d+) \((\d+) matrices.*?(\d+) SuiteSparse groups, (\d+) configs", text)
+    if m:
+        tex.stat("p3-train-samples", m.group(1))
+        tex.stat("p3-train-matrices", m.group(2))
+        tex.stat("p3-train-groups", m.group(3))
+    for label, key in (("oracle within portfolio", "portfolio"), ("decision tree (CV)", "tree"),
+                       ("always cuSPARSE ALG1", "cusparse")):
+        m = re.search(re.escape(label) + r"\s+(\d+\.\d+)\s+within 10%: (\d+)%", text)
+        if m:
+            tex.stat(f"p3-cv-{key}", m.group(1))
+            tex.stat(f"p3-cv-{key}-within10", m.group(2))
+    m = re.search(r"chosen tau = ([\d.]+), large-matrix gate .*? = (True|False)", text)
+    if m:
+        tau, gate = m.group(1), m.group(2)
+        for line in text.splitlines():  # the tau table row of the chosen setting
+            f = line.split()
+            if len(f) == 7 and f[1] == gate and abs(float(f[0]) - float(tau)) < 1e-9:
+                tex.stat("p3-cv-gated", f[2])
+                tex.stat("p3-cv-gated-large-slower", f[6])
+    m = re.search(r"expected \(out-of-fold\) gain over cuSPARSE for this setting: ([\d.]+)", text)
+    if m:
+        tex.stat("p3-expected-gain-pct", 100 * float(m.group(1)), "{:.1f}")
+    m = re.search(r"final trees: full \((\d+), (\d+), '(\w+)'\) \((\d+) leaves\)", text)
+    if m:
+        tex.stat("p3-tree-depth", m.group(1))
+        tex.stat("p3-tree-leaves", m.group(4))
 
 
 if __name__ == "__main__":

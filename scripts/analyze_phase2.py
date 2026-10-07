@@ -8,8 +8,13 @@ Outputs: results/spmv_oracle.csv            best config per (matrix, precision) 
          results/phase2/argcsr_chunk.png    ArgCSR GFLOP/s vs desiredChunkSize (paper-2 sensitivity)
          results/phase2/perf_profile_extensions.png   CSR-binned / ArgCSR-local vs what they extend (if present)
          results/phase2/summary.txt         the tables printed below
+         --tex DIR                          phase2.tex: \\setstat values and tables for the report
+         --fig-dir DIR                      the figures again, for the report (--fig-format pdf)
 
-    python scripts/analyze_phase2.py [--csv results/phase2_spmv.csv]
+The matrix kinds come from data/suitesparse/manifest.csv; without the data (it is not in git) they are taken from
+the committed oracle table instead.
+
+    python scripts/analyze_phase2.py [--csv results/phase2_spmv.csv] [--tex docs/report/generated --fig-dir docs/report/figures]
 """
 import argparse
 import io
@@ -22,6 +27,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
+
+from rasp_report import TexWriter, tex_escape  # noqa: E402
 
 # Reference palette (dataviz skill), categorical slots in fixed order, light mode.
 SLOTS = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"]
@@ -57,7 +64,7 @@ def geomean(x):
     return float(np.exp(np.log(x).mean())) if len(x) else float("nan")
 
 
-def load(csv_paths, manifest_path):
+def load(csv_paths, manifest_path, kinds_from=Path("results/spmv_oracle.csv")):
     df = pd.concat([pd.read_csv(p) for p in csv_paths], ignore_index=True)
     df = df.drop_duplicates(subset=["matrix", "precision", "config"], keep="first")
     bad = df[(df["status"] == "ok") & (df["check"] != "pass")]
@@ -68,6 +75,11 @@ def load(csv_paths, manifest_path):
         man = pd.read_csv(manifest_path)
         man["matrix"] = man["group"] + "/" + man["name"]
         ok = ok.merge(man[["matrix", "kind", "source"]], on="matrix", how="left")
+    elif kinds_from.exists():  # no data/ on this machine: the committed oracle table carries the same columns
+        man = pd.read_csv(kinds_from)[["matrix", "kind", "source"]].drop_duplicates("matrix")
+        ok = ok.merge(man, on="matrix", how="left")
+    else:
+        ok["kind"] = ok["source"] = ""
     return df, ok
 
 
@@ -95,7 +107,15 @@ def line_times(ok, prec, how, what):
     return sel.groupby("matrix")["median_ms"].min()
 
 
-def perf_profile(ok, out, lines=PROFILE_LINES, name="perf_profile.png"):
+def save_fig(fig, out, name, fig_dir=None, formats=("pdf",)):
+    fig.savefig(out / name, dpi=150, facecolor=SURFACE)
+    if fig_dir:
+        fig_dir.mkdir(parents=True, exist_ok=True)
+        for ext in formats:
+            fig.savefig(fig_dir / f"p2_{Path(name).stem}.{ext}", dpi=150, facecolor=SURFACE, bbox_inches="tight")
+
+
+def perf_profile(ok, out, lines=PROFILE_LINES, name="perf_profile.png", fig_dir=None, formats=("pdf",)):
     precs = [p for p in ("fp32", "fp64") if p in set(ok["precision"])]
     fig, axes = plt.subplots(1, len(precs), figsize=(6.2 * len(precs), 5.0), sharey=True, squeeze=False)
     fig.patch.set_facecolor(SURFACE)
@@ -127,11 +147,12 @@ def perf_profile(ok, out, lines=PROFILE_LINES, name="perf_profile.png"):
     fig.suptitle("SpMV performance profiles on RTX 4050 Laptop: higher and further left is better",
                  color=TEXT, fontsize=12, x=0.01, ha="left")
     fig.tight_layout(rect=(0, 0.1, 1, 1))
-    fig.savefig(out / name, dpi=150, facecolor=SURFACE)
+    save_fig(fig, out, name, fig_dir, formats)
     plt.close(fig)
 
 
-def chunk_sensitivity(ok, out, matrices=("Schenk_AFE/af_shell1", "Rajat/rajat23"), block=128, prec="fp64"):
+def chunk_sensitivity(ok, out, matrices=("Schenk_AFE/af_shell1", "Rajat/rajat23"), block=128, prec="fp64",
+                      fig_dir=None, formats=("pdf",)):
     fig, ax = plt.subplots(figsize=(6.2, 4.0))
     fig.patch.set_facecolor(SURFACE)
     ax.set_facecolor(SURFACE)
@@ -161,24 +182,34 @@ def chunk_sensitivity(ok, out, matrices=("Schenk_AFE/af_shell1", "Rajat/rajat23"
         ax.spines[side].set_color(GRID)
     ax.legend(frameon=False, loc="lower left", fontsize=9, labelcolor=TEXT)
     fig.tight_layout()
-    fig.savefig(out / "argcsr_chunk.png", dpi=150, facecolor=SURFACE)
+    save_fig(fig, out, "argcsr_chunk.png", fig_dir, formats)
     plt.close(fig)
 
 
-def report(df, ok, oracle):
+def report(df, ok, oracle, tex):
     n_inf = int((df["status"] == "infeasible").sum())
     n_err = int((df["status"] == "error").sum())
     print(f"{df['matrix'].nunique()} matrices x {df['config'].nunique()} configs x {df['precision'].nunique()} precisions: "
           f"{len(ok)} ok rows (all pass the correctness check), {n_inf} infeasible, {n_err} errors\n")
+    tex.stat("p2-matrices", df["matrix"].nunique())
+    tex.stat("p2-configs", df["config"].nunique())
+    tex.stat("p2-runs", len(ok))
+    tex.stat("p2-infeasible", n_inf)
 
     print("== Which family is fastest (oracle wins) ==")
-    print(oracle.groupby(["precision", "best_family"]).size().unstack(0).fillna(0).astype(int).to_string(), "\n")
+    wins = oracle.groupby(["precision", "best_family"]).size().unstack(0).fillna(0).astype(int)
+    print(wins.to_string(), "\n")
+    tex.table("p2-wins", ["fastest family"] + [c.upper() for c in wins.columns],
+              [[tex_escape(f)] + [int(v) for v in r] for f, r in wins.iterrows()])
 
     print("== Speedup of the oracle (best of all configs) ==")
     for prec, g in oracle.groupby("precision"):
         print(f"{prec}: vs cuSPARSE ALG1 geomean {geomean(g['speedup_vs_cusparse_alg1']):.2f}x "
               f"(max {g['speedup_vs_cusparse_alg1'].max():.2f}x); vs best cuSPARSE {geomean(g['speedup_vs_best_cusparse']):.2f}x; "
               f"cuSPARSE is the oracle on {int((g['best_family'] == 'cusparse').sum())}/{len(g)}")
+        tex.stat(f"p2-oracle-{prec}", geomean(g["speedup_vs_cusparse_alg1"]))
+        tex.stat(f"p2-oracle-{prec}-max", g["speedup_vs_cusparse_alg1"].max())
+        tex.stat(f"p2-cusparse-wins-{prec}", int((g["best_family"] == "cusparse").sum()))
     print()
 
     print("== Each line of the profile vs cuSPARSE ALG1 (geomean speedup; >1 = faster) ==")
@@ -192,13 +223,25 @@ def report(df, ok, oracle):
             r[f"{prec} feasible"] = int(t.notna().sum())
         rows.append(r)
     print(pd.DataFrame(rows).to_string(index=False), "\n")
+    tex.table("p2-lines", ["configuration", "FP32", "FP64", "feasible"],
+              [[tex_escape(r["line"]), f"{r['fp32 geomean']:.2f}$\\times$", f"{r['fp64 geomean']:.2f}$\\times$",
+                r["fp64 feasible"]] for r in rows], "lrrr")
+    for r in rows:
+        key = {"ArgCSR B=128 D=1 (paper default)": "argcsr-default", "ArgCSR, best B,D": "argcsr-tuned",
+               "CSR-vector, best v": "csr-vector-best", "SELL-C-σ, best C,σ": "sell-best"}.get(r["line"])
+        if key:
+            tex.stat(f"p2-{key}-fp32", r["fp32 geomean"])
+            tex.stat(f"p2-{key}-fp64", r["fp64 geomean"])
 
     print("== By size (FP64): oracle speedup vs cuSPARSE ALG1, and most common winning family ==")
     o = oracle[oracle["precision"] == "fp64"].copy()
     o["size"] = pd.cut(o["nnz"], [0, 1e5, 1e6, 1e9], labels=["<100k", "100k-1M", ">1M"])
-    print(o.groupby("size", observed=True).agg(matrices=("matrix", "size"),
-                                               geomean_speedup=("speedup_vs_cusparse_alg1", geomean),
-                                               top_family=("best_family", lambda s: s.value_counts().index[0])).round(2).to_string(), "\n")
+    by_size = o.groupby("size", observed=True).agg(matrices=("matrix", "size"),
+                                                   geomean_speedup=("speedup_vs_cusparse_alg1", geomean),
+                                                   top_family=("best_family", lambda s: s.value_counts().index[0]))
+    print(by_size.round(2).to_string(), "\n")
+    for size, r in by_size.iterrows():
+        tex.stat(f"p2-oracle-size-{size}", r["geomean_speedup"])
 
     print("== Best ArgCSR desiredChunkSize per matrix (a single global value cannot be right) ==")
     arg = ok[ok["kernel"] == "argcsr"].copy()
@@ -210,6 +253,10 @@ def report(df, ok, oracle):
     ratio = (d1[1] / d1.min(axis=1))
     print(f"fixed D=1 (B=128) vs best D (B=128): geomean slowdown {geomean(ratio):.2f}x, worst {ratio.max():.2f}x "
           f"({ratio.idxmax()[0]}, {ratio.idxmax()[1]})\n")
+    tex.stat("p2-d1-slowdown", geomean(ratio))
+    tex.stat("p2-d1-worst", ratio.max())
+    tex.stat("p2-d1-worst-matrix", tex_escape(ratio.idxmax()[0].split("/")[-1]))
+    tex.stat("p2-d1-best-count-fp64", int((bestD[bestD["precision"] == "fp64"]["D"] == 1).sum()))
 
     print("== Paper-2 check: desiredChunkSize 1 vs 32 (FP64, B=128), GFLOP/s ==")
     for m, claim in (("Schenk_AFE/af_shell1", "paper (AFE): D=32 better, 18 vs 11 GFLOPS"),
@@ -217,6 +264,9 @@ def report(df, ok, oracle):
         g = arg[(arg["matrix"] == m) & (arg["precision"] == "fp64") & (arg["B"] == 128)].set_index("D")["gflops"]
         if 1 in g and 32 in g:
             print(f"{m}: D=1 {g[1]:.2f}, D=32 {g[32]:.2f} -> D=1/D=32 = {g[1] / g[32]:.2f}   [{claim}]")
+            key = m.split("/")[1].replace("_", "")
+            tex.stat(f"p2-{key}-d1", g[1])
+            tex.stat(f"p2-{key}-d32", g[32])
     print()
 
     print("== Paper-2 named matrices (FP64): GFLOP/s ==")
@@ -228,6 +278,12 @@ def report(df, ok, oracle):
                       "argcsr_best": fam_gf("argcsr"), "best": p["best_gflops"], "best_config": p["best_config"]}).loc[p.index]
     t["argcsr_D1/cusparse"] = t["argcsr_B128_D1"] / t["cusparse_alg1"]
     print(t.round(2).to_string(), "\n")
+    tex.table("p2-named", ["matrix", "cuSPARSE", "ArgCSR D=1", "ArgCSR best", "best", "best config"],
+              [[tex_escape(m.split("/")[1]), f"{r.cusparse_alg1:.1f}", f"{r.argcsr_B128_D1:.1f}", f"{r.argcsr_best:.1f}",
+                f"{r.best:.1f}", tex_escape(r.best_config)] for m, r in t.iterrows()], "lrrrrl")
+    for m in ("GHS_indef/ncvxqp9", "Norris/torso2"):
+        if m in t.index:
+            tex.stat(f"p2-{m.split('/')[1]}-argcsr-vs-cusparse", t.loc[m, "argcsr_best"] / t.loc[m, "cusparse_alg1"])
 
     if (ok["kernel"] == "argcsr_local").any() or (ok["kernel"] == "csr_binned").any():
         print("== Extensions (vs cuSPARSE ALG1, geomean speedup; >1 = faster) ==")
@@ -240,6 +296,8 @@ def report(df, ok, oracle):
                 r[prec] = round(geomean(base / t), 3)
                 r[f"{prec} wins"] = int((base / t > 1).sum())
             rows.append(r)
+            for prec in ("fp32", "fp64"):
+                tex.stat(f"p2-ext-{cfg.replace('_', '-')}-{prec}", r[prec])
         print(pd.DataFrame(rows).to_string(index=False))
         arg = ok[ok["kernel"] == "argcsr"]
         k = ["matrix", "precision"]
@@ -248,10 +306,15 @@ def report(df, ok, oracle):
         loc = ok[ok["config"] == "argcsr_local_B128_R32"].set_index(k)["median_ms"]
         print(f"ArgCSR-local B128 R32 (one untuned config): {geomean(d1 / loc):.2f}x vs paper default D=1; "
               f"reaches {geomean(tuned / loc):.2f} of per-matrix-tuned ArgCSR (18 configs)\n")
+        tex.stat("p2-local-vs-default", geomean(d1 / loc))
+        tex.stat("p2-local-vs-tuned", geomean(tuned / loc))
 
     print("== Conversion cost in SpMV calls (median over matrices of convert_ms / median_ms, FP64) ==")
     c = ok[ok["precision"] == "fp64"].assign(calls=lambda d: d["convert_ms"] / d["median_ms"])
-    print(c.groupby("kernel")["calls"].median().round(1).to_string())
+    calls = c.groupby("kernel")["calls"].median()
+    print(calls.round(1).to_string())
+    for k, v in calls.items():
+        tex.stat(f"p2-convert-calls-{k.replace('_', '-')}", v, "{:.0f}")
     print("(host-side conversion; cuSPARSE = cusparseSpMV_preprocess on the GPU)")
 
 
@@ -262,25 +325,32 @@ def main():
     ap.add_argument("--manifest", type=Path, default=Path("data/suitesparse/manifest.csv"))
     ap.add_argument("--out", type=Path, default=Path("results/phase2"))
     ap.add_argument("--oracle", type=Path, default=Path("results/spmv_oracle.csv"))
+    ap.add_argument("--tex", type=Path, help="directory for phase2.tex (report values and tables)")
+    ap.add_argument("--fig-dir", type=Path, help="also write the figures here (the report's figure directory)")
+    ap.add_argument("--fig-format", default="pdf")
     args = ap.parse_args()
+    tex = TexWriter(args.tex / "phase2.tex" if args.tex else None)
+    formats = tuple(args.fig_format.split(","))
 
     df, ok = load([c for c in args.csv if c.exists()], args.manifest)
     oracle = oracle_table(ok)
     args.out.mkdir(parents=True, exist_ok=True)
     oracle.to_csv(args.oracle, index=False, float_format="%.6g")
     args.csv = [c for c in args.csv if c.exists()]
-    perf_profile(ok, args.out)
+    perf_profile(ok, args.out, fig_dir=args.fig_dir, formats=formats)
     if (ok["kernel"] == "argcsr_local").any():
-        perf_profile(ok, args.out, PROFILE_EXT, "perf_profile_extensions.png")
-    chunk_sensitivity(ok, args.out)
+        perf_profile(ok, args.out, PROFILE_EXT, "perf_profile_extensions.png", args.fig_dir, formats)
+    chunk_sensitivity(ok, args.out, fig_dir=args.fig_dir, formats=formats)
 
     buf = io.StringIO()
     with redirect_stdout(buf):
-        report(df, ok, oracle)
+        report(df, ok, oracle, tex)
     text = buf.getvalue()
     print(text)
     (args.out / "summary.txt").write_text(text)
     print(f"wrote {args.oracle}, {args.out / 'perf_profile.png'}, {args.out / 'argcsr_chunk.png'}, {args.out / 'summary.txt'}")
+    if (p := tex.write()):
+        print(f"wrote {p}")
 
 
 if __name__ == "__main__":

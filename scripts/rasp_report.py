@@ -8,6 +8,7 @@ Report: the LaTeX report never contains a hand-typed result. Each script writes 
 tabulars into docs/report/generated/; the report prints them with `\\stat{key}` (an unknown key prints ??key and
 warns, so a missing number is visible in the PDF).
 """
+import re
 from pathlib import Path
 
 import numpy as np
@@ -70,7 +71,14 @@ class TexWriter:
         self.path = Path(path) if path else None
         self.lines = []
 
+    @staticmethod
+    def key(name):
+        """Keys are letters, digits and '-' only (easy to type in the report): <100k -> lt100k, tree_nobe -> tree-nobe."""
+        name = str(name).replace("<", "lt").replace(">", "gt")
+        return re.sub(r"[^A-Za-z0-9:-]+", "-", name).strip("-")
+
     def stat(self, key, value, fmt="{:.2f}"):
+        key = self.key(key)
         if isinstance(value, (float, np.floating)):
             text = "--" if not np.isfinite(value) else fmt.format(value)
         else:
@@ -79,6 +87,7 @@ class TexWriter:
 
     def table(self, name, header, rows, align=None):
         """A bare tabular, stored as the stat `table:<name>` (the report wraps it in its own table float)."""
+        name = self.key(name)
         align = align or "l" + "r" * (len(header) - 1)
         body = [f"\\begin{{tabular}}{{{align}}}", "\\toprule", " & ".join(header) + r" \\", "\\midrule"]
         body += [" & ".join(str(c) for c in r) + r" \\" for r in rows]
