@@ -1,0 +1,215 @@
+\section{Evaluation}\label{sec:eval}
+
+\subsection{Baseline: how well does cuSPARSE use the GPU?}
+cuSPARSE \texttt{CSR\_ALG1} reaches a median of \stat{p1-fp64-csr-alg1-bw}\% of the measured device bandwidth in
+fp64 (best \stat{p1-fp64-csr-alg1-bw-max}\%) over the \stat{p1-matrices} training matrices, and is faster than
+\texttt{ALG2} on \stat{p1-alg1-wins-fp64} of them. Size dominates: the median is \stat{p1-fp64-bw-lt100k}\% below
+$10^5$ nonzeros, \stat{p1-fp64-bw-100k-1M}\% up to $10^6$ and \stat{p1-fp64-bw-gt1M}\% above, because a small SpMV
+lasts a few microseconds and is limited by launch latency. Any headroom for format selection therefore lies mostly
+in small and medium matrices.
+
+\subsection{G1: reproducing paper 2 (ArgCSR)}\label{sec:eval-g1}
+
+\begin{figure}[t]
+\centering\rfig[0.62\linewidth]{p2_argcsr_chunk}
+\caption{ArgCSR (fp64, \texttt{blockDim} 128) against \texttt{desiredChunkSize}: the two matrices move in opposite
+directions, as in paper~2.}\label{fig:chunk}
+\end{figure}
+
+\begin{table}[t]
+\centering\small
+\caption{Paper~2's named matrices (fp64, GFLOP/s): cuSPARSE \texttt{ALG1}, ArgCSR at the paper's default and tuned,
+and the fastest configuration.}\label{tab:named}
+\stattable{p2-named}
+\end{table}
+
+\textbf{The chunk-size sensitivity reproduces.} On \texttt{rajat23}, ArgCSR with \texttt{desiredChunkSize} 1 runs at
+\stat{p2-rajat23-d1}\,GFLOP/s and with 32 at \stat{p2-rajat23-d32} (paper~2: 5.1 vs 0.81 on a Fermi C2070). Padding
+causes the collapse: one long row forces its whole group to the long chunk, and the stored slots grow from
+\stat{p2-rajat23-stored-d1}\x{} to \stat{p2-rajat23-stored-d32}\x{} the number of nonzeros. \texttt{af\_shell1} goes the other way
+(\stat{p2-afshell1-d32} vs \stat{p2-afshell1-d1}\,GFLOP/s for 32 vs 1), as paper~2 reported for the AFE set
+(\cref{fig:chunk}).
+
+\textbf{But no global value is right, and paper~2's ``robust'' choice is rarely the best.} \texttt{desiredChunkSize}~1
+is the best ArgCSR setting for only \stat{p2-d1-best-count-fp64} of \stat{p2-matrices} matrices in fp64. Fixing it
+costs \stat{p2-d1-slowdown}\x{} on average against the best value per matrix, and up to \stat{p2-d1-worst}\x{}
+(\texttt{\stat{p2-d1-worst-matrix}}). This is the parameter choice RASP automates.
+
+\textbf{Paper~2's headline does not hold against 2026 cuSPARSE.} At its default, ArgCSR reaches
+\stat{p2-argcsr-default-fp32}\x{} (fp32) and \stat{p2-argcsr-default-fp64}\x{} (fp64) of cuSPARSE \texttt{ALG1}
+(geometric mean), and \stat{p2-argcsr-tuned-fp32}\x{} and \stat{p2-argcsr-tuned-fp64}\x{} when tuned per matrix. The
+exceptions sit in the family the paper highlighted: on \texttt{ncvxqp9} (GHS\_indef) ArgCSR is
+\stat{p2-ncvxqp9-argcsr-vs-cusparse}\x{} as fast as cuSPARSE, and tuned ArgCSR is the overall winner on \texttt{torso2}
+(\cref{tab:named}). The vendor library has moved from the scalar CSR kernel of 2012 to load-balanced kernels, so the
+qualitative trends of paper~2 survive while its absolute advantage does not.
+
+\subsection{No format wins everywhere}
+\begin{figure}[t]
+\centering\rfig[0.95\linewidth]{p2_perf_profile}
+\caption{Performance profiles over the \stat{p2-matrices} training matrices: the fraction of matrices on which each
+format is within a factor $\tau$ of the fastest of all configurations.}\label{fig:profile}
+\end{figure}
+
+The fastest of all configurations (the \emph{oracle}) is \stat{p2-oracle-fp32}\x{} faster than cuSPARSE \texttt{ALG1}
+in fp32 and \stat{p2-oracle-fp64}\x{} in fp64 (geometric mean; up to \stat{p2-oracle-fp32-max}\x{} and
+\stat{p2-oracle-fp64-max}\x). cuSPARSE itself is the oracle on \stat{p2-cusparse-wins-fp32} (fp32) and
+\stat{p2-cusparse-wins-fp64} (fp64) matrices; CSR-vector with a small $v$ wins most of the others (\cref{tab:wins},
+\cref{fig:profile}). The headroom shrinks with size: \stat{p2-oracle-size-lt100k}\x{} below $10^5$ nonzeros,
+\stat{p2-oracle-size-100k-1M}\x{} up to $10^6$ and \stat{p2-oracle-size-gt1M}\x{} above. Thread-per-row formats
+collapse on power-law rows: on \texttt{ASIC\_100k}, a few rows with tens of thousands of nonzeros serialise on single
+threads. This is why the selector needs the maximum row length.
+
+Our two extensions behave as designed. One \emph{untuned} ArgCSR-local configuration is
+\stat{p2-local-vs-default}\x{} faster than paper~2's default and reaches \stat{p2-local-vs-tuned} of ArgCSR tuned per
+matrix over 18 configurations: choosing the chunk size locally recovers most of the tuning benefit. CSR-binned matches
+per-matrix-tuned CSR-vector without tuning. Neither moves the oracle by more than about a percent, because modern
+cuSPARSE is already near-optimal on large matrices. We therefore re-scoped \G2 from ``beat cuSPARSE'' to ``within
+10\% of the oracle, and never lose on large matrices''.
+
+\begin{table}[t]
+\centering\small
+\caption{Which family is fastest, per matrix and precision.}\label{tab:wins}
+\stattable{p2-wins}
+\end{table}
+
+\subsection{G2--G4: the runtime selector on held-out matrices}\label{sec:eval-g2}
+\begin{table}[t]
+\centering\small
+\caption{Steady-state selection on \stat{p3-heldout-samples} held-out samples (\stat{p3-heldout-matrices} matrices
+$\times$ 2 precisions).}\label{tab:g2}
+\stattable{p3-g2}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\begin{minipage}[t]{0.49\linewidth}\centering\rfig{p3_oracle_gap}
+\caption{Oracle gap on held-out samples: the CDF of $T_\text{selected}/T_\text{oracle}$.}\label{fig:gap}\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}\centering\rfig{p3_calls_sweep}
+\caption{Plan cost plus $N$ calls, against always using cuSPARSE: break-even keeps small $N$ safe.}\label{fig:sweep}\end{minipage}
+\end{figure}
+
+\textbf{G2 is met on unseen matrices.} The decision tree runs within \stat{p3-g2-tree}\x{} of the held-out oracle
+(target 1.10), within 10\% of it on \stat{p3-g2-tree-within10}\% of samples, and \stat{p3-g2-tree-vs-cusparse}\x{}
+faster than always using cuSPARSE, which sits at \stat{p3-g2-cusparse}\x{} of the oracle (\cref{tab:g2},
+\cref{fig:gap}). It is never more than 5\% slower than cuSPARSE on a matrix with at least $10^6$ nonzeros
+(\stat{p3-g2-tree-slower-large} cases). Only \stat{p3-heldout-large} held-out samples are that large, so this half of
+the goal rests mainly on cross-validation, where the gated tree had \stat{p3-cv-gated-large-slower} such losses.
+Cross-validation predicted \stat{p3-cv-gated}; held-out performance is close to it. The hand-written rules (v1) are no
+better than cuSPARSE (\stat{p3-g2-rules}\x{} of the oracle): thresholds fitted by hand do not transfer. The oracle
+within the five-configuration portfolio (\stat{p3-g2-portfolio}\x) shows that the remaining headroom is in the
+selector, not in the kernels.
+
+\textbf{G3 is borderline.} Feature extraction takes a median of \stat{p3-g3-feature-us}\,\textmu s, which is
+\stat{p3-g3-median} cuSPARSE SpMVs (90th percentile \stat{p3-g3-p90}). It is mostly a fixed launch, copy and
+synchronisation cost under WSL: \stat{p3-g3-size-gt1M} SpMVs above $10^6$ nonzeros, but \stat{p3-g3-size-lt100k}
+below $10^5$. That is why the feature gate skips extraction when few calls are expected.
+
+\textbf{G4: break-even makes the selector safe at small $N$.} With break-even, the tree's plan plus $N$ calls runs at
+\stat{p3-g4-tree-1}\x{} of always-cuSPARSE at $N=1$, and at $N=1$ \stat{p3-g4-n1-same} of \stat{p3-g4-n1-total} plans
+do exactly the baseline's work (no features, same kernel); the remaining spread is the timing noise of a sub-millisecond
+plan construction. Without break-even the same tree costs \stat{p3-g4-tree-nobe-1}\x{} at $N=1$ (worst
+\stat{p3-g4-tree-nobe-1-worst}\x). At $N=1000$ the tree gains \stat{p3-g4-tree-1000}\x{} (\cref{fig:sweep}). Features
+are extracted for \stat{p3-features-at-10}\% of plans at $N=10$, \stat{p3-features-at-100}\% at $N=100$ and
+\stat{p3-features-at-1000}\% at $N=1000$.
+
+\begin{table}[t]
+\centering\small
+\caption{Total time (plan + $N$ calls) vs always-cuSPARSE: geometric mean [worst case].}\label{tab:g4}
+\stattable{p3-g4}
+\end{table}
+
+\subsection{G5: where should the operands live? (paper 1, Table 3)}\label{sec:eval-g5}
+\begin{table}[t]
+\centering\small
+\caption{cuSPARSE SpGEMM with each operand in device (D), pinned zero-copy (P) or managed (M) memory: slowdown
+against all-device. Our version of paper~1's Table~3.}\label{tab:placement}
+\stattable{p4-placement}
+\end{table}
+
+\Cref{tab:placement} repeats paper~1's study at the level of the whole SpGEMM. With $B$ in pinned memory, $R\cdot A$
+slows down \stat{p4-place-RxA-b}\x{} and $A\cdot P$ \stat{p4-place-AxP-b}\x{} (paper~1 on NVLink: 7--29\x). $A$ alone
+in pinned memory costs \stat{p4-place-RxA-a}\x{} and \stat{p4-place-AxP-a}\x, and $C$ alone \stat{p4-place-RxA-c}\x{}
+and \stat{p4-place-AxP-c}\x. Managed memory behaves exactly like pinned memory under WSL2 (all-managed vs all-pinned:
+\stat{p4-managed-vs-pinned}\x). The flop-count bound overestimates $\mathrm{nnz}(C)$: the real compression is
+\stat{p4-gamma-AxP} for $A\cdot P$ and \stat{p4-gamma-RxA} for $R\cdot A$, which is why RASP measures it instead of
+sizing $C$ by the bound.
+\todo{interpret the table once measured: which placements are tolerable on PCIe, and how this compares with the NVLink ratios.}
+
+\subsection{G6: overlapped, adaptive out-of-core SpGEMM}\label{sec:eval-g6}
+\begin{figure}[t]
+\centering\rfig[\linewidth]{p4_scaling}
+\caption{Out-of-core SpGEMM throughput (pinned inputs in, pinned output out). Left: fixed 512\,MiB budget, grid size
+swept; right: fixed grid, budget swept. In the style of paper~1, Figs.~12--13.}\label{fig:scaling}
+\end{figure}
+
+\begin{table}[t]
+\centering\small
+\caption{Ablation: speedup over Algorithm~4 (no overlap) on all configurations where the problem exceeds the budget
+(geometric mean).}\label{tab:ablation}
+\stattable{p4-ablation}
+\end{table}
+
+When the problem exceeds the budget, RASP is \stat{p4-g6-AxP}\x{} faster than Algorithm~4 on $A\cdot P$ and
+\stat{p4-g6-RxA}\x{} on $R\cdot A$ (target 1.3; verdicts: \stat{p4-g6-AxP-verdict}, \stat{p4-g6-RxA-verdict}).
+\Cref{tab:ablation} attributes the gain step by step: double buffering alone with Algorithm~4's partitions
+(\stat{p4-speedup-alg4-overlap-AxP}\x{} on $A\cdot P$), then the cost model's memory split and block sizes
+(\stat{p4-speedup-rasp-static-AxP}\x), then calibration and re-planning (\stat{p4-speedup-rasp-AxP}\x). Zero-copy reaches
+\stat{p4-speedup-zerocopy-AxP}\x{} of Algorithm~4. The measured parameters were a kernel rate of
+\stat{p4-rate-gflops}\,GFLOP/s, a compression of \stat{p4-measured-gamma} and \stat{p4-measured-ws-per-flop} bytes of
+cuSPARSE workspace per multiply-add. The cost model's predicted execution time was within a factor
+\stat{p4-model-accuracy} of the measured one (median), and estimation plus planning took \stat{p4-overhead-pct}\% of
+the total. Out of core, RASP reaches \stat{p4-frac-of-device} of the device-only kernel's throughput: what PCIe leaves
+on the table. \Cref{fig:timeline} shows both schedules for the most out-of-core configuration.
+\todo{interpret after the runs: where each step of the ablation helps, how often re-planning fired, behaviour as the
+problem/budget ratio grows, and the in-core comparison when everything fits.}
+
+\begin{figure}[t]
+\centering\rfig[\linewidth]{p4_timeline}
+\caption{Copy engine and compute stream over time for Algorithm~4 (sequential) and RASP (pipelined), from per-tile CUDA
+events. \texttt{figures/nsys\_overlap.png} shows the same run in Nsight Systems.}\label{fig:timeline}
+\end{figure}
+
+\subsection{G7: end-to-end applications}\label{sec:eval-g7}
+\paragraph{Conjugate gradients.} A solver knows its iteration cap, and that is the natural \texttt{expected\_calls}
+hint for break-even. Over \stat{p5-cg-matrices} SPD matrices, Jacobi-preconditioned CG with \texttt{SpmvPlan} given that
+hint takes \stat{p5-cg-tree-geomean}\x{} the time of the same solver with cuSPARSE (worst \stat{p5-cg-tree-worst}\x,
+best \stat{p5-cg-tree-best}\x), and \stat{p5-cg-tree-exact-geomean}\x{} when it knows the exact iteration count
+(\cref{tab:cg}, \cref{fig:cg}). SpMV is only \stat{p5-cg-spmv-share}\% of a solve (median); vector updates, reductions
+and two host synchronisations per iteration take the rest, which caps what any SpMV selector can gain end to end.
+\stat{p5-cg-failures} solves failed the CPU residual check.
+\todo{interpret: when the iteration cap overstates the work, does break-even over-invest? Compare tree vs tree\_exact.}
+
+\begin{table}[t]
+\centering\small
+\caption{CG time-to-solution (plan + solve) against the same solver with cuSPARSE.}\label{tab:cg}
+\stattable{p5-cg}
+\end{table}
+
+\begin{figure}[t]
+\centering\rfig[0.95\linewidth]{p5_cg}
+\caption{CG speedup per matrix (sorted by nnz) for the three ways of giving SpmvPlan the call count.}\label{fig:cg}
+\end{figure}
+
+\paragraph{AMG set-up.} The Galerkin products $A_{l+1} = R_l(A_lP_l)$ of a Laplace3D hierarchy run through
+\texttt{SpgemmContext} under a fast-memory budget (\cref{tab:amg}). Every method produces the same coarse operators
+and satisfies the Galerkin row-sum identity on every level.
+\todo{interpret after the runs: which levels run out of core, and where the set-up time goes.}
+
+\begin{table}[t]
+\centering\small
+\caption{AMG set-up for Laplace3D $n=192$ under a 256\,MiB budget (median of 3).}\label{tab:amg}
+\stattable{p5-amg-192}
+\end{table}
+
+\subsection{Kernel profiles}
+\begin{table}[t]
+\centering\small
+\caption{Nsight Compute metrics of representative kernels (ncu locks clocks, so these are not timings).}\label{tab:ncu}
+\resizebox{\linewidth}{!}{\stattable{p5-ncu}}
+\end{table}
+\Cref{tab:ncu} lists hardware counters for kernels behind the results above. CSR-vector on \texttt{af\_shell1}
+reaches \stat{p5-ncu-spmv-csr-vector-af-shell1-dram}\% of peak DRAM throughput; ArgCSR on \texttt{rajat23} reaches
+\stat{p5-ncu-spmv-argcsr-D32-rajat23-dram}\% with chunk size 32 and \stat{p5-ncu-spmv-argcsr-D1-rajat23-dram}\% with
+chunk size~1 (\cref{sec:eval-g1} gives the padding of each).
+\todo{interpret once profiled: is CSR-vector bandwidth-bound, does ArgCSR D=32 spend its traffic on padding, and what
+limits the partial-product summation kernels (stall reasons)?}

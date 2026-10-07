@@ -1,0 +1,22 @@
+\section{Related work}\label{sec:related}
+
+\paragraph{SpMV formats.} \citet{bell2009spmv} established the CSR-scalar/vector, ELL and hybrid kernels on GPUs;
+SELL-$C$-$\sigma$~\cite{kreutzer2014sell} unified sliced ELLPACK for wide SIMD units; CSR5~\cite{liu2015csr5} and
+merge-based SpMV~\cite{merrill2016merge} balance work across nonzeros rather than rows, and the latter is the approach
+behind cuSPARSE's \texttt{CSR\_ALG2}. ArgCSR~\cite{heller2012argcsr} is one of the adaptive row-grouping formats; our
+ArgCSR-local and CSR-binned variants adapt its per-row thread assignment to row regions and individual rows.
+
+\paragraph{Automatic format selection.} SMAT~\cite{li2013smat} learns a model of matrix features to pick a format
+and implementation for CPU SpMV. \citet{sedaghati2015selection} select GPU formats with decision trees over structural
+features, \citet{benatia2016svm} with multiclass SVMs, and \citet{zhao2018cnn} feed a matrix's density image to a
+CNN. RASP's selector is deliberately simple (a depth-\stat{p3-tree-depth} tree compiled to C++). What it adds to this
+line of work is the cost of \emph{acting} on a prediction: feature extraction and conversion are predicted, and the
+choice is weighed against the expected number of calls, so the selector never costs more than it saves when used once.
+
+\paragraph{SpGEMM.} Row-wise SpGEMM with hash accumulators is the basis of \texttt{kkmem}~\cite{deveci2018kkmem},
+nsparse~\cite{nagasaka2017nsparse} and spECK~\cite{parger2020speck}; spECK in particular configures its
+accumulation and load balancing from a lightweight analysis of the operands, the SpGEMM analogue of SpMV format
+selection. \citet{liu2014spgemm} address the unknown output size of irregular products. \citet{deveci2018multilevel} brought \texttt{kkmem}
+to memory hierarchies with fixed, copy-volume-driven partitioning. RASP keeps their chunked algorithms and replaces
+the partitioning with a measured, simulated and continuously re-calibrated plan that overlaps copies with
+computation.

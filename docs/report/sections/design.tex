@@ -1,0 +1,108 @@
+\section{Design}\label{sec:design}
+
+RASP is a CUDA C++ library (\texttt{include/rasp/}, \texttt{src/}) with two runtime entry points: \texttt{SpmvPlan}
+for SpMV and \texttt{SpgemmContext} for out-of-core SpGEMM. Both decide once per matrix (SpGEMM also while running),
+explain their decision in a report object, and fall back to a safe choice whenever a prediction turns out wrong.
+
+\subsection{SpMV: candidates}\label{sec:design-spmv}
+The candidate set has \stat{p2-configs} configurations behind one interface: cuSPARSE \texttt{CSR\_ALG1} and
+\texttt{ALG2}; CSR-scalar; CSR-vector with $v \in \{2,\dots,32\}$; ELL; SELL-$C$-$\sigma$ with $C\in\{8,32\}$ and
+$\sigma \in \{1, 256, n\}$; ArgCSR with $\mathtt{blockDim} \in \{64,128,256\}$ and
+$\mathtt{desiredChunkSize} \in \{1,\dots,32\}$, reimplemented from the paper's Listing~2 and checked against its
+Figure~3; and two extensions aimed at the gaps the Phase~2 sweep exposed.
+\begin{itemize}
+\item \textbf{ArgCSR-local} chooses \texttt{desiredChunkSize} per window of 4,096 rows instead of globally. The sweep
+  showed that the best global value tracks the mean row length and keeps a few dozen rows per group, so each window
+  gets $D = \mathrm{pow2round}(R\cdot\bar{\ell}/B)$, halved when the window's row-length coefficient of variation
+  exceeds~1 and clamped to $[1, 32]$. The kernel is unchanged, since groups already carry their own chunk size.
+\item \textbf{CSR-binned} is CSR-vector with the number of lanes chosen per row,
+  $v = \mathrm{pow2ceil}(\lceil \ell/t \rceil)$ up to 32, and a whole block for rows longer than 4,096. Rows are grouped
+  by bin and one launch covers all bins.
+\end{itemize}
+Every format has a GPU converter that produces arrays bit-identical to the host converter (tested). Moving
+conversion to the GPU lowered its median cost from tens of SpMV calls to \stat{p3-gpu-convert-calls-ell} (ELL),
+\stat{p3-gpu-convert-calls-sell} (SELL), \stat{p3-gpu-convert-calls-argcsr} (ArgCSR) and
+\stat{p3-gpu-convert-calls-csr-binned} (CSR-binned) cuSPARSE SpMVs, which is what makes a break-even decision meaningful.
+
+\subsection{SpMV: features, selector and break-even}
+A single feature kernel reads the row pointers plus the first and last column index of each row (far less traffic
+than one SpMV) and accumulates row-length mean, coefficient of variation and maximum, the fraction of empty rows,
+ELL and SELL-32 padding factors, the share of nonzeros in rows longer than 4,096, the mean column span, and an
+eight-bucket row-length histogram.
+
+The selector went through two versions. Hand-written thresholds derived from the Phase~2 data (v1) were no better
+than always using cuSPARSE on unseen matrices (\cref{sec:eval-g2}). The shipped selector (v2) is trained by
+\texttt{scripts/train\_selector.py} on \stat{p3-train-samples} samples (\stat{p3-train-matrices} matrices in fp32 and
+fp64 from \stat{p3-train-groups} SuiteSparse groups). It first picks a small \emph{portfolio} greedily: five
+configurations (cuSPARSE \texttt{ALG1}, CSR-vector $v{=}4$, CSR-binned $t{=}2$, CSR-scalar, cuSPARSE \texttt{ALG2})
+whose per-matrix best is within \stat{p3-cv-portfolio}\x{} of the full \stat{p2-configs}-configuration oracle. A
+decision tree then chooses among them, validated by 5-fold cross-validation \emph{grouped by SuiteSparse group}, so
+matrix families never straddle training and test. Cross-validation chose depth~\stat{p3-tree-depth}
+(\stat{p3-tree-leaves} leaves, splitting on the logarithms of the maximum row length and of nnz) and a large-matrix
+gate that always uses cuSPARSE \texttt{ALG1} above 1M nonzeros: the gate improved every metric. The tree is emitted as
+plain C++ (\texttt{src/selector/tree\_generated.hpp}) together with the cost models fitted in the same run, so there
+is no runtime ML dependency.
+
+\texttt{SpmvPlan(A, x, y, \{expected\_calls = N\})} decides in four steps:
+\begin{enumerate}
+\item \emph{Feature gate.} Features are extracted only if
+  $N \cdot \hat T_\text{cuSPARSE} \cdot g > \hat T_\text{features}$, where $\hat T$ are fitted cost models (a launch
+  cost plus bytes over an effective bandwidth) and $g = \stat{p3-expected-gain-pct}\%$ is the tree's
+  \emph{cross-validated expected} saving over cuSPARSE. An earlier version used the maximum training gain
+  and extracted features far too eagerly.
+\item \emph{Steady-state choice} by the tree.
+\item \emph{Break-even.} If the chosen format needs a conversion, it is kept only if
+  $N\cdot\hat T_\text{cuSPARSE}(1 - 1/\hat s) > \hat T_\text{convert}$; otherwise the best choice that needs no
+  conversion is used.
+\item \emph{Build} with the GPU converter. A format refused for excessive padding falls back to the no-conversion choice.
+\end{enumerate}
+A report states the configuration, the steady-state choice, the measured feature and conversion times and the reason.
+
+\subsection{Out-of-core SpGEMM}\label{sec:design-spgemm}
+\texttt{SpgemmContext ctx(budget)} computes $C = AB$ for $A$, $B$, $C$ in pinned host memory using at most
+\texttt{budget} bytes of device memory, as paper~1 emulates smaller GPUs with fixed budgets. The context allocates
+the whole budget once and carves every device buffer from it with a first-fit range allocator, so the budget holds
+exactly and the peak is recorded. It also creates a copy stream and a compute stream and measures pinned PCIe
+bandwidth with 64\,MiB copies. cuSPARSE's generic SpGEMM is the in-core engine. A small core function runs it on
+non-owning views with every buffer (both workspaces, and $C$'s arrays once $\mathrm{nnz}(C)$ is known) supplied by
+the caller, so that buffers can live in the arena, or in pinned or managed memory for the placement study.
+
+\paragraph{Estimation.} One host pass over $A$'s column indices computes $f_i$ and the upper bound
+$\min(f_i, n_B)$ on each row of $C$, with parallel prefix sums. Both planners use the same estimate.
+
+\paragraph{Execution modes.} \emph{In-core} (everything fits); \emph{zero-copy} ($B$ in the budget, $A$ read and
+$C$ written in place over PCIe, row chunks bounding the workspace); \emph{ChunkB} (paper~1's chunk2: a row block of
+$B$ resident, $A$/$C$ row blocks streamed; with one $B$ block this is the common 1-D case); and \emph{ChunkAC}
+(paper~1's chunk1: an $A$/$C$ row block resident, $B$ row blocks streamed). As in paper~1, $A$ is not split by
+column. A block of $B$ is presented to cuSPARSE as a full-height matrix whose rows outside the block are empty, so
+$A$'s other columns contribute nothing. Partial products are summed on the device by our own two-pass merge
+(count, scan, fill). With several $B$ blocks, ChunkB parks partial $C$ blocks in pinned memory between passes.
+
+\paragraph{Pipeline.} Every mode is a list of tiles run by one loop. Tile $k+d-1$ is uploaded on the copy stream
+before tile $k$'s cuSPARSE calls, because those calls block the host in their size queries; downloads queue on the
+same stream, matching the single copy engine. Buffers return to the arena through events, so no stream can touch a
+buffer after it is reused. The planner chooses the depth $d$; $d=1$ is strictly sequential.
+
+\paragraph{Planning by simulation.} For every feasible mode, \texttt{plan\_rasp} gives the streamed operand
+\emph{all} the memory the resident operand leaves free, rather than a fixed 25\%, and searches block sizes and depths
+$d\in\{2,3\}$. Each candidate is scored by simulating the executor's issue order on one copy engine: per tile, an
+upload at the measured H2D bandwidth, a computation at $f/R$ plus a per-call overhead, and a download. The memory
+model charges each mode with exactly the buffers the executor holds at once (for 1-D ChunkB, $d$ blocks each of
+$A$ and $C$, the resident $B$ and cuSPARSE's workspace, estimated as $\omega f$). $C$'s size is estimated as
+$\gamma$ times the upper bound, with $\gamma = 1$ until measured. The simulation also covers in-core execution and
+picks overlapped chunking when that is faster even though everything fits.
+
+\paragraph{Calibration and re-planning.} For the common 1-D case the first block is a small \emph{probe} holding
+about an eighth of a block's work. Nothing overlaps the pipeline fill anyway, so the probe is nearly free. From it
+and every later tile the executor measures the kernel rate $R$, the compression $\gamma = \mathrm{nnz}(C)/$bound and
+the workspace per multiply-add $\omega$. When any of them drifts more than 20\% from what the plan assumed, the
+blocks not yet uploaded are re-partitioned with the measured values (with a 10\% safety margin).
+
+\paragraph{Correctness never depends on the estimates.} A tile whose workspace or output does not fit, even after
+waiting for every pending free, is split in half and redone. 1-D tiles split over $A$ rows; tiles that sum partial
+products split over $B$ rows. Only a single row that cannot fit raises \texttt{BudgetTooSmall}.
+
+\paragraph{Baseline: Algorithm 4.} \texttt{plan\_alg4} reimplements paper~1's heuristic: in-core if everything fits,
+otherwise 75\%/25\% of the budget for the resident/streamed operand, binary-search partitions, and the variant with
+the smaller copy volume, run at depth~1. Partial-$C$ buffers are charged to the $A$/$C$ share and the cuSPARSE
+workspace to the streamed share. A depth-2 version isolates the effect of overlap alone.

@@ -1,0 +1,66 @@
+% RASP final report. Build: latexmk -pdf main.tex (or upload docs/report/ to Overleaf).
+% Numbers, tables and figures come from scripts/make_report_assets.py; never type a result by hand.
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[hidelinks]{hyperref}
+\usepackage[capitalise,noabbrev]{cleveref}
+\setlist{nosep,leftmargin=*}
+\captionsetup{font=small,labelfont=bf}
+
+\input{rasp-macros}
+\InputIfFileExists{generated/platform.tex}{}{}
+\InputIfFileExists{generated/phase2.tex}{}{}
+\InputIfFileExists{generated/phase3.tex}{}{}
+\InputIfFileExists{generated/phase4.tex}{}{}
+\InputIfFileExists{generated/phase5.tex}{}{}
+
+% TODO(team): names as they should appear, course, date.
+\newcommand{\teammembers}{Harsh Raj \and Karmanya \and \todo{third member}}
+\title{\textbf{RASP: Runtime-Adaptive Sparse Matrix Kernels on a PCIe GPU}\\[4pt]
+  \large Choosing SpMV formats and out-of-core SpGEMM schedules per matrix, at run time}
+\author{\teammembers}
+\date{\todo{course} \quad December 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Sparse kernels are memory-bound and irregular, so the fastest way to run them depends on the matrix and on how
+the data fits the GPU. Two papers we build on show this and still ship static choices: adaptive row-grouped CSR
+(ArgCSR) fixes one global chunk size~\cite{heller2012argcsr}, and chunked out-of-core SpGEMM fixes a 75/25 split
+of fast memory, chosen by copy volume, without overlapping copies and computation~\cite{deveci2018multilevel}.
+RASP makes both choices at run time on a PCIe-attached RTX~4050 laptop GPU.
+For SpMV it extracts structural features on the GPU, predicts the best of \stat{p2-configs} kernel configurations
+with a decision tree compiled into the library, and converts formats only when the expected number of calls repays
+the conversion. On \stat{p3-heldout-matrices} held-out SuiteSparse matrices it runs within
+\stat{p3-g2-tree}\x{} of the per-matrix oracle (geometric mean; always using cuSPARSE: \stat{p3-g2-cusparse}\x),
+and its break-even logic keeps one-shot calls at cuSPARSE's cost.
+For SpGEMM it calibrates PCIe bandwidth at start-up, plans partitions and pipeline depth by simulating the
+copy/compute pipeline, measures the kernel rate, the output compression and the workspace on a small probe
+block, and re-plans as it goes. When the problem exceeds the fast-memory budget it is
+\stat{p4-g6-AxP}\x{} (A$\cdot$P) and \stat{p4-g6-RxA}\x{} (R$\cdot$A) faster than paper~1's Algorithm~4.
+We also re-evaluate both papers' claims on this hardware: ArgCSR's sensitivity to its chunk size reproduces, but
+its advantage over the vendor library does not.
+\end{abstract}
+
+\input{sections/introduction}
+\input{sections/background}
+\input{sections/design}
+\input{sections/methodology}
+\input{sections/evaluation}
+\input{sections/related}
+\input{sections/discussion}
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+\end{document}

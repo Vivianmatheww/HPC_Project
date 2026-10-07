@@ -1,0 +1,35 @@
+\section{Limitations}\label{sec:limitations}
+\begin{itemize}
+\item \textbf{One laptop GPU under WSL2.} Every number comes from one RTX~4050 Laptop. Clocks and thermals vary, which
+  we contain with medians, shuffled orders and AC power but cannot remove. WSL2 also changes the semantics we
+  study: managed memory never migrates, so paper~1's UVM experiments cannot be reproduced here, and host-side
+  latencies of tens of microseconds weigh on small SpMVs and on G3. A native Linux system and a data-centre GPU would
+  test whether the trained selector transfers across architectures.
+\item \textbf{Few large held-out matrices.} Only \stat{p3-heldout-large} held-out samples have at least $10^6$
+  nonzeros, so the ``never lose on large matrices'' half of G2 rests mostly on cross-validation.
+\item \textbf{G3 is borderline} (\stat{p3-g3-median} SpMVs median): fine for large matrices, expensive for small
+  ones, where the gate simply skips selection.
+\item \textbf{SpGEMM engine.} cuSPARSE's SpGEMM does not report its workspace in advance and blocks the host in its
+  size queries. We learn the workspace size, plan pipeline depths around the host stalls, and split tiles that do
+  not fit. A custom hash SpGEMM with a column-range filter (as \texttt{kkmem}) would avoid the full-height row pointers
+  of $B$ blocks and the host round trips. Our partial-product sum uses one thread per row, which suits multigrid
+  products but not power-law graphs.
+\item \textbf{Workloads.} Out-of-core results are for paper~1's multigrid products on Laplace3D. Graph products
+  ($L\cdot L$ for triangle counting) are supported by the benchmark but not part of the evaluated set.
+  \todo{remove this item if the SNAP runs are added.}
+\item \textbf{Budget emulation.} The fast-memory budget emulates a smaller GPU, as paper~1 does; the operands live in
+  pinned host memory and the estimation pass runs on the host CPU.
+\end{itemize}
+
+\section{Conclusion}\label{sec:conclusion}
+Both source papers measured the right thing and then fixed a choice. We made the choices at run time. For SpMV, a
+GPU feature pass, a small cross-validated tree and a break-even test reach \stat{p3-g2-tree}\x{} of the per-matrix
+oracle on unseen matrices while never costing more than cuSPARSE for a single call; on the way, ArgCSR's sensitivity
+to its chunk size reproduced while its advantage over the 2026 vendor library did not. For out-of-core SpGEMM, a
+planner that measures the PCIe link, simulates the copy/compute pipeline and re-plans from a probe block is
+\stat{p4-g6-AxP}\x{} and \stat{p4-g6-RxA}\x{} faster than paper~1's Algorithm~4 on the multigrid products.
+\todo{final sentence once Phase 4--5 results are in.}
+
+\paragraph{Reproducibility.} \texttt{scripts/run\_all.sh} rebuilds from a clean tree, runs every test and benchmark
+and regenerates every number, table and figure in this report (\texttt{scripts/make\_report\_assets.py}). Raw CSVs,
+with environment stamps, are in \texttt{results/}.

@@ -1,0 +1,20 @@
+% Report macros. Every result in the report is a \stat{key}: generated/*.tex (scripts/make_report_assets.py) defines
+% the values with \setstat{key}{value}. A key without a value prints a red ??key and a LaTeX warning, so a number that
+% has not been measured yet (Phases 4-5 before the GPU runs) is impossible to miss.
+\makeatletter
+\newcommand{\setstat}[2]{\expandafter\def\csname rasp@stat@#1\endcsname{#2}}
+\DeclareRobustCommand{\stat}[1]{%
+  \ifcsname rasp@stat@#1\endcsname\csname rasp@stat@#1\endcsname
+  \else\textcolor{red}{\textbf{??#1}}\PackageWarning{rasp}{No value for `#1' (run scripts/make_report_assets.py)}\fi}
+\newcommand{\stattable}[1]{\stat{table:#1}}
+% \rfig[width]{name}: figures/name.pdf (or .png), or a visible placeholder until the figure exists.
+\newcommand{\rfig}[2][\linewidth]{%
+  \IfFileExists{figures/#2.pdf}{\includegraphics[width=#1]{figures/#2.pdf}}{%
+    \IfFileExists{figures/#2.png}{\includegraphics[width=#1]{figures/#2.png}}{%
+      \fbox{\parbox[c][3.5cm][c]{\dimexpr#1-2\fboxsep-2\fboxrule\relax}{\centering
+        \textcolor{red}{\textbf{missing figure: \texttt{\detokenize{#2}}}}\\[2pt]
+        \small (produced by \texttt{scripts/make\_report\_assets.py} after the GPU runs)}}}}}
+\makeatother
+\newcommand{\x}{$\times$}
+\newcommand{\G}[1]{\textbf{G#1}}
+\newcommand{\todo}[1]{\textcolor{orange}{[TODO: #1]}}

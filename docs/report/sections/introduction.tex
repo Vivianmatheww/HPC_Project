@@ -1,0 +1,53 @@
+\section{Introduction}\label{sec:intro}
+
+Sparse matrix--vector multiplication (SpMV, $y = Ax$) and sparse matrix--matrix multiplication (SpGEMM,
+$C = AB$) dominate iterative solvers, multigrid set-up and graph analytics. Both are limited by memory traffic
+rather than arithmetic, and both are irregular: how evenly the nonzeros are spread over rows, how long the longest
+row is, and how large the operands are relative to GPU memory all change which implementation is fastest.
+
+The two papers this project starts from show this clearly, and both stop short of acting on it.
+Heller and Oberhuber's adaptive row-grouped CSR (ArgCSR) gives long rows more threads, and its performance depends
+strongly on one parameter, \texttt{desiredChunkSize}: on \texttt{rajat23} a value of~1 is six times faster than~32,
+while the AFE matrices prefer~32. The paper then fixes the value to~1 for every matrix, and concludes that ``if high
+performance is the top priority, one should test more formats and choose the best one''~\cite{heller2012argcsr}.
+Deveci et al.\ extend the KokkosKernels SpGEMM to multilevel memory: when the operands do not fit in
+fast memory they keep one operand's row block resident and stream the other through it~\cite{deveci2018multilevel}.
+Their partitioning heuristic (Algorithm~4) reserves a fixed 75\%/25\% of fast memory for the resident and the
+streamed operand and chooses between the two chunking variants by copy volume alone. Copies and computation are not
+overlapped, which the authors leave as future work.
+
+RASP (\emph{Runtime-Adaptive Sparse Processing}) makes these choices at run time, per matrix, from cheap
+measurements:
+\begin{enumerate}
+\item \textbf{A lightweight SpMV selector.} One GPU kernel extracts structural features; a shallow decision tree,
+  trained offline and compiled into the library as plain C++, predicts the best format \emph{and} its parameters;
+  a break-even test converts formats only when the expected number of calls repays the conversion (\cref{sec:design-spmv}).
+\item \textbf{An overlapped, self-calibrating out-of-core SpGEMM.} Paper~1's chunking, extended with double and
+  triple buffering, a cost model that simulates the copy/compute pipeline using bandwidths and kernel rates
+  measured at run time, and re-partitioning while it runs (\cref{sec:design-spgemm}).
+\item \textbf{A re-evaluation of both papers} on a PCIe-attached consumer GPU (RTX~4050 Laptop, Ada) under
+  WSL2, against the 2026 cuSPARSE (\cref{sec:eval}).
+\end{enumerate}
+Automatic format selection with machine learning is an established research area
+(\cref{sec:related}); our novelty is relative to the two assigned papers: tuning ArgCSR's parameters per matrix and
+per row region, a conversion-aware cost model, and bringing runtime adaptivity and overlap to out-of-core SpGEMM.
+
+\Cref{tab:goals} lists the goals we set at the start and where each is evaluated.
+
+\begin{table}[t]
+\centering\small
+\caption{Project goals and where they are evaluated.}\label{tab:goals}
+\begin{tabular}{@{}lp{6.2cm}p{5.6cm}l@{}}
+\toprule
+ & Goal & Target & Section \\
+\midrule
+\G1 & Reproduce paper 2 (ArgCSR) on modern hardware & same qualitative winners and losers & \ref{sec:eval-g1} \\
+\G2 & Runtime SpMV selector & geomean $T_\text{selected}/T_\text{oracle} \le 1.10$; never $>$5\% slower than cuSPARSE on matrices $\ge$ 1M nnz & \ref{sec:eval-g2} \\
+\G3 & Selection is cheap & features + inference $\le$ 2 SpMVs & \ref{sec:eval-g2} \\
+\G4 & Conversion-aware choice & never $>$5\% worse than cuSPARSE at $N=1$ & \ref{sec:eval-g2} \\
+\G5 & Paper 1's placement study on a PCIe GPU & our version of its Table 3 & \ref{sec:eval-g5} \\
+\G6 & Overlapped, adaptive out-of-core SpGEMM & $\ge 1.3\times$ over Algorithm 4 when the problem exceeds the budget & \ref{sec:eval-g6} \\
+\G7 & End-to-end applications & CG (SpMV) and AMG set-up (SpGEMM) working and timed & \ref{sec:eval-g7} \\
+\bottomrule
+\end{tabular}
+\end{table}
