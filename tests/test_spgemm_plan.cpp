@@ -199,6 +199,28 @@ TEST(alg4_hand_computed) {
   CHECK_THROWS(plan_alg4(s, 30, p));  // nothing fits
 }
 
+TEST(alg4_overlap_divides_the_streamed_share) {
+  Laplace L(16);
+  const CostParams p = small_workspace();
+  const auto s = estimate(host_view(L.A), host_view(L.P));
+  const double total = s.a_bytes(0, s.a_rows) + s.b_bytes(0, s.a_cols) + s.c_bytes(0, s.a_rows, 1.0);
+  int both = 0;
+  for (double frac : {0.8, 0.6, 0.4}) {
+    SpgemmPlan a1, a2;
+    try {
+      a1 = plan_alg4(s, total * frac, p, 1);
+      a2 = plan_alg4(s, total * frac, p, 2);
+    } catch (const BudgetTooSmall&) {
+      continue;
+    }
+    ++both;
+    CHECK(a1.depth == 1 && a2.depth == 2);
+    if (a1.mode == a2.mode) CHECK(a2.parts_ac() >= a1.parts_ac());  // half the streamed share per buffer
+    CHECK(a2.peak_bytes <= total * frac * (1 + 1e-12));
+  }
+  CHECK(both > 0);
+}
+
 TEST(alg4_respects_its_shares_on_laplace) {
   Laplace L(16);
   const CostParams p;

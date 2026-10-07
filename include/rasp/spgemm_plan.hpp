@@ -138,8 +138,9 @@ void predict(const ProblemSizes& s, SpgemmPlan& plan);
 // Paper 1, Alg. 4 (our baseline): in-core if everything fits; otherwise 75% of the budget for the resident operand
 // and 25% for the streamed one (partitions by BinarySearch), and the variant with the smaller copy volume:
 //   chunk1 (A/C resident): |A| + |C| + |B| * P_AC        chunk2 (B resident): |B| + |A| * P_B + |C| * (P_B - 1)
-// Partial-C buffers are charged to the A/C share and cuSPARSE's workspace to the streamed share. depth = 1.
-SpgemmPlan plan_alg4(const ProblemSizes& s, double budget, const CostParams& p);
+// Partial-C buffers are charged to the A/C share and cuSPARSE's workspace to the streamed share. The paper runs it
+// without overlap (depth 1); depth > 1 divides the streamed share among that many buffers (the overlap ablation).
+SpgemmPlan plan_alg4(const ProblemSizes& s, double budget, const CostParams& p, int depth = 1);
 
 // RASP: simulates every feasible candidate (in-core; ChunkB 1-D and multi-block; ChunkAC; zero-copy) over a range of
 // partition sizes and depths, using all memory the resident operand leaves free, and returns the fastest.

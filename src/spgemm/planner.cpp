@@ -247,14 +247,16 @@ std::string SpgemmPlan::to_string() const {
   return buf + reason;
 }
 
-SpgemmPlan plan_alg4(const ProblemSizes& s, double budget, const CostParams& p) {
+SpgemmPlan plan_alg4(const ProblemSizes& s, double budget, const CostParams& p, int depth) {
   const Model m{s, p};
   const int32_t n = s.a_rows, nb = s.a_cols;
+  const int d = std::max(depth, 1);
   SpgemmPlan plan;
   plan.params = p;
-  plan.depth = 1;
+  plan.depth = d;
   if (m.incore_bytes() <= budget) {
     plan.mode = SpgemmMode::InCore;
+    plan.depth = 1;
     plan.ac_bounds = {0, n};
     plan.b_bounds = {0, nb};
     plan.reason = "alg4: everything fits the budget";
@@ -273,7 +275,7 @@ SpgemmPlan plan_alg4(const ProblemSizes& s, double budget, const CostParams& p) 
     c2.mode = SpgemmMode::ChunkB;
     c2.b_bounds = split_rows(0, nb, bfn(false), 0.75 * budget);
     if (Model::multi(c2.b_bounds)) c2.b_bounds = split_rows(0, nb, bfn(true), 0.75 * budget);
-    c2.ac_bounds = split_rows(0, n, m.part_fn(SpgemmMode::ChunkB, 1, c2.b_bounds), 0.25 * budget);
+    c2.ac_bounds = split_rows(0, n, m.part_fn(SpgemmMode::ChunkB, d, c2.b_bounds), 0.25 * budget);
     const int PB = c2.parts_b();
     cost2 = Bbytes + Abytes * PB + Cbytes * (PB - 1);
   } catch (const BudgetTooSmall&) {
@@ -289,16 +291,21 @@ SpgemmPlan plan_alg4(const ProblemSizes& s, double budget, const CostParams& p) 
       for (size_t i = 0; i + 1 < ab.size(); ++i) f = std::max(f, m.flops(ab[i], ab[i + 1]));
       return f;
     };
-    // One B block if B and the workspace fit the streamed share; otherwise accumulation buffers on the resident side.
-    c1.ac_bounds = split_rows(0, n, [&](int32_t r0, int32_t r1) { return m.A(r0, r1) + m.C(r0, r1); }, 0.75 * budget);
-    if (Bbytes + m.ws(max_flops(c1.ac_bounds)) <= 0.25 * budget) {
+    auto resident = [&](bool multi_b) {  // the A/C block without the workspace, which goes to the streamed share
+      return [&, multi_b](int32_t r0, int32_t r1) {
+        return m.part_bytes(SpgemmMode::ChunkAC, d, multi_b, 0, r0, r1) - m.ws(0);
+      };
+    };
+    // One B block if d copies of B and the workspace fit the streamed share; otherwise partial sums on the A/C side.
+    c1.ac_bounds = split_rows(0, n, resident(false), 0.75 * budget);
+    if (d * Bbytes + m.ws(max_flops(c1.ac_bounds)) <= 0.25 * budget) {
       c1.b_bounds = {0, nb};
     } else {
-      c1.ac_bounds =
-          split_rows(0, n, [&](int32_t r0, int32_t r1) { return m.A(r0, r1) + 3 * m.C(r0, r1); }, 0.75 * budget);
+      c1.ac_bounds = split_rows(0, n, resident(true), 0.75 * budget);
       const double fmax = max_flops(c1.ac_bounds);
       c1.b_bounds = split_rows(
-          0, nb, [&](int32_t k0, int32_t k1) { return m.B(k0, k1) + s.ext_bytes() + m.ws(fmax * m.b_frac(k0, k1)); },
+          0, nb,
+          [&](int32_t k0, int32_t k1) { return d * (m.B(k0, k1) + s.ext_bytes()) + m.ws(fmax * m.b_frac(k0, k1)); },
           0.25 * budget);
     }
     cost1 = Abytes + Cbytes + Bbytes * c1.parts_ac();
