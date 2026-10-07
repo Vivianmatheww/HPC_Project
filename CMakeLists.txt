@@ -63,6 +63,12 @@ foreach(b bench_spmv bench_features bench_plan bench_spgemm)
   target_link_libraries(${b} PRIVATE rasp)
 endforeach()
 
+# ---- end-to-end applications (Phase 5)
+foreach(a cg_solver)
+  add_executable(${a} apps/${a}.cu)
+  target_link_libraries(${a} PRIVATE rasp)
+endforeach()
+
 # platform study (Phase 0)
 add_executable(uvm_probe bench/platform/uvm_probe.cu)
 target_link_libraries(uvm_probe PRIVATE CUDA::cudart)
@@ -76,3 +82,7 @@ foreach(t test_io test_spmv test_spgemm test_harness test_formats test_selector 
   target_compile_definitions(${t} PRIVATE RASP_TEST_DATA_DIR="${CMAKE_SOURCE_DIR}/tests/data")
   add_test(NAME ${t} COMMAND ${t})
 endforeach()
+
+# Application smoke tests: small solves whose own correctness checks set the exit code.
+add_test(NAME app_cg_solver COMMAND cg_solver --laplace 16 --reps 1 --precisions fp64,fp32
+         --out ${CMAKE_BINARY_DIR}/smoke_cg.csv)
