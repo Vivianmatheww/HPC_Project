@@ -16,6 +16,9 @@ Examples:
     python scripts/fetch_matrices.py --count 50 --named --dry-run
     python scripts/fetch_matrices.py --count 40 --seed 1 --out data/heldout \
         --exclude data/suitesparse/manifest.csv                   # held-out set for Phase 3
+    python scripts/fetch_matrices.py --spd --count 20 --seed 2 --out data/spd \
+        --exclude data/suitesparse/manifest.csv data/heldout/manifest.csv   # Phase 5 CG set
+    python scripts/fetch_matrices.py --count 0 --names SNAP/com-Amazon SNAP/com-DBLP --out data/snap
 """
 import argparse
 import csv
@@ -113,6 +116,8 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--named", action="store_true", help="also fetch the paper-2 named matrices")
     ap.add_argument("--allow-rectangular", action="store_true")
+    ap.add_argument("--spd", action="store_true", help="sample only symmetric positive definite matrices (CG)")
+    ap.add_argument("--names", nargs="*", default=[], help="also fetch these group/name matrices (any dtype)")
     ap.add_argument("--dry-run", action="store_true", help="list the selection without downloading")
     ap.add_argument("--exclude", type=Path, nargs="*", default=[],
                     help="manifest.csv files whose matrices must not be selected (held-out sets)")
@@ -122,18 +127,20 @@ def main():
     excluded = set()
     for path in args.exclude:
         excluded |= set(read_manifest(path))
-    pool = [m for m in pool if (m.group, m.name) not in excluded]
+    pool = [m for m in pool if (m.group, m.name) not in excluded and (m.isspd or not args.spd)]
     pool.sort(key=lambda m: m.id)  # stable order so the seed fully determines the sample
     picked = random.Random(args.seed).sample(pool, min(args.count, len(pool)))
     selection = [(m, "random") for m in picked]
-    if args.named:
-        have = {(m.group, m.name) for m, _ in selection}
-        for spec in PAPER2_NAMED:
-            m = lookup(spec)
-            if m is None:
-                print(f"warning: {spec} not found in the SuiteSparse index", file=sys.stderr)
-            elif (m.group, m.name) not in have:
-                selection.append((m, "paper2"))
+    extra = [(spec, "paper2") for spec in PAPER2_NAMED] if args.named else []
+    extra += [(spec, "named") for spec in args.names]
+    have = {(m.group, m.name) for m, _ in selection}
+    for spec, src in extra:
+        m = lookup(spec)
+        if m is None:
+            print(f"warning: {spec} not found in the SuiteSparse index", file=sys.stderr)
+        elif (m.group, m.name) not in have:
+            selection.append((m, src))
+            have.add((m.group, m.name))
 
     total_nnz = sum(m.nnz for m, _ in selection)
     print(f"pool {len(pool)} matrices -> selected {len(selection)} ({total_nnz / 1e6:.1f} M nnz total)")
