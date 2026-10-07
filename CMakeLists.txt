@@ -64,7 +64,7 @@ foreach(b bench_spmv bench_features bench_plan bench_spgemm)
 endforeach()
 
 # ---- end-to-end applications (Phase 5)
-foreach(a cg_solver amg_setup)
+foreach(a cg_solver amg_setup rasp_demo)
   add_executable(${a} apps/${a}.cu)
   target_link_libraries(${a} PRIVATE rasp)
 endforeach()
