@@ -1,6 +1,6 @@
 build/
 .venv/
-data/
+/data/
 *.o
 __pycache__/
 *.nsys-rep
