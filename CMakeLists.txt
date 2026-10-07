@@ -42,9 +42,16 @@ add_library(rasp STATIC
   src/features/features.cu
   src/selector/selector.cpp
   src/selector/plan.cu
-  src/spgemm/gallery.cpp)
+  src/spgemm/estimate.cpp
+  src/spgemm/gallery.cpp
+  src/spgemm/planner.cpp)
 target_include_directories(rasp PUBLIC include)
 target_link_libraries(rasp PUBLIC CUDA::cudart CUDA::cusparse)
+# The SpGEMM flop estimator walks every nonzero of A on the host; OpenMP spreads that over the CPU cores.
+find_package(OpenMP COMPONENTS CXX)
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(rasp PRIVATE OpenMP::OpenMP_CXX)
+endif()
 target_compile_definitions(rasp PRIVATE RASP_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
 # ---- benchmarks
