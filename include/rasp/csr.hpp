@@ -23,6 +23,23 @@ struct HostCsr {
   void validate() const;
 };
 
+// Non-owning CSR: the same conventions, over memory owned by someone else (device, mapped pinned host memory,
+// managed memory or plain host memory; the pointer kind is the caller's business). Used where one routine must
+// work on all of them: the cuSPARSE SpGEMM core, the out-of-core executor and the SpGEMM planners.
+template <class T>
+struct CsrView {
+  int32_t rows = 0, cols = 0;
+  int64_t nnz = 0;
+  const int32_t* row_ptr = nullptr;
+  const int32_t* col_idx = nullptr;
+  const T* vals = nullptr;
+};
+
+template <class T>
+CsrView<T> host_view(const HostCsr<T>& h) {
+  return {h.rows, h.cols, h.nnz, h.row_ptr.data(), h.col_idx.data(), h.vals.data()};
+}
+
 // Owning, move-only GPU buffer.
 template <class T>
 class DeviceBuffer {
@@ -110,6 +127,7 @@ class DeviceCsr {
   const int32_t* col_idx() const { return col_idx_.data(); }
   const T* vals() const { return vals_.data(); }
   size_t bytes() const { return row_ptr_.bytes() + col_idx_.bytes() + vals_.bytes(); }
+  CsrView<T> view() const { return {rows_, cols_, nnz_, row_ptr(), col_idx(), vals()}; }
 
  private:
   int32_t rows_ = 0, cols_ = 0;
