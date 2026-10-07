@@ -267,6 +267,9 @@ def report(df, ok, oracle, tex):
             key = m.split("/")[1].replace("_", "")
             tex.stat(f"p2-{key}-d1", g[1])
             tex.stat(f"p2-{key}-d32", g[32])
+            st = arg[(arg["matrix"] == m) & (arg["precision"] == "fp64") & (arg["B"] == 128)].set_index("D")["stored_ratio"]
+            tex.stat(f"p2-{key}-stored-d1", st[1], "{:.1f}")
+            tex.stat(f"p2-{key}-stored-d32", st[32], "{:.1f}")
     print()
 
     print("== Paper-2 named matrices (FP64): GFLOP/s ==")
