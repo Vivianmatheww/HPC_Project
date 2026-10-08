@@ -24,11 +24,13 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
-from rasp_report import SLOTS, SURFACE, TEXT, TEXT2, TexWriter, geomean, save, style, tex_escape  # noqa: E402
+from rasp_report import SURFACE, TEXT, TEXT2, TexWriter, geomean, save, style, tex_escape  # noqa: E402
 
-WORKLOADS = [("spmv", "SpMV: 6 SuiteSparse matrices, 3 formats, 50 calls each"),
-             ("cg", "CG: Laplace3D n=128 (2.1M rows), 321 iterations"),
-             ("amg", "AMG set-up: Laplace3D n=160 (4.1M rows), 5 levels")]
+WORKLOADS = [("spmv", "SpMV: 6 matrices x 3 formats"),
+             ("cg", "CG solver: Laplace 128\u00b3"),
+             ("amg", "AMG set-up: Laplace 160\u00b3")]
+# The slides' accent colour; the largest hotspot of each workload is drawn in it, the others muted.
+ACCENT, MUTED = "#05668d", "#a9c7d6"
 MATRICES = ["Rajat/rajat23", "Sandia/ASIC_100k", "ACUSIM/Pres_Poisson", "Norris/torso2", "Williams/cop20k_A",
             "Schenk_AFE/af_shell1"]
 ROW = re.compile(r"^\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+(?:(\d+)\s+([\d.]+)\s+([\d.]+)\s+)?(.+?)\s*$")
@@ -120,6 +122,8 @@ def main():
 
         # First comparison with the GPU (different machines and methods: see the caption in the slides).
         seq = spm.query("kind == 'spmv' and name == 'CSR'").set_index("workload")
+        tex.stat("seq-csr-gflops-min", seq.gflops.min(), "{:.1f}")
+        tex.stat("seq-csr-gflops-max", seq.gflops.max(), "{:.1f}")
         gpu = pd.read_csv(args.gpu) if args.gpu.exists() else pd.DataFrame()
         rows, ratios = [], []
         print("\nSpMV fp64, sequential CSR (one i7-1255U core, warm, mean of 50) vs cuSPARSE ALG1 (RTX 4050, cold L2):")
@@ -158,18 +162,24 @@ def main():
     (args.dir / "summary.txt").write_text(text)
 
     # Figure: top functions per workload, share of the profiled CPU time.
-    fig, axes = plt.subplots(1, 3, figsize=(13, 3.6))
+    # Drawn at about the size it is shown on a 16:9 slide, so the labels stay readable there.
+    fig, axes = plt.subplots(1, 3, figsize=(8.6, 2.75))
     fig.patch.set_facecolor(SURFACE)
     for ax, (w, title) in zip(axes, WORKLOADS):
         style(ax)
-        p = profiles[w].head(6).iloc[::-1]
-        bars = ax.barh(p["name"], p["pct"], color=SLOTS[0], height=0.62)
+        p = profiles[w].head(5).iloc[::-1]
+        top = p["pct"].max()
+        colors = [ACCENT if top - v < 1.0 else MUTED for v in p["pct"]]  # ties at the top are all highlighted
+        bars = ax.barh(p["name"], p["pct"], color=colors, height=0.66)
         for b, v in zip(bars, p["pct"]):
-            ax.text(b.get_width() + 1, b.get_y() + b.get_height() / 2, f"{v:.0f}%", va="center", fontsize=8, color=TEXT)
-        ax.set_xlim(0, max(60, p["pct"].max() * 1.2))
-        ax.set_title(title, fontsize=9, color=TEXT, loc="left")
-        ax.tick_params(axis="y", labelsize=8)
-        ax.set_xlabel("share of CPU time (gprof)", fontsize=8, color=TEXT2)
+            ax.text(b.get_width() + 1.5, b.get_y() + b.get_height() / 2, f"{v:.0f}%", va="center", fontsize=8.5,
+                    color=TEXT)
+        ax.set_xlim(0, 62)
+        ax.set_title(title, fontsize=9.5, color=TEXT, loc="left", fontweight="bold")
+        ax.tick_params(axis="y", labelsize=8.5, length=0)
+        ax.tick_params(axis="x", labelsize=7.5)
+        ax.set_xticks([0, 20, 40, 60])
+        ax.set_xlabel("% of CPU time (gprof)", fontsize=8, color=TEXT2)
         ax.grid(axis="y", visible=False)
     fig.tight_layout()
     for f in save(fig, args.dir / "hotspots", ("png", "pdf")) + (save(fig, args.fig_dir / "hotspots", ("pdf",))

@@ -1,4 +1,4 @@
-== SpMV: 6 SuiteSparse matrices, 3 formats, 50 calls each  (gprof: 7.15 s of samples)
+== SpMV: 6 matrices x 3 formats  (gprof: 7.15 s of samples)
    28.0%    2.00 s         300 calls  spmv_sell
    28.0%    2.00 s         150 calls  spmv_ell
    19.4%    1.39 s         306 calls  spmv_csr
@@ -16,7 +16,7 @@
     convert to ELL                       0.138 s   1.7%  (user  0.068, system  0.066)
     SpMV ELL                             1.931 s  23.6%  (user  1.873, system  0.000)
 
-== CG: Laplace3D n=128 (2.1M rows), 321 iterations  (gprof: 13.30 s of samples)
+== CG solver: Laplace 128³  (gprof: 13.30 s of samples)
    46.7%    6.21 s         322 calls  spmv_csr
    25.9%    3.45 s         964 calls  dot
    12.3%    1.63 s         642 calls  axpy
@@ -32,7 +32,7 @@
     vector updates (axpy)                2.702 s  19.7%  (user  2.623, system  0.000)
     preconditioner (Jacobi)              1.106 s   8.1%  (user  1.073, system  0.001)
 
-== AMG set-up: Laplace3D n=160 (4.1M rows), 5 levels  (gprof: 1.84 s of samples)
+== AMG set-up: Laplace 160³  (gprof: 1.84 s of samples)
    50.0%    0.92 s          40 calls  spgemm_numeric
    18.5%    0.34 s          40 calls  spgemm_symbolic
    10.9%    0.20 s           1 calls  laplace3d

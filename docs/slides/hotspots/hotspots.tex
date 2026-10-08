@@ -1,145 +1,298 @@
-% Sequential implementation, hotspots and choice of platform: five slides. Build: latexmk -pdf hotspots.tex
-% Numbers come from scripts/analyze_seq.py (generated/seq.tex) and the Phase 0 probe (../../report/generated).
+% RASP: sequential implementation, hotspots and choice of platform (five slides + title).
+% Build: latexmk -pdf hotspots.tex
+% Every number comes from scripts/analyze_seq.py (generated/seq.tex) or the Phase 0 probe
+% (../../report/generated/platform.tex); edit the team block below, not the numbers.
 \documentclass[aspectratio=169,10pt]{beamer}
-\usetheme{default}
-\usecolortheme{dove}
-\setbeamertemplate{navigation symbols}{}
-\setbeamertemplate{footline}[frame number]
-\setbeamerfont{frametitle}{series=\bfseries}
+
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
 \usepackage{booktabs}
+\usepackage{colortbl}
 \usepackage{tabularx}
-\definecolor{raspblue}{HTML}{2a78d6}
-\definecolor{yes}{HTML}{008300}
-\definecolor{no}{HTML}{e34948}
-\setbeamercolor{structure}{fg=raspblue}
 
+% ---- Theme ----
+\usetheme{default}
+\useoutertheme{miniframes}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{blocks}[rounded][shadow=false]
+
+% ---- Colors ----
+\definecolor{accent}{RGB}{5, 102, 141}
+\definecolor{darkGray}{RGB}{60,60,60}
+\definecolor{deepBlack}{RGB}{0,0,0}
+\definecolor{accentDark}{RGB}{4,160,120}
+\definecolor{softRed}{RGB}{196,64,64}
+\definecolor{muted}{RGB}{169,199,214}
+
+\setbeamercolor{footlinecolor}{bg=deepBlack, fg=white}
+\setbeamertemplate{footline}
+{
+\leavevmode
+\begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em plus1fil]{footlinecolor}
+\textbf{HPC Project \textperiodcentered{} RASP}
+\hfill
+\textbf{\insertframenumber{} / \inserttotalframenumber}
+\end{beamercolorbox}
+}
+
+\setbeamercolor{title}{fg=white,bg=accent}
+\setbeamercolor{frametitle}{fg=white,bg=accent}
+\setbeamercolor{structure}{fg=accent}
+\setbeamercolor{item}{fg=accent}
+\setbeamercolor{section in head/foot}{fg=white,bg=deepBlack}
+\setbeamercolor{subsection in head/foot}{fg=white,bg=deepBlack}
+\setbeamercolor{block title}{fg=white,bg=accent}
+\setbeamercolor{block body}{fg=darkGray,bg=accent!6}
+\setbeamercolor{normal text}{fg=darkGray}
+
+\setbeamerfont{title}{size=\Huge,series=\bfseries}
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+\setbeamerfont{block title}{size=\small,series=\bfseries}
+
+% ---- Team (fill in roll numbers / guide; empty fields are not shown) ----
+\newcommand{\memberA}{Harsh Raj}\newcommand{\rollA}{S20240010084}
+\newcommand{\memberB}{Karmanya}\newcommand{\rollB}{}
+\newcommand{\memberC}{Vivian}\newcommand{\rollC}{}
+\newcommand{\guide}{}
+\newcommand{\member}[2]{\begin{tabular}[t]{c}\large\textbf{#1}\if\relax\detokenize\expandafter{#2}\relax\else\\[-1pt]{\small (#2)}\fi\end{tabular}}
+
+\setbeamertemplate{title page}
+{
+    \begin{center}
+    \vspace{0.3cm}
+    \begin{beamercolorbox}[wd=\paperwidth,sep=12pt,center]{frametitle}
+        {\usebeamerfont{title}\inserttitle}\\[4pt]
+        {\large\insertsubtitle}
+    \end{beamercolorbox}
+
+    \vspace{0.7cm}
+
+    \member{\memberA}{\rollA}\hspace{1.2cm}\member{\memberB}{\rollB}\hspace{1.2cm}\member{\memberC}{\rollC}
+
+    \vspace{0.5cm}
+
+    \if\relax\detokenize\expandafter{\guide}\relax\else
+    Under the guidance of\\[2pt]
+    \textbf{\guide}
+
+    \vspace{0.4cm}
+    \fi
+
+    High Performance Computing \textperiodcentered{} Project Checkpoint\\[2pt]
+    {\small Sequential implementation, hotspots and choice of platform}
+
+    \vspace{0.3cm}
+    \insertdate
+    \end{center}
+}
+
+\title{\textbf{RASP}}
+\subtitle{Runtime-Adaptive Sparse Matrix Kernels on the GPU}
+\date{9 October 2026}
+\IfFileExists{logo.png}{\logo{\includegraphics[height=1.0cm]{logo.png}}}{}
+
+% ---- Numbers ----
 \input{../../report/rasp-macros}
 \InputIfFileExists{../../report/generated/platform.tex}{}{}
 \InputIfFileExists{generated/seq.tex}{}{}
-\newcommand{\Y}{\textcolor{yes}{\textbf{Yes}}}
-\newcommand{\N}{\textcolor{no}{\textbf{No}}}
+\newcommand{\statnum}[1]{\csname rasp@stat@#1\endcsname}  % expandable, for drawing and arithmetic
+\pgfmathtruncatemacro{\gpuratio}{round(\statnum{pf-device-read}/\statnum{seq-bw-1})}  % GPU vs one core
+\newcommand{\yes}{\colorbox{accentDark}{\makebox[2.2em]{\textcolor{white}{\scriptsize\bfseries YES}}}}
+\newcommand{\no}{\colorbox{softRed}{\makebox[2.2em]{\textcolor{white}{\scriptsize\bfseries NO}}}}
+\newcommand{\bignum}[1]{{\color{accent}\LARGE\bfseries #1}}
+\newcommand{\aside}[1]{{\color{gray}\scriptsize #1}}
 
 \begin{document}
 
-% ---------------------------------------------------------------------------------------------------------------
-\begin{frame}{RASP: the sequential implementation}
-\vspace{-2mm}
-{\scriptsize\color{gray} Harsh Raj \textperiodcentered{} Karmanya \textperiodcentered{} Vivian \hfill
-code: \texttt{github.com/Vivianmatheww/HPC\_Project} (\texttt{seq/} = sequential version)}\par\vspace{1mm}
-\small
-\textbf{Problem.} RASP = Runtime-Adaptive Sparse kernels. Sparse matrix--vector (SpMV) and matrix--matrix (SpGEMM) products dominate iterative solvers and
-multigrid. Both are memory-bound and irregular, and the fastest implementation depends on the matrix. RASP chooses
-the format and the schedule at run time.
-
-\vspace{2mm}
-\textbf{Sequential implementation} (\texttt{seq/rasp\_seq.cpp}: C++17, one thread, \texttt{g++ -O2}, no libraries)
-runs the project's three workloads:
-\begin{enumerate}
-\item \textbf{SpMV}: read Matrix Market $\to$ build CSR $\to$ structural features $\to$ convert to ELL and SELL-32 $\to$
-  SpMV in every format (picking the best format by trying them all).
-\item \textbf{CG}: Jacobi-preconditioned conjugate gradients; per iteration 1 SpMV, 3 dot products, 3 vector updates.
-\item \textbf{AMG set-up}: Galerkin products $A_{l+1} = R_l\,(A_l P_l)$ on every level. Each SpGEMM is a flop estimate,
-  a symbolic pass and a numeric pass (Gustavson, row by row).
-\end{enumerate}
-
-\vspace{1mm}
-\textbf{Inputs:} six SuiteSparse matrices, 0.56M--17.6M nonzeros (circuit: \texttt{rajat23}, \texttt{ASIC\_100k};
-FEM/CFD: \texttt{af\_shell1}, \texttt{cop20k\_A}, \texttt{torso2}, \texttt{Pres\_Poisson}), and the 3-D Laplacian at
-$128^3$ (CG) and $160^3$ (AMG) grid points.\\
-\textbf{Machine:} Intel i7-1255U, g++ 11.4, Ubuntu on WSL2. All results are checked against CSR or the residual.
+%------------------------------------------------
+\begin{frame}[plain,noframenumbering]
+\titlepage
 \end{frame}
 
-% ---------------------------------------------------------------------------------------------------------------
-\begin{frame}{Profiling: where the sequential program spends its time}
+%================================================
+\section{Sequential version}
+
+\begin{frame}{The Sequential Implementation}
+
+Sparse matrix--vector (\textbf{SpMV}) and matrix--matrix (\textbf{SpGEMM}) products are the core of iterative
+solvers and multigrid. We wrote the whole workload as \textbf{one single-threaded C++ program} to find where the
+time goes.
+
+\vspace{0.3cm}
+
+\begin{columns}[T,onlytextwidth]
+\column{0.32\textwidth}
+\begin{block}{1 \;\; SpMV}
+\small read \texttt{.mtx} $\rightarrow$ CSR $\rightarrow$ features $\rightarrow$ ELL / SELL $\rightarrow$ SpMV in
+every format\\[3pt]
+\aside{picks the best format by trying them all}
+\end{block}
+\column{0.32\textwidth}
+\begin{block}{2 \;\; CG solver}
+\small Jacobi-preconditioned conjugate gradients.\\[3pt]
+Per iteration: 1 SpMV, 3 dot products, 3 vector updates.
+\end{block}
+\column{0.32\textwidth}
+\begin{block}{3 \;\; AMG set-up}
+\small Coarse operators $A_{l+1} = R_l\,(A_l P_l)$ on every level.\\[3pt]
+Each SpGEMM: flop estimate $\rightarrow$ symbolic $\rightarrow$ numeric pass.
+\end{block}
+\end{columns}
+
+\vspace{0.3cm}
+
+\small
+\begin{tabularx}{\textwidth}{@{}>{\bfseries\color{accent}}l X@{}}
+Inputs & 6 SuiteSparse matrices, 0.56M--17.6M nonzeros (circuit, FEM, CFD) and the 3-D Laplacian at $128^3$ and
+  $160^3$ points \\
+Code & \texttt{seq/rasp\_seq.cpp}: C++17, one thread, \texttt{g++ -O2}, no libraries; every result checked \\
+Machine & Intel Core i7-1255U, g++ 11.4, Ubuntu on WSL2 \\
+\end{tabularx}
+
+\end{frame}
+
+%================================================
+\section{Profiling}
+
+\begin{frame}{Profiling: Where the Time Goes}
+
 \centering
 \includegraphics[width=\textwidth]{figures/hotspots.pdf}
 
-\vspace{1mm}
-\raggedright\small
-\textbf{Method.}
-\begin{itemize}
-\item \textbf{gprof} on an instrumented build (\texttt{-pg}) gives self time and call counts per function. GCC's
-  function cloning is switched off, because gprof otherwise charges cloned functions' time to their neighbours.
-\item Every phase is also timed (wall, user and system CPU via \texttt{getrusage}): gprof samples only user time.
-\item Reproduce with \texttt{bash seq/profile.sh} and \texttt{python scripts/analyze\_seq.py}.
-\end{itemize}
-\end{frame}
+\vspace{0.3cm}
+\raggedright
 
-% ---------------------------------------------------------------------------------------------------------------
-\begin{frame}{Hotspots}
-\small
-\begin{columns}[T]
+\begin{columns}[T,onlytextwidth]
+\column{0.31\textwidth}
+\textbf{\color{accent}gprof} (\texttt{-pg})\\
+\small Self time and call counts for every function.
 \column{0.33\textwidth}
-\textbf{CG} (\stat{seq-cg-total-s}\,s)\\[1mm]
-{\scriptsize\stattable{seq-cg}}\\[2mm]
-SpMV is \stat{seq-cg-spmv-pct}\% of the wall time; the vector kernels (dot, axpy, Jacobi) add
-\stat{seq-cg-vector-pct}\%. Everything is a loop over rows or vector entries.
-\column{0.33\textwidth}
-\textbf{AMG set-up} (\stat{seq-amg-total-s}\,s)\\[1mm]
-{\scriptsize\stattable{seq-amg}}\\[2mm]
-SpGEMM is \stat{seq-amg-spgemm-pct}\% of the wall time. \stat{seq-amg-numeric-sys-pct}\% of the numeric pass is the
-kernel zero-filling freshly allocated output pages.
-\column{0.33\textwidth}
-\textbf{SpMV workload} (\stat{seq-spmv-total-s}\,s)\\[1mm]
-{\scriptsize\stattable{seq-spmv}}\\[2mm]
-SpMV kernels are \stat{seq-spmv-kernel-pct}\% of the wall time; one-time file reading and CSR building are
-\stat{seq-spmv-io-pct}\%.
+\textbf{\color{accent}No compiler clones}\\
+\small GCC's \texttt{.isra} copies made gprof blame the wrong function; disabled in the profiling build.
+\column{0.31\textwidth}
+\textbf{\color{accent}getrusage}\\
+\small Wall, user and system time per phase. gprof sees user time only.
 \end{columns}
 
-\vspace{3mm}
-\textbf{Common character: memory-bound.} CSR SpMV does 2 flops per $\geq$12 bytes read. One core streams
-\stat{seq-bw-1}\,GB/s, so the kernels run at 1--2.4 GFLOP/s, limited by bandwidth, not arithmetic.
 \end{frame}
 
-% ---------------------------------------------------------------------------------------------------------------
-\begin{frame}{Are the hotspots parallelizable?}
+%================================================
+\section{Hotspots}
+
+\begin{frame}{Hotspots}
+
+\begin{columns}[T,onlytextwidth]
+\column{0.32\textwidth}
+\textbf{CG solver} \aside{\stat{seq-cg-total-s}\,s}\\[2pt]
+\bignum{\stat{seq-cg-spmv-csr}\%} {\small in SpMV}\\[4pt]
+{\scriptsize\stattable{seq-cg}}\\[4pt]
+\small Dot, axpy and Jacobi make up the other half.
+
+\column{0.32\textwidth}
+\textbf{AMG set-up} \aside{\stat{seq-amg-total-s}\,s}\\[2pt]
+\bignum{\stat{seq-amg-spgemm-pct}\%} {\small in SpGEMM}\\[4pt]
+{\scriptsize\stattable{seq-amg}}\\[4pt]
+\small \stat{seq-amg-numeric-sys-pct}\% of the numeric pass is the OS zero-filling new memory.
+
+\column{0.32\textwidth}
+\textbf{SpMV workload} \aside{\stat{seq-spmv-total-s}\,s}\\[2pt]
+\bignum{\stat{seq-spmv-kernel-pct}\%} {\small in SpMV kernels}\\[4pt]
+{\scriptsize\stattable{seq-spmv}}\\[4pt]
+\small File reading and CSR building (\stat{seq-spmv-io-pct}\%) happen once per matrix.
+\end{columns}
+
+\vspace{0.35cm}
+
+\begin{beamercolorbox}[wd=\textwidth,sep=6pt,rounded=true]{block body}
+\small\textbf{\color{accent}Common thread: all memory-bound.} CSR SpMV does 2 flops per $\geq$\,12 bytes read.
+One core streams \stat{seq-bw-1}\,GB/s, so SpMV runs at \stat{seq-csr-gflops-min}--\stat{seq-csr-gflops-max}\,GFLOP/s,
+set by bandwidth rather than arithmetic.
+\end{beamercolorbox}
+
+\end{frame}
+
+%================================================
+\section{Parallelism}
+
+\begin{frame}{Can the Hotspots Run in Parallel?}
+
 \footnotesize
-\begin{tabularx}{\textwidth}{@{}p{3.3cm} c X@{}}
+\renewcommand{\arraystretch}{1.18}
+\begin{tabularx}{\textwidth}{@{}l c X@{}}
 \toprule
-Hotspot & Parallel? & Why \\
+\textbf{Hotspot} & & \textbf{Reason} \\
 \midrule
-SpMV (CSR, ELL, SELL) & \Y & Every row $y_i = A_{i,:}\,x$ is independent; $x$ is read-only. Row lengths vary (up to 99,029
-  in \texttt{ASIC\_100k}), so threads get unequal work. That's why the format, and how threads map to rows, must be
-  chosen per matrix. \\
-Dot products, norms & \Y & A reduction: partial sums per thread, then a tree. One synchronisation per reduction. \\
-axpy, Jacobi, $p = z + \beta p$ & \Y & Element-wise, no dependencies: embarrassingly parallel. \\
-SpGEMM symbolic / numeric & \Y & Rows of $C$ are independent; each thread needs its own accumulator. $C$'s size is
-  unknown until the symbolic pass, so it takes two passes, and output memory can exceed the GPU (chunking). \\
-Flop estimate, features, ELL/SELL build & \Y & Per-row work plus a prefix sum (parallel scan). \\
-CG iteration loop & \N & Iteration $k{+}1$ needs $\alpha_k, \beta_k$ from iteration $k$: parallelise \emph{inside}
-  each iteration, not across iterations. \\
-Matrix Market parsing & \N & Not worth it: sequential text and I/O, done once per matrix. The GPU version caches the
-  binary CSR instead. \\
+SpMV (CSR, ELL, SELL) & \yes & Every row $y_i = A_{i,:}\,x$ is independent; $x$ is read-only. Row lengths vary (up to
+  99,029 in \texttt{ASIC\_100k}), so the format must suit the matrix. \\
+Dot products & \yes & A reduction: per-thread partial sums, combined in a tree. \\
+axpy, Jacobi, $p = z + \beta p$ & \yes & Element-wise, no dependencies. \\
+SpGEMM symbolic and numeric & \yes & Rows of $C$ are independent, one accumulator per thread; $C$'s size is unknown, hence
+  two passes. \\
+Flop estimate, features, conversion & \yes & Per-row work plus a prefix sum (parallel scan). \\
+\rowcolor{softRed!7}
+CG iteration loop & \no & Iteration $k{+}1$ needs $\alpha_k, \beta_k$: parallelise inside an iteration. \\
+\rowcolor{softRed!7}
+Matrix Market parsing & \no & Sequential text I/O, once per matrix: cache a binary CSR instead. \\
 \bottomrule
 \end{tabularx}
+
 \end{frame}
 
-% ---------------------------------------------------------------------------------------------------------------
-\begin{frame}{Platform: CUDA (OpenMP for host-side helpers)}
-\footnotesize
-\begin{columns}[T]
-\column{0.55\textwidth}
-\textbf{Why CUDA.}
+%================================================
+\section{Platform}
+
+\begin{frame}{Platform: CUDA}
+
+\begin{columns}[T,onlytextwidth]
+\column{0.5\textwidth}
+\textbf{Memory bandwidth, measured}\\[6pt]
+\begin{tikzpicture}[x=0.021cm, y=0.55cm, font=\small]
+  \foreach \v/\lab/\c [count=\i] in {\statnum{seq-bw-1}/{1 CPU core}/muted,
+                                     \statnum{seq-bw-all}/{\statnum{seq-bw-threads} CPU threads}/muted} {
+    \node[anchor=east, text=darkGray] at (-3, -\i) {\lab};
+    \fill[\c] (0, -\i-0.3) rectangle (\v, -\i+0.3);
+    \node[anchor=west, text=darkGray, font=\small\bfseries] at (\v+2, -\i) {\v\,GB/s};
+  }
+  \node[anchor=east, text=darkGray] at (-3, -3) {RTX 4050 GPU};
+  \fill[accent] (0, -3.3) rectangle (\statnum{pf-device-read}, -2.7);
+  \node[anchor=east, text=white, font=\small\bfseries] at (\statnum{pf-device-read}-2, -3)
+    {\statnum{pf-device-read}\,GB/s};
+\end{tikzpicture}
+
+\vspace{0.25cm}
+\small
 \begin{itemize}
-\item Hotspots are memory-bound loops over millions of independent rows: speed needs bandwidth and many threads to
-  hide irregular accesses. RTX 4050: \stat{pf-device-read}\,GB/s measured vs \stat{seq-bw-1}\,GB/s for one core.
-\item \textbf{Not OpenMP alone:} all \stat{seq-bw-threads} CPU threads stream only \stat{seq-bw-all}\,GB/s
-  (\stat{seq-bw-scaling}\x{} one core): memory-bound kernels cannot scale past the shared memory bus. OpenMP is used
-  for host-side work (SpGEMM flop estimate).
-\item \textbf{Not MPI:} one node, one GPU; matrices too large are streamed over PCIe in chunks. Network traffic would
-  dominate kernels doing 2 flops per 12 bytes.
-\item GPU version: cuSPARSE as baseline, plus per-matrix format selection and out-of-core SpGEMM with copy/compute
-  overlap.
+\item Memory-bound kernels run at memory speed: the GPU has \textbf{\gpuratio\x} one core's bandwidth, plus thousands of
+  threads to hide irregular reads.
+\item \textbf{Not OpenMP alone:} \stat{seq-bw-threads} threads reach only \stat{seq-bw-scaling}\x{} (one shared
+  memory bus). Used for host-side helpers.
+\item \textbf{Not MPI:} one node suffices; data too large for the GPU is streamed over PCIe.
 \end{itemize}
-\column{0.43\textwidth}
-\textbf{First comparison: SpMV (fp64), GFLOP/s}\\[1mm]
-{\footnotesize\stattable{seq-vs-gpu}}\\[1mm]
-\scriptsize GPU (cuSPARSE, RTX 4050) vs sequential CSR: \stat{seq-gpu-speedup-geomean}\x{} geomean
-(\stat{seq-gpu-speedup-min}--\stat{seq-gpu-speedup-max}\x). \textit{Preliminary:} different host machines; GPU
-timed with a cold L2, CPU warm. End evaluation: CPU vs GPU on one machine, for SpMV, CG and AMG.
+
+\column{0.46\textwidth}
+\textbf{SpMV GFLOP/s: sequential vs GPU}\\[4pt]
+{\footnotesize\stattable{seq-vs-gpu}}\\[6pt]
+\bignum{\stat{seq-gpu-speedup-geomean}\x} {\small faster on the GPU (geometric mean)}\\[4pt]
+\aside{Preliminary: sequential on the i7-1255U, cuSPARSE on the RTX 4050 laptop. The end evaluation compares
+both on one machine, for SpMV, CG and AMG.}
 \end{columns}
+
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}[plain,noframenumbering]
+\begin{center}
+\vspace{1.6cm}
+\begin{beamercolorbox}[wd=\paperwidth,sep=16pt,center]{frametitle}
+{\Huge \textbf{Thank You}}
+\end{beamercolorbox}
+\vspace{0.8cm}
+
+\small Code: \texttt{github.com/Vivianmatheww/HPC\_Project} \quad (\texttt{seq/} = sequential version)
+\end{center}
 \end{frame}
 
 \end{document}
