@@ -56,6 +56,23 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 
 ## Log
 
+### 2026-10-08 (Thu) — Course checkpoint: sequential implementation, hotspots, platform
+For the Friday evaluation (sequential implementation, hotspots, choice of platform; five slides + source code).
+- [seq/rasp_seq.cpp](seq/rasp_seq.cpp): the three workloads (SpMV with format conversion, CG, AMG set-up via SpGEMM)
+  on one CPU thread. Profiled with gprof (cloning disabled, otherwise gprof misattributes time) and
+  wall/user/system phase timers: [results/seq/summary.txt](results/seq/summary.txt).
+- Hotspots (i7-1255U, share of gprof CPU time):
+  - CG: `spmv_csr` 47%, `dot` 26%, `axpy` 12%, `jacobi` 8%, `xpby` 6%.
+  - AMG: `spgemm_numeric` 50%, `spgemm_symbolic` 18%. In wall time, 77% of the numeric pass is the kernel
+    zero-filling freshly allocated pages.
+  - SpMV workload: SpMV kernels about 75%.
+  - All of these except the CG iteration loop and Matrix Market parsing are data-parallel over rows or elements.
+- Platform: CUDA. The hotspots are memory-bound: one core streams 10.5 GB/s, all 12 threads only 28.3 GB/s, the
+  RTX 4050 187.8 GB/s.
+- Preliminary SpMV comparison: cuSPARSE on the RTX 4050 vs sequential CSR, geomean 10.5×. Different host machines;
+  the end evaluation must compare both on one machine.
+- Slides: [docs/slides/hotspots/hotspots.pdf](docs/slides/hotspots/hotspots.pdf).
+
 ### 2026-10-08 (Thu) — Phases 4–6 implemented; GPU runs pending
 Written on a laptop without an NVIDIA GPU (Harsh). Everything was compiled here with the CUDA 13.3 toolkit from pip
 wheels; nothing that launches a kernel has run yet. Branch `phases-4-6`, one commit per step.
