@@ -10,3 +10,7 @@ __pycache__/
 results/archive-*/
 results/run_all-*.log
 results/phase*/old-*/
+seq/rasp_seq
+seq/rasp_seq_pg
+seq/bandwidth
+gmon.out
