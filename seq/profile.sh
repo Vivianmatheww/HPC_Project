@@ -6,7 +6,7 @@
 #                                  #   --names Rajat/rajat23 Sandia/ASIC_100k ACUSIM/Pres_Poisson Norris/torso2
 #                                  #   Williams/cop20k_A Schenk_AFE/af_shell1)
 # Output: results/seq/{spmv,cg,amg}.{csv,txt}, bandwidth.txt, gprof_<workload>/{flat,callgraph,run}.txt
-# Then:  python scripts/analyze_seq.py --tex docs/slides/hotspots/generated --fig-dir docs/slides/hotspots/figures
+# Then:  python scripts/analyze_seq.py --tex docs/slides/hotspots/generated
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT=$PWD

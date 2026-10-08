@@ -11,7 +11,7 @@ Outputs: results/seq/hotspots.png|pdf            top functions per workload (sha
                                                  files the slides plot with pgfplots (gprof_<w>.csv, speedup.csv,
                                                  cg_traffic.csv)
 
-    python scripts/analyze_seq.py --tex docs/slides/hotspots/generated --fig-dir docs/slides/hotspots/figures
+    python scripts/analyze_seq.py --tex docs/slides/hotspots/generated
 """
 import argparse
 import io
@@ -77,7 +77,6 @@ def main():
     ap.add_argument("--dir", type=Path, default=Path("results/seq"))
     ap.add_argument("--gpu", type=Path, default=Path("results/phase2_spmv.csv"))
     ap.add_argument("--tex", type=Path)
-    ap.add_argument("--fig-dir", type=Path, help="also write hotspots.pdf here (the slides' figure directory)")
     args = ap.parse_args()
     tex = TexWriter(args.tex / "seq.tex" if args.tex else None)
     buf = io.StringIO()
@@ -206,7 +205,7 @@ def main():
             f"{{{name}}},{b:.1f},{t:.1f}\n" for name, b, t in cg_traffic))
 
     # Figure: top functions per workload, share of the profiled CPU time.
-    # Drawn at about the size it is shown on a 16:9 slide, so the labels stay readable there.
+    # Sized for a 16:9 slide, so the labels stay readable if it is shown on one.
     fig, axes = plt.subplots(1, 3, figsize=(8.6, 2.75))
     fig.patch.set_facecolor(SURFACE)
     for ax, (w, title) in zip(axes, WORKLOADS):
@@ -226,8 +225,7 @@ def main():
         ax.set_xlabel("% of CPU time (gprof)", fontsize=8, color=TEXT2)
         ax.grid(axis="y", visible=False)
     fig.tight_layout()
-    for f in save(fig, args.dir / "hotspots", ("png", "pdf")) + (save(fig, args.fig_dir / "hotspots", ("pdf",))
-                                                                 if args.fig_dir else []):
+    for f in save(fig, args.dir / "hotspots", ("png", "pdf")):
         print(f"wrote {f}")
     plt.close(fig)
     if (t := tex.write()):

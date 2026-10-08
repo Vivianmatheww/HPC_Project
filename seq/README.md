@@ -24,7 +24,7 @@ make -C seq                         # rasp_seq (g++ -O2)
 python scripts/fetch_matrices.py --count 0 --out data/seq --names Rajat/rajat23 Sandia/ASIC_100k \
     ACUSIM/Pres_Poisson Norris/torso2 Williams/cop20k_A Schenk_AFE/af_shell1
 bash seq/profile.sh                 # timed runs + gprof runs of the three workloads, CPU bandwidth (~2 min)
-python scripts/analyze_seq.py --tex docs/slides/hotspots/generated --fig-dir docs/slides/hotspots/figures
+python scripts/analyze_seq.py --tex docs/slides/hotspots/generated
 ```
 
 - **gprof** (`make -C seq profile`, built with `-pg`) gives self time and call counts per function. GCC's function
