@@ -1,0 +1,25 @@
+label,kind,workload,name,seconds,share,user,sys,calls,nnz,ms_per_call,gflops
+spmv,phase,spmv,"read Matrix Market (parse)",2.133012,0.260982,1.647004,0.428423,6,,,
+spmv,phase,spmv,"build CSR (sort, merge)",0.595910,0.072912,0.264452,0.315398,6,,,
+spmv,phase,spmv,"features",0.001547,0.000189,0.001258,0.000238,6,,,
+spmv,phase,spmv,"SpMV CSR",1.218849,0.149131,1.185962,0.000022,6,,,
+spmv,phase,spmv,"convert to SELL-32-256",0.199021,0.024351,0.120013,0.073600,6,,,
+spmv,phase,spmv,"SpMV SELL-32-256",1.879296,0.229939,1.824156,0.004423,6,,,
+spmv,phase,spmv,"convert to ELL",0.137701,0.016848,0.067904,0.066068,3,,,
+spmv,phase,spmv,"SpMV ELL",1.930658,0.236223,1.872757,0.000091,3,,,
+spmv,spmv,rajat23,CSR,,,,,50,556938,0.925246,1.203870
+spmv,spmv,rajat23,SELL-32-256,,,,,50,556938,2.562843,0.434625
+spmv,spmv,ASIC_100k,CSR,,,,,50,954163,1.534551,1.243573
+spmv,spmv,ASIC_100k,SELL-32-256,,,,,50,954163,6.322069,0.301851
+spmv,spmv,Pres_Poisson,CSR,,,,,50,715804,0.600746,2.383052
+spmv,spmv,Pres_Poisson,ELL,,,,,50,715804,0.740096,1.934355
+spmv,spmv,Pres_Poisson,SELL-32-256,,,,,50,715804,0.832186,1.720298
+spmv,spmv,torso2,CSR,,,,,50,1033473,0.965638,2.140498
+spmv,spmv,torso2,ELL,,,,,50,1033473,1.297264,1.593312
+spmv,spmv,torso2,SELL-32-256,,,,,50,1033473,1.531919,1.349253
+spmv,spmv,cop20k_A,CSR,,,,,50,2624331,3.833000,1.369335
+spmv,spmv,cop20k_A,SELL-32-256,,,,,50,2624331,3.960596,1.325220
+spmv,spmv,af_shell1,CSR,,,,,50,17588875,16.518321,2.129620
+spmv,spmv,af_shell1,ELL,,,,,50,17588875,36.576016,0.961771
+spmv,spmv,af_shell1,SELL-32-256,,,,,50,17588875,22.376970,1.572052
+spmv,total,,,8.173021,1,,,1,,,

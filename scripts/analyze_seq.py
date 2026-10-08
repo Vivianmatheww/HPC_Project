@@ -1,0 +1,185 @@
+#!/usr/bin/env python3
+"""Hotspots of the sequential implementation (seq/rasp_seq.cpp), from seq/profile.sh's output.
+
+Inputs:  results/seq/gprof_<workload>/flat.txt   gprof flat profiles (self time per function)
+         results/seq/<workload>.csv              per-phase wall / user / system time (optimised build)
+         results/seq/bandwidth.txt               streaming bandwidth of this CPU, one thread and all threads
+         results/phase2_spmv.csv                 GPU SpMV on the RTX 4050 (Phase 2), for a first comparison
+Outputs: results/seq/hotspots.png|pdf            top functions per workload (share of profiled CPU time)
+         results/seq/summary.txt
+         --tex DIR                               seq.tex: \\setstat values and tables for the slides
+
+    python scripts/analyze_seq.py --tex docs/slides/hotspots/generated --fig-dir docs/slides/hotspots/figures
+"""
+import argparse
+import io
+import re
+from contextlib import redirect_stdout
+from pathlib import Path
+
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
+
+from rasp_report import SLOTS, SURFACE, TEXT, TEXT2, TexWriter, geomean, save, style, tex_escape  # noqa: E402
+
+WORKLOADS = [("spmv", "SpMV: 6 SuiteSparse matrices, 3 formats, 50 calls each"),
+             ("cg", "CG: Laplace3D n=128 (2.1M rows), 321 iterations"),
+             ("amg", "AMG set-up: Laplace3D n=160 (4.1M rows), 5 levels")]
+MATRICES = ["Rajat/rajat23", "Sandia/ASIC_100k", "ACUSIM/Pres_Poisson", "Norris/torso2", "Williams/cop20k_A",
+            "Schenk_AFE/af_shell1"]
+ROW = re.compile(r"^\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+(?:(\d+)\s+([\d.]+)\s+([\d.]+)\s+)?(.+?)\s*$")
+
+
+def short(name):
+    name = name.replace("(anonymous namespace)::", "")
+    if "std::" in name.split("(")[0]:
+        if "sort" in name or "heap" in name:
+            return "std::sort (per row)"
+        if "fill_assign" in name or "vector(" in name:
+            return "std::vector fill"
+        return re.sub(r"<.*", "", name)
+    return re.sub(r"\(.*", "", name)
+
+
+def flat_profile(path):
+    rows, started = [], False
+    for line in path.read_text().splitlines():
+        if line.strip().startswith("time"):
+            started = True
+            continue
+        if not started or not line.strip():
+            continue
+        m = ROW.match(line)
+        if m:
+            rows.append({"pct": float(m.group(1)), "self_s": float(m.group(3)),
+                         "calls": int(m.group(4)) if m.group(4) else 0, "name": short(m.group(7))})
+    df = pd.DataFrame(rows)
+    return df.groupby("name", as_index=False).agg(pct=("pct", "sum"), self_s=("self_s", "sum"),
+                                                  calls=("calls", "sum")).sort_values("pct", ascending=False)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--dir", type=Path, default=Path("results/seq"))
+    ap.add_argument("--gpu", type=Path, default=Path("results/phase2_spmv.csv"))
+    ap.add_argument("--tex", type=Path)
+    ap.add_argument("--fig-dir", type=Path, help="also write hotspots.pdf here (the slides' figure directory)")
+    args = ap.parse_args()
+    tex = TexWriter(args.tex / "seq.tex" if args.tex else None)
+    buf = io.StringIO()
+    profiles = {w: flat_profile(args.dir / f"gprof_{w}" / "flat.txt") for w, _ in WORKLOADS}
+
+    with redirect_stdout(buf):
+        for w, title in WORKLOADS:
+            p = profiles[w]
+            print(f"== {title}  (gprof: {p.self_s.sum():.2f} s of samples)")
+            for _, r in p.head(7).iterrows():
+                print(f"  {r['pct']:5.1f}%  {r.self_s:6.2f} s  {r.calls:>10d} calls  {r['name']}")
+            for _, r in p.head(6).iterrows():
+                tex.stat(f"seq-{w}-{r['name']}", r["pct"], "{:.0f}")
+            def compact(c):
+                return "--" if not c else f"{c / 1e6:.1f}M" if c >= 1e6 else f"{c / 1e3:.0f}k" if c >= 1e4 else str(c)
+            rows = [[tex_escape(r["name"]), f"{r['pct']:.0f}\\%", compact(r.calls)] for _, r in p.head(5).iterrows()]
+            tex.table(f"seq-{w}", ["function", "time", "calls"], rows, "lrr")
+            ph = pd.read_csv(args.dir / f"{w}.csv")
+            ph = ph[ph.kind == "phase"]
+            total = float(pd.read_csv(args.dir / f"{w}.csv").query("kind == 'total'").seconds.iloc[0])
+            tex.stat(f"seq-{w}-total-s", total, "{:.1f}")
+            print(f"  phases (optimised build, wall {total:.2f} s):")
+            for _, r in ph.iterrows():
+                print(f"    {r['name']:<34} {r.seconds:7.3f} s {100 * r.seconds / total:5.1f}%  "
+                      f"(user {r.user:6.3f}, system {r.sys:6.3f})")
+            print()
+
+        # Phase-level figures the slides quote.
+        cg = pd.read_csv(args.dir / "cg.csv").query("kind == 'phase'").set_index("name")
+        total_cg = cg.seconds.sum()
+        tex.stat("seq-cg-spmv-pct", 100 * cg.loc["SpMV (q = A p)", "seconds"] / total_cg, "{:.0f}")
+        vec = cg.loc[["dot products", "vector updates (axpy)", "preconditioner (Jacobi)"], "seconds"].sum()
+        tex.stat("seq-cg-vector-pct", 100 * vec / total_cg, "{:.0f}")
+        dot_calls = cg.loc["dot products", "calls"]
+        n = 128 ** 3
+        dot_gbs = 2 * 8 * n * dot_calls / cg.loc["dot products", "seconds"] / 1e9  # two vectors of doubles per dot
+        tex.stat("seq-dot-gbs", dot_gbs, "{:.1f}")
+        print(f"one core streams {dot_gbs:.1f} GB/s in the dot products (two vectors of 8-byte values per call)")
+        amg = pd.read_csv(args.dir / "amg.csv").query("kind == 'phase'").set_index("name")
+        sp = amg.loc[[i for i in amg.index if i.startswith("spgemm")]]
+        tex.stat("seq-amg-spgemm-pct", 100 * sp.seconds.sum() / amg.seconds.sum(), "{:.0f}")
+        tex.stat("seq-amg-numeric-sys-pct", 100 * amg.loc["spgemm: numeric", "sys"] / amg.loc["spgemm: numeric", "seconds"],
+                 "{:.0f}")
+        spm = pd.read_csv(args.dir / "spmv.csv")
+        ph = spm.query("kind == 'phase'").set_index("name")
+        io_s = ph.loc[["read Matrix Market (parse)", "build CSR (sort, merge)"], "seconds"].sum()
+        kern = ph.loc[[i for i in ph.index if i.startswith("SpMV")], "seconds"].sum()
+        tex.stat("seq-spmv-io-pct", 100 * io_s / ph.seconds.sum(), "{:.0f}")
+        tex.stat("seq-spmv-kernel-pct", 100 * kern / ph.seconds.sum(), "{:.0f}")
+
+        # First comparison with the GPU (different machines and methods: see the caption in the slides).
+        seq = spm.query("kind == 'spmv' and name == 'CSR'").set_index("workload")
+        gpu = pd.read_csv(args.gpu) if args.gpu.exists() else pd.DataFrame()
+        rows, ratios = [], []
+        print("\nSpMV fp64, sequential CSR (one i7-1255U core, warm, mean of 50) vs cuSPARSE ALG1 (RTX 4050, cold L2):")
+        for m in MATRICES:
+            stem = m.split("/")[1]
+            if stem not in seq.index or gpu.empty:
+                continue
+            g = gpu[(gpu.matrix == m) & (gpu.precision == "fp64") & (gpu.config == "cusparse_alg1") & (gpu.status == "ok")]
+            if g.empty:
+                continue
+            s_gf, g_gf = float(seq.loc[stem, "gflops"]), float(g.gflops.iloc[0])
+            ratios.append(g_gf / s_gf)
+            print(f"  {stem:<14} nnz {int(seq.loc[stem, 'nnz']):>9,}  seq {s_gf:5.2f}  GPU {g_gf:6.2f} GFLOP/s  -> {g_gf / s_gf:5.1f}x")
+            rows.append([tex_escape(stem), f"{int(seq.loc[stem, 'nnz']) / 1e6:.2f}M", f"{s_gf:.2f}", f"{g_gf:.1f}",
+                         f"{g_gf / s_gf:.1f}$\\times$"])
+        bw = args.dir / "bandwidth.txt"
+        if bw.exists():
+            vals = re.findall(r"(\d+) thread\(s\):\s+([\d.]+) GB/s", bw.read_text())
+            if len(vals) == 2:
+                (_, one), (threads, allt) = vals
+                tex.stat("seq-bw-1", float(one), "{:.1f}")
+                tex.stat("seq-bw-all", float(allt), "{:.1f}")
+                tex.stat("seq-bw-threads", threads)
+                tex.stat("seq-bw-scaling", float(allt) / float(one), "{:.1f}")
+                print(f"\nstreaming bandwidth: 1 thread {one} GB/s, {threads} threads {allt} GB/s "
+                      f"({float(allt) / float(one):.1f}x)")
+        if ratios:
+            print(f"  geomean {geomean(ratios):.1f}x")
+            tex.stat("seq-gpu-speedup-geomean", geomean(ratios), "{:.1f}")
+            tex.stat("seq-gpu-speedup-min", min(ratios), "{:.1f}")
+            tex.stat("seq-gpu-speedup-max", max(ratios), "{:.1f}")
+            tex.table("seq-vs-gpu", ["matrix", "nnz", "seq", "GPU", "ratio"], rows, "lrrrr")
+
+    text = buf.getvalue()
+    print(text, end="")
+    (args.dir / "summary.txt").write_text(text)
+
+    # Figure: top functions per workload, share of the profiled CPU time.
+    fig, axes = plt.subplots(1, 3, figsize=(13, 3.6))
+    fig.patch.set_facecolor(SURFACE)
+    for ax, (w, title) in zip(axes, WORKLOADS):
+        style(ax)
+        p = profiles[w].head(6).iloc[::-1]
+        bars = ax.barh(p["name"], p["pct"], color=SLOTS[0], height=0.62)
+        for b, v in zip(bars, p["pct"]):
+            ax.text(b.get_width() + 1, b.get_y() + b.get_height() / 2, f"{v:.0f}%", va="center", fontsize=8, color=TEXT)
+        ax.set_xlim(0, max(60, p["pct"].max() * 1.2))
+        ax.set_title(title, fontsize=9, color=TEXT, loc="left")
+        ax.tick_params(axis="y", labelsize=8)
+        ax.set_xlabel("share of CPU time (gprof)", fontsize=8, color=TEXT2)
+        ax.grid(axis="y", visible=False)
+    fig.tight_layout()
+    for f in save(fig, args.dir / "hotspots", ("png", "pdf")) + (save(fig, args.fig_dir / "hotspots", ("pdf",))
+                                                                 if args.fig_dir else []):
+        print(f"wrote {f}")
+    plt.close(fig)
+    if (t := tex.write()):
+        print(f"wrote {t}")
+
+
+if __name__ == "__main__":
+    np.seterr(all="ignore")
+    main()

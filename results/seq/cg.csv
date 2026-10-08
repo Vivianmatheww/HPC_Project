@@ -1,0 +1,8 @@
+label,kind,workload,name,seconds,share,user,sys,calls,nnz,ms_per_call,gflops
+cg,phase,cg,"load / generate matrix",0.199816,0.014603,0.053493,0.140956,1,,,
+cg,phase,cg,"set-up (b = A x_true, Jacobi)",0.042586,0.003112,0.034793,0.006644,1,,,
+cg,phase,cg,"SpMV (q = A p)",6.046014,0.441858,5.876824,0.004262,321,,,
+cg,phase,cg,"dot products",3.512236,0.256683,3.398797,0.012594,962,,,
+cg,phase,cg,"vector updates (axpy)",2.702410,0.197499,2.622581,0.000213,641,,,
+cg,phase,cg,"preconditioner (Jacobi)",1.106473,0.080864,1.073421,0.001442,320,,,
+cg,total,,,13.683155,1,,,1,,,

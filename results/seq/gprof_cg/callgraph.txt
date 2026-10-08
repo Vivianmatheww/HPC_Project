@@ -1,0 +1,129 @@
+			Call graph
+
+
+granularity: each sample hit covers 4 byte(s) for 0.08% of 13.30 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]    100.0    0.00   13.30                 main [1]
+                0.01   13.29       1/1           (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+                0.00    0.00       3/2248        void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char const*>(char const*, char const*, std::forward_iterator_tag) [17]
+                0.00    0.00       1/4           std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&) [24]
+                0.00    0.00       1/1           std::vector<(anonymous namespace)::SpmvResult, std::allocator<(anonymous namespace)::SpmvResult> >::~vector() [29]
+                0.00    0.00       1/1           std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector() [30]
+                0.00    0.00       1/1           main::{lambda()#1}::operator()() const [32]
+-----------------------------------------------
+                0.01   13.29       1/1           main [1]
+[2]    100.0    0.01   13.29       1         (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+                6.21    0.00     322/322         (anonymous namespace)::spmv_csr((anonymous namespace)::Csr const&, double const*, double*) [3]
+                3.45    0.00     964/964         (anonymous namespace)::dot(std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&) [4]
+                1.63    0.00     642/642         (anonymous namespace)::axpy(double, std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> >&) [5]
+                1.08    0.00     321/321         (anonymous namespace)::jacobi(std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> >&) [6]
+                0.77    0.00     320/320         (anonymous namespace)::xpby(std::vector<double, std::allocator<double> > const&, double, std::vector<double, std::allocator<double> >&) [7]
+                0.13    0.00       1/1           (anonymous namespace)::laplace3d(int) [8]
+                0.02    0.00       2/2           std::vector<double, std::allocator<double> >::vector(unsigned long, double const&, std::allocator<double> const&) [9]
+                0.00    0.00    4490/4492        (anonymous namespace)::cpu_times(double&, double&) [16]
+                0.00    0.00    2246/2246        (anonymous namespace)::Timer::Timer(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [18]
+                0.00    0.00    2244/2248        void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char const*>(char const*, char const*, std::forward_iterator_tag) [17]
+                0.00    0.00       8/8           std::_Vector_base<double, std::allocator<double> >::~_Vector_base() [22]
+                0.00    0.00       5/5           std::vector<double, std::allocator<double> >::vector(unsigned long, std::allocator<double> const&) [23]
+                0.00    0.00       3/4           std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&) [24]
+                0.00    0.00       2/2           (anonymous namespace)::Csr::~Csr() [25]
+                0.00    0.00       2/2           (anonymous namespace)::Timer::~Timer() [26]
+                0.00    0.00       2/2           std::vector<double, std::allocator<double> >::operator=(std::vector<double, std::allocator<double> > const&) [27]
+                0.00    0.00       1/1           (anonymous namespace)::Csr::operator=((anonymous namespace)::Csr&&) [28]
+-----------------------------------------------
+                6.21    0.00     322/322         (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+[3]     46.7    6.21    0.00     322         (anonymous namespace)::spmv_csr((anonymous namespace)::Csr const&, double const*, double*) [3]
+-----------------------------------------------
+                3.45    0.00     964/964         (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+[4]     25.9    3.45    0.00     964         (anonymous namespace)::dot(std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&) [4]
+-----------------------------------------------
+                1.63    0.00     642/642         (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+[5]     12.3    1.63    0.00     642         (anonymous namespace)::axpy(double, std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> >&) [5]
+-----------------------------------------------
+                1.08    0.00     321/321         (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+[6]      8.1    1.08    0.00     321         (anonymous namespace)::jacobi(std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> >&) [6]
+-----------------------------------------------
+                0.77    0.00     320/320         (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+[7]      5.8    0.77    0.00     320         (anonymous namespace)::xpby(std::vector<double, std::allocator<double> > const&, double, std::vector<double, std::allocator<double> >&) [7]
+-----------------------------------------------
+                0.13    0.00       1/1           (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+[8]      1.0    0.13    0.00       1         (anonymous namespace)::laplace3d(int) [8]
+                0.00    0.00      25/25          void std::vector<double, std::allocator<double> >::_M_realloc_insert<double const&>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&) [19]
+                0.00    0.00      25/25          void std::vector<int, std::allocator<int> >::_M_realloc_insert<int const&>(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, int const&) [20]
+                0.00    0.00       1/1           std::vector<int, std::allocator<int> >::reserve(unsigned long) [31]
+-----------------------------------------------
+                0.02    0.00       2/2           (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+[9]      0.2    0.02    0.00       2         std::vector<double, std::allocator<double> >::vector(unsigned long, double const&, std::allocator<double> const&) [9]
+-----------------------------------------------
+                0.00    0.00       2/4492        (anonymous namespace)::Timer::~Timer() [26]
+                0.00    0.00    4490/4492        (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+[16]     0.0    0.00    0.00    4492         (anonymous namespace)::cpu_times(double&, double&) [16]
+-----------------------------------------------
+                0.00    0.00       1/2248        main::{lambda()#1}::operator()() const [32]
+                0.00    0.00       3/2248        main [1]
+                0.00    0.00    2244/2248        (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+[17]     0.0    0.00    0.00    2248         void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char const*>(char const*, char const*, std::forward_iterator_tag) [17]
+-----------------------------------------------
+                0.00    0.00    2246/2246        (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+[18]     0.0    0.00    0.00    2246         (anonymous namespace)::Timer::Timer(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [18]
+                0.00    0.00      12/12          void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char*>(char*, char*, std::forward_iterator_tag) [21]
+-----------------------------------------------
+                0.00    0.00      25/25          (anonymous namespace)::laplace3d(int) [8]
+[19]     0.0    0.00    0.00      25         void std::vector<double, std::allocator<double> >::_M_realloc_insert<double const&>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&) [19]
+-----------------------------------------------
+                0.00    0.00      25/25          (anonymous namespace)::laplace3d(int) [8]
+[20]     0.0    0.00    0.00      25         void std::vector<int, std::allocator<int> >::_M_realloc_insert<int const&>(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, int const&) [20]
+-----------------------------------------------
+                0.00    0.00      12/12          (anonymous namespace)::Timer::Timer(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [18]
+[21]     0.0    0.00    0.00      12         void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char*>(char*, char*, std::forward_iterator_tag) [21]
+-----------------------------------------------
+                0.00    0.00       8/8           (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+[22]     0.0    0.00    0.00       8         std::_Vector_base<double, std::allocator<double> >::~_Vector_base() [22]
+-----------------------------------------------
+                0.00    0.00       5/5           (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+[23]     0.0    0.00    0.00       5         std::vector<double, std::allocator<double> >::vector(unsigned long, std::allocator<double> const&) [23]
+-----------------------------------------------
+                0.00    0.00       1/4           main [1]
+                0.00    0.00       3/4           (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+[24]     0.0    0.00    0.00       4         std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&) [24]
+-----------------------------------------------
+                0.00    0.00       2/2           (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+[25]     0.0    0.00    0.00       2         (anonymous namespace)::Csr::~Csr() [25]
+-----------------------------------------------
+                0.00    0.00       2/2           (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+[26]     0.0    0.00    0.00       2         (anonymous namespace)::Timer::~Timer() [26]
+                0.00    0.00       2/4492        (anonymous namespace)::cpu_times(double&, double&) [16]
+-----------------------------------------------
+                0.00    0.00       2/2           (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+[27]     0.0    0.00    0.00       2         std::vector<double, std::allocator<double> >::operator=(std::vector<double, std::allocator<double> > const&) [27]
+-----------------------------------------------
+                0.00    0.00       1/1           (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [2]
+[28]     0.0    0.00    0.00       1         (anonymous namespace)::Csr::operator=((anonymous namespace)::Csr&&) [28]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[29]     0.0    0.00    0.00       1         std::vector<(anonymous namespace)::SpmvResult, std::allocator<(anonymous namespace)::SpmvResult> >::~vector() [29]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[30]     0.0    0.00    0.00       1         std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector() [30]
+-----------------------------------------------
+                0.00    0.00       1/1           (anonymous namespace)::laplace3d(int) [8]
+[31]     0.0    0.00    0.00       1         std::vector<int, std::allocator<int> >::reserve(unsigned long) [31]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[32]     0.0    0.00    0.00       1         main::{lambda()#1}::operator()() const [32]
+                0.00    0.00       1/2248        void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char const*>(char const*, char const*, std::forward_iterator_tag) [17]
+-----------------------------------------------
+
+Index by function name
+
+   [2] (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double) [3] (anonymous namespace)::spmv_csr((anonymous namespace)::Csr const&, double const*, double*) [27] std::vector<double, std::allocator<double> >::operator=(std::vector<double, std::allocator<double> > const&)
+  [25] (anonymous namespace)::Csr::~Csr() [16] (anonymous namespace)::cpu_times(double&, double&) [20] void std::vector<int, std::allocator<int> >::_M_realloc_insert<int const&>(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, int const&)
+  [28] (anonymous namespace)::Csr::operator=((anonymous namespace)::Csr&&) [8] (anonymous namespace)::laplace3d(int) [31] std::vector<int, std::allocator<int> >::reserve(unsigned long)
+   [4] (anonymous namespace)::dot(std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&) [22] std::_Vector_base<double, std::allocator<double> >::~_Vector_base() [17] void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char const*>(char const*, char const*, std::forward_iterator_tag)
+   [5] (anonymous namespace)::axpy(double, std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> >&) [29] std::vector<(anonymous namespace)::SpmvResult, std::allocator<(anonymous namespace)::SpmvResult> >::~vector() [21] void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char*>(char*, char*, std::forward_iterator_tag)
+   [7] (anonymous namespace)::xpby(std::vector<double, std::allocator<double> > const&, double, std::vector<double, std::allocator<double> >&) [30] std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector() [24] std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
+  [18] (anonymous namespace)::Timer::Timer(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [19] void std::vector<double, std::allocator<double> >::_M_realloc_insert<double const&>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&) [32] main::{lambda()#1}::operator()() const
+  [26] (anonymous namespace)::Timer::~Timer() [9] std::vector<double, std::allocator<double> >::vector(unsigned long, double const&, std::allocator<double> const&)
+   [6] (anonymous namespace)::jacobi(std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> >&) [23] std::vector<double, std::allocator<double> >::vector(unsigned long, std::allocator<double> const&)

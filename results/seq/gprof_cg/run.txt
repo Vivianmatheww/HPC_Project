@@ -1,0 +1,10 @@
+CG on laplace:128: 2097152 rows, nnz 14581760, 321 iterations, |r|/|b| = 9.96e-09
+
+       phase                                 wall s   share   user s    sys s     calls
+cg     load / generate matrix                 0.282    2.1%    0.090    0.181         1
+cg     set-up (b = A x_true, Jacobi)          0.055    0.4%    0.042    0.011         1
+cg     SpMV (q = A p)                         6.094   44.9%    5.897    0.001       321
+cg     dot products                           3.383   24.9%    3.255    0.012       962
+cg     vector updates (axpy)                  2.586   19.1%    2.498    0.004       641
+cg     preconditioner (Jacobi)                1.058    7.8%    1.023    0.000       320
+       total                                  13.566

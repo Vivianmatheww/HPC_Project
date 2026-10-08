@@ -1,0 +1,2 @@
+dot product,  1 thread(s):   10.5 GB/s (best of 7)
+dot product, 12 thread(s):   28.3 GB/s (best of 7)

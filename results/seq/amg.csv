@@ -1,0 +1,7 @@
+label,kind,workload,name,seconds,share,user,sys,calls,nnz,ms_per_call,gflops
+amg,phase,amg,"generate Laplace3D",0.537767,0.204693,0.116800,0.406404,1,,,
+amg,phase,amg,"generate P, R = P^T",0.140372,0.053430,0.026896,0.109712,5,,,
+amg,phase,amg,"spgemm: flop estimate",0.023136,0.008806,0.022007,0.000488,10,,,
+amg,phase,amg,"spgemm: symbolic",0.096117,0.036586,0.077444,0.016086,10,,,
+amg,phase,amg,"spgemm: numeric",1.403168,0.534095,0.287978,1.077325,10,,,
+amg,total,,,2.627187,1,,,1,,,
