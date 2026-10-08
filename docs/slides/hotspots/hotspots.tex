@@ -1,0 +1,142 @@
+% Sequential implementation, hotspots and choice of platform: five slides. Build: latexmk -pdf hotspots.tex
+% Numbers come from scripts/analyze_seq.py (generated/seq.tex) and the Phase 0 probe (../../report/generated).
+\documentclass[aspectratio=169,10pt]{beamer}
+\usetheme{default}
+\usecolortheme{dove}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+\setbeamerfont{frametitle}{series=\bfseries}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\definecolor{raspblue}{HTML}{2a78d6}
+\definecolor{yes}{HTML}{008300}
+\definecolor{no}{HTML}{e34948}
+\setbeamercolor{structure}{fg=raspblue}
+
+\input{../../report/rasp-macros}
+\InputIfFileExists{../../report/generated/platform.tex}{}{}
+\InputIfFileExists{generated/seq.tex}{}{}
+\newcommand{\Y}{\textcolor{yes}{\textbf{Yes}}}
+\newcommand{\N}{\textcolor{no}{\textbf{No}}}
+
+\begin{document}
+
+% ---------------------------------------------------------------------------------------------------------------
+\begin{frame}{RASP (Runtime-Adaptive Sparse kernels): the sequential implementation}
+\small
+\textbf{Problem.} Sparse matrix--vector (SpMV) and matrix--matrix (SpGEMM) products dominate iterative solvers and
+multigrid. Both are memory-bound and irregular, and the fastest implementation depends on the matrix. RASP chooses
+the format and the schedule at run time.
+
+\vspace{2mm}
+\textbf{Sequential implementation} (\texttt{seq/rasp\_seq.cpp}: C++17, one thread, \texttt{g++ -O2}, no libraries)
+runs the project's three workloads:
+\begin{enumerate}
+\item \textbf{SpMV}: read Matrix Market $\to$ build CSR $\to$ structural features $\to$ convert to ELL and SELL-32 $\to$
+  SpMV in every format (picking the best format by trying them all).
+\item \textbf{CG}: Jacobi-preconditioned conjugate gradients; per iteration 1 SpMV, 3 dot products, 3 vector updates.
+\item \textbf{AMG set-up}: Galerkin products $A_{l+1} = R_l\,(A_l P_l)$ on every level. Each SpGEMM is a flop estimate,
+  a symbolic pass and a numeric pass (Gustavson, row by row).
+\end{enumerate}
+
+\vspace{1mm}
+\textbf{Inputs:} six SuiteSparse matrices, 0.56M--17.6M nonzeros (circuit: \texttt{rajat23}, \texttt{ASIC\_100k};
+FEM/CFD: \texttt{af\_shell1}, \texttt{cop20k\_A}, \texttt{torso2}, \texttt{Pres\_Poisson}), and the 3-D Laplacian at
+$128^3$ (CG) and $160^3$ (AMG) grid points.\\
+\textbf{Machine:} Intel i7-1255U, g++ 11.4, Ubuntu on WSL2. All results are checked against CSR or the residual.
+\end{frame}
+
+% ---------------------------------------------------------------------------------------------------------------
+\begin{frame}{Profiling: where the sequential program spends its time}
+\centering
+\includegraphics[width=\textwidth]{figures/hotspots.pdf}
+
+\vspace{1mm}
+\raggedright\small
+\textbf{Method.}
+\begin{itemize}
+\item \textbf{gprof} on an instrumented build (\texttt{-pg}) gives self time and call counts per function. GCC's
+  function cloning is switched off, because gprof otherwise charges cloned functions' time to their neighbours.
+\item Every phase is also timed (wall, user and system CPU via \texttt{getrusage}): gprof samples only user time.
+\item Reproduce with \texttt{bash seq/profile.sh} and \texttt{python scripts/analyze\_seq.py}.
+\end{itemize}
+\end{frame}
+
+% ---------------------------------------------------------------------------------------------------------------
+\begin{frame}{Hotspots}
+\small
+\begin{columns}[T]
+\column{0.33\textwidth}
+\textbf{CG} (\stat{seq-cg-total-s}\,s)\\[1mm]
+{\scriptsize\stattable{seq-cg}}\\[2mm]
+SpMV is \stat{seq-cg-spmv-pct}\% of the wall time; the vector kernels (dot, axpy, Jacobi) add
+\stat{seq-cg-vector-pct}\%. Everything is a loop over rows or vector entries.
+\column{0.33\textwidth}
+\textbf{AMG set-up} (\stat{seq-amg-total-s}\,s)\\[1mm]
+{\scriptsize\stattable{seq-amg}}\\[2mm]
+SpGEMM is \stat{seq-amg-spgemm-pct}\% of the wall time. \stat{seq-amg-numeric-sys-pct}\% of the numeric pass is the
+kernel zero-filling freshly allocated output pages.
+\column{0.33\textwidth}
+\textbf{SpMV workload} (\stat{seq-spmv-total-s}\,s)\\[1mm]
+{\scriptsize\stattable{seq-spmv}}\\[2mm]
+SpMV kernels are \stat{seq-spmv-kernel-pct}\% of the wall time; one-time file reading and CSR building are
+\stat{seq-spmv-io-pct}\%.
+\end{columns}
+
+\vspace{3mm}
+\textbf{Common character: memory-bound.} CSR SpMV does 2 flops per $\geq$12 bytes read. One core streams
+\stat{seq-bw-1}\,GB/s, so the kernels run at 1--2.4 GFLOP/s, limited by bandwidth, not arithmetic.
+\end{frame}
+
+% ---------------------------------------------------------------------------------------------------------------
+\begin{frame}{Are the hotspots parallelizable?}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}p{3.3cm} c X@{}}
+\toprule
+Hotspot & Parallel? & Why \\
+\midrule
+SpMV (CSR, ELL, SELL) & \Y & Every row $y_i = A_{i,:}\,x$ is independent; $x$ is read-only. Row lengths vary (up to 99,029
+  in \texttt{ASIC\_100k}), so threads get unequal work. That's why the format, and how threads map to rows, must be
+  chosen per matrix. \\
+Dot products, norms & \Y & A reduction: partial sums per thread, then a tree. One synchronisation per reduction. \\
+axpy, Jacobi, $p = z + \beta p$ & \Y & Element-wise, no dependencies: embarrassingly parallel. \\
+SpGEMM symbolic / numeric & \Y & Rows of $C$ are independent; each thread needs its own accumulator. $C$'s size is
+  unknown until the symbolic pass, so it takes two passes, and output memory can exceed the GPU (chunking). \\
+Flop estimate, features, ELL/SELL build & \Y & Per-row work plus a prefix sum (parallel scan). \\
+CG iteration loop & \N & Iteration $k{+}1$ needs $\alpha_k, \beta_k$ from iteration $k$: parallelise \emph{inside}
+  each iteration, not across iterations. \\
+Matrix Market parsing & \N & Not worth it: sequential text and I/O, done once per matrix. The GPU version caches the
+  binary CSR instead. \\
+\bottomrule
+\end{tabularx}
+\end{frame}
+
+% ---------------------------------------------------------------------------------------------------------------
+\begin{frame}{Platform: CUDA (OpenMP for host-side helpers)}
+\footnotesize
+\begin{columns}[T]
+\column{0.55\textwidth}
+\textbf{Why CUDA.}
+\begin{itemize}
+\item Hotspots are memory-bound loops over millions of independent rows: speed needs bandwidth and many threads to
+  hide irregular accesses. RTX 4050: \stat{pf-device-read}\,GB/s measured vs \stat{seq-bw-1}\,GB/s for one core.
+\item \textbf{Not OpenMP alone:} all \stat{seq-bw-threads} CPU threads stream only \stat{seq-bw-all}\,GB/s
+  (\stat{seq-bw-scaling}\x{} one core): memory-bound kernels cannot scale past the shared memory bus. OpenMP is used
+  for host-side work (SpGEMM flop estimate).
+\item \textbf{Not MPI:} one node, one GPU; matrices too large are streamed over PCIe in chunks. Network traffic would
+  dominate kernels doing 2 flops per 12 bytes.
+\item GPU version: cuSPARSE as baseline, plus per-matrix format selection and out-of-core SpGEMM with copy/compute
+  overlap.
+\end{itemize}
+\column{0.43\textwidth}
+\textbf{First comparison: SpMV (fp64), GFLOP/s}\\[1mm]
+{\footnotesize\stattable{seq-vs-gpu}}\\[1mm]
+\scriptsize GPU (cuSPARSE, RTX 4050) vs sequential CSR: \stat{seq-gpu-speedup-geomean}\x{} geomean
+(\stat{seq-gpu-speedup-min}--\stat{seq-gpu-speedup-max}\x). \textit{Preliminary:} different host machines; GPU
+timed with a cold L2, CPU warm. End evaluation: CPU vs GPU on one machine, for SpMV, CG and AMG.
+\end{columns}
+\end{frame}
+
+\end{document}

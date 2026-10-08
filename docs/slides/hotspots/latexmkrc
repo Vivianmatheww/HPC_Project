@@ -1,0 +1,2 @@
+# latexmk -pdf hotspots.tex
+$pdf_mode = 1;
