@@ -24,9 +24,12 @@
 \begin{document}
 
 % ---------------------------------------------------------------------------------------------------------------
-\begin{frame}{RASP (Runtime-Adaptive Sparse kernels): the sequential implementation}
+\begin{frame}{RASP: the sequential implementation}
+\vspace{-2mm}
+{\scriptsize\color{gray} Harsh Raj \textperiodcentered{} Karmanya \textperiodcentered{} Vivian \hfill
+code: \texttt{github.com/Vivianmatheww/HPC\_Project} (\texttt{seq/} = sequential version)}\par\vspace{1mm}
 \small
-\textbf{Problem.} Sparse matrix--vector (SpMV) and matrix--matrix (SpGEMM) products dominate iterative solvers and
+\textbf{Problem.} RASP = Runtime-Adaptive Sparse kernels. Sparse matrix--vector (SpMV) and matrix--matrix (SpGEMM) products dominate iterative solvers and
 multigrid. Both are memory-bound and irregular, and the fastest implementation depends on the matrix. RASP chooses
 the format and the schedule at run time.
 
