@@ -1,4 +1,5 @@
-% RASP: sequential implementation, hotspots and choice of platform (five slides + title).
+% Runtime-Adaptive Sparse Matrix Optimization for GPUs (RASP): sequential implementation, hotspots and choice of
+% platform (five slides + title).
 % Build: latexmk -pdf hotspots.tex
 % Every number comes from scripts/analyze_seq.py (generated/seq.tex) or the Phase 0 probe
 % (../../report/generated/platform.tex); edit the team block below, not the numbers.
@@ -32,7 +33,7 @@
 {
 \leavevmode
 \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em plus1fil]{footlinecolor}
-\textbf{HPC Project \textperiodcentered{} RASP}
+\textbf{Runtime-Adaptive Sparse Matrix Optimization for GPUs}
 \hfill
 \textbf{\insertframenumber{} / \inserttotalframenumber}
 \end{beamercolorbox}
@@ -48,14 +49,14 @@
 \setbeamercolor{block body}{fg=darkGray,bg=accent!6}
 \setbeamercolor{normal text}{fg=darkGray}
 
-\setbeamerfont{title}{size=\Huge,series=\bfseries}
+\setbeamerfont{title}{size=\LARGE,series=\bfseries}
 \setbeamerfont{frametitle}{size=\Large,series=\bfseries}
 \setbeamerfont{block title}{size=\small,series=\bfseries}
 
 % ---- Team (fill in roll numbers / guide; empty fields are not shown) ----
 \newcommand{\memberA}{Harsh Raj}\newcommand{\rollA}{S20240010084}
-\newcommand{\memberB}{Karmanya}\newcommand{\rollB}{}
-\newcommand{\memberC}{Vivian}\newcommand{\rollC}{}
+\newcommand{\memberB}{Karmanya}\newcommand{\rollB}{S20240010108}
+\newcommand{\memberC}{Vivian}\newcommand{\rollC}{S20240010258}
 \newcommand{\guide}{}
 \newcommand{\member}[2]{\begin{tabular}[t]{c}\large\textbf{#1}\if\relax\detokenize\expandafter{#2}\relax\else\\[-1pt]{\small (#2)}\fi\end{tabular}}
 
@@ -86,11 +87,18 @@
 
     \vspace{0.3cm}
     \insertdate
+
+    \vspace{0.35cm}
+    {\scriptsize\color{gray}
+    M.~Deveci et al., \emph{Sparse Matrix-Matrix Multiplication on Multilevel Memory Architectures}, arXiv:1804.00695
+    (2018)\\
+    M.~Heller, T.~Oberhuber, \emph{Adaptive Row-grouped CSR Format for Storing of Sparse Matrices on GPU},
+    arXiv:1203.5737 (2012)\par}
     \end{center}
 }
 
-\title{\textbf{RASP}}
-\subtitle{Runtime-Adaptive Sparse Matrix Kernels on the GPU}
+\title[Runtime-Adaptive Sparse Matrix Optimization for GPUs]{\textbf{Runtime-Adaptive Sparse Matrix\\Optimization for GPUs}}
+\subtitle{Sparse matrix representation and GPU memory-layout optimization}
 \date{9 October 2026}
 \IfFileExists{logo.png}{\logo{\includegraphics[height=1.0cm]{logo.png}}}{}
 
@@ -124,18 +132,18 @@ time goes.
 \vspace{0.3cm}
 
 \begin{columns}[T,onlytextwidth]
-\column{0.32\textwidth}
+\column{0.31\textwidth}
 \begin{block}{1 \;\; SpMV}
 \small read \texttt{.mtx} $\rightarrow$ CSR $\rightarrow$ features $\rightarrow$ ELL / SELL $\rightarrow$ SpMV in
 every format\\[3pt]
 \aside{picks the best format by trying them all}
 \end{block}
-\column{0.32\textwidth}
+\column{0.31\textwidth}
 \begin{block}{2 \;\; CG solver}
 \small Jacobi-preconditioned conjugate gradients.\\[3pt]
 Per iteration: 1 SpMV, 3 dot products, 3 vector updates.
 \end{block}
-\column{0.32\textwidth}
+\column{0.31\textwidth}
 \begin{block}{3 \;\; AMG set-up}
 \small Coarse operators $A_{l+1} = R_l\,(A_l P_l)$ on every level.\\[3pt]
 Each SpGEMM: flop estimate $\rightarrow$ symbolic $\rightarrow$ numeric pass.
@@ -185,19 +193,19 @@ Machine & Intel Core i7-1255U, g++ 11.4, Ubuntu on WSL2 \\
 \begin{frame}{Hotspots}
 
 \begin{columns}[T,onlytextwidth]
-\column{0.32\textwidth}
+\column{0.31\textwidth}
 \textbf{CG solver} \aside{\stat{seq-cg-total-s}\,s}\\[2pt]
 \bignum{\stat{seq-cg-spmv-csr}\%} {\small in SpMV}\\[4pt]
 {\scriptsize\stattable{seq-cg}}\\[4pt]
 \small Dot, axpy and Jacobi make up the other half.
 
-\column{0.32\textwidth}
+\column{0.31\textwidth}
 \textbf{AMG set-up} \aside{\stat{seq-amg-total-s}\,s}\\[2pt]
 \bignum{\stat{seq-amg-spgemm-pct}\%} {\small in SpGEMM}\\[4pt]
 {\scriptsize\stattable{seq-amg}}\\[4pt]
 \small \stat{seq-amg-numeric-sys-pct}\% of the numeric pass is the OS zero-filling new memory.
 
-\column{0.32\textwidth}
+\column{0.31\textwidth}
 \textbf{SpMV workload} \aside{\stat{seq-spmv-total-s}\,s}\\[2pt]
 \bignum{\stat{seq-spmv-kernel-pct}\%} {\small in SpMV kernels}\\[4pt]
 {\scriptsize\stattable{seq-spmv}}\\[4pt]
