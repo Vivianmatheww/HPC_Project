@@ -1,0 +1,8 @@
+==PROF== Connected to process 11707 (/home/vivian/HPC_Project/build/bench_spmv)
+==PROF== Profiling "argcsr_kernel": 0%....50%....100% - 15 passes
+NVIDIA GeForce RTX 4050 Laptop GPU | cuSPARSE 12.8.2 | git b62f4b4 | 1 matrices x 1 configs | reps 1, warmup 1, L2 flush off
+[1/1] Rajat/rajat23  110355 x 110355  nnz 556938  (load 12 ms)
+
+1 result rows, 0 correctness failures, 0 infeasible, 0 errors, 0 skipped -> /tmp/rasp_profile_spmv.csv
+==PROF== Disconnected from process 11707
+==PROF== Report: /home/vivian/HPC_Project/results/phase5/ncu/spmv_argcsr_D1_rajat23.ncu-rep

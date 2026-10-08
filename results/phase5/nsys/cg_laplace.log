@@ -1,0 +1,10 @@
+[1/1] gallery/laplace3d_n64  262144 x 262144  nnz 1810432
+  fp64 always_cusparse  cusparse_alg1            183 it conv  total   73.853 ms (plan 0.586)  true res 9.5e-09
+  fp64 tree             cusparse_alg1            183 it conv  total   69.854 ms (plan 2.596)  true res 9.5e-09
+
+0 failures -> /tmp/rasp_nsys_cg.csv
+Collecting data...
+Generating '/tmp/nsys-report-01e9.qdstrm'
+[1/1] [0%                          ] cg_laplace.nsys-rep[1/1] [0%                          ] cg_laplace.nsys-rep[1/1] [9%                          ] cg_laplace.nsys-rep[1/1] [10%                         ] cg_laplace.nsys-rep[1/1] [11%                         ] cg_laplace.nsys-rep[1/1] [===========50%              ] cg_laplace.nsys-rep[1/1] [===========51%              ] cg_laplace.nsys-rep[1/1] [===========52%              ] cg_laplace.nsys-rep[1/1] [============57%             ] cg_laplace.nsys-rep[1/1] [=============58%            ] cg_laplace.nsys-rep[1/1] [=============59%            ] cg_laplace.nsys-rep[1/1] [=============60%            ] cg_laplace.nsys-rep[1/1] [==============61%           ] cg_laplace.nsys-rep[1/1] [========================100%] cg_laplace.nsys-rep[1/1] [========================100%] cg_laplace.nsys-rep
+Generated:
+	/home/vivian/HPC_Project/results/phase5/nsys/cg_laplace.nsys-rep
