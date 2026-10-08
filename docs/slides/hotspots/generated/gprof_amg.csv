@@ -1,0 +1,6 @@
+label,top,rest
+{flop estimate},0.0,5.4
+{sort rows},0.0,5.4
+{make Laplace},0.0,10.9
+{symbolic pass},0.0,18.5
+{numeric pass},50.0,0.0

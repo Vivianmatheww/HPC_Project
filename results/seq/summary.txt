@@ -48,6 +48,7 @@
     spgemm: numeric                      1.403 s  53.4%  (user  0.288, system  1.077)
 
 one core streams 9.2 GB/s in the dot products (two vectors of 8-byte values per call)
+CG iteration: SpMV moves 217 MB, vector ops 302 MB (42% / 58% of bytes; 45% / 55% of kernel time)
 
 SpMV fp64, sequential CSR (one i7-1255U core, warm, mean of 50) vs cuSPARSE ALG1 (RTX 4050, cold L2):
   rajat23        nnz   556,938  seq  1.20  GPU  12.80 GFLOP/s  ->  10.6x

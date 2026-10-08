@@ -1,0 +1,6 @@
+label,top,rest
+{read .mtx},0.0,5.9
+{build CSR},0.0,9.7
+{SpMV CSR},0.0,19.4
+{SpMV ELL},28.0,0.0
+{SpMV SELL},28.0,0.0

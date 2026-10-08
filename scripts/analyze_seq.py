@@ -7,7 +7,9 @@ Inputs:  results/seq/gprof_<workload>/flat.txt   gprof flat profiles (self time 
          results/phase2_spmv.csv                 GPU SpMV on the RTX 4050 (Phase 2), for a first comparison
 Outputs: results/seq/hotspots.png|pdf            top functions per workload (share of profiled CPU time)
          results/seq/summary.txt
-         --tex DIR                               seq.tex: \\setstat values and tables for the slides
+         --tex DIR                               seq.tex: \\setstat values and tables for the slides, plus the data
+                                                 files the slides plot with pgfplots (gprof_<w>.csv, speedup.csv,
+                                                 cg_traffic.csv)
 
     python scripts/analyze_seq.py --tex docs/slides/hotspots/generated --fig-dir docs/slides/hotspots/figures
 """
@@ -33,6 +35,12 @@ WORKLOADS = [("spmv", "SpMV: 6 matrices x 3 formats"),
 ACCENT, MUTED = "#05668d", "#a9c7d6"
 MATRICES = ["Rajat/rajat23", "Sandia/ASIC_100k", "ACUSIM/Pres_Poisson", "Norris/torso2", "Williams/cop20k_A",
             "Schenk_AFE/af_shell1"]
+# Labels for the slides' charts (a third of a slide wide); the summary and seq.tex keep the function names.
+DISPLAY = {"spmv_csr": "SpMV CSR", "spmv_ell": "SpMV ELL", "spmv_sell": "SpMV SELL", "coo_to_csr": "build CSR",
+           "read_matrix_market": "read .mtx", "dot": "dot product", "axpy": "axpy", "jacobi": "Jacobi",
+           "xpby": "p-update", "spgemm_numeric": "numeric pass", "spgemm_symbolic": "symbolic pass",
+           "spgemm_flops": "flop estimate", "laplace3d": "make Laplace", "std::sort (per row)": "sort rows",
+           "std::vector fill": "vector fill", "transpose": "transpose"}
 ROW = re.compile(r"^\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+(?:(\d+)\s+([\d.]+)\s+([\d.]+)\s+)?(.+?)\s*$")
 
 
@@ -108,6 +116,23 @@ def main():
         dot_gbs = 2 * 8 * n * dot_calls / cg.loc["dot products", "seconds"] / 1e9  # two vectors of doubles per dot
         tex.stat("seq-dot-gbs", dot_gbs, "{:.1f}")
         print(f"one core streams {dot_gbs:.1f} GB/s in the dot products (two vectors of 8-byte values per call)")
+
+        # Minimum bytes one CG iteration moves (model) vs where its time goes (measured): time follows bytes.
+        m = re.search(r"(\d+) rows, nnz (\d+)", (args.dir / "cg.txt").read_text())
+        rows_cg, nnz_cg = int(m.group(1)), int(m.group(2))
+        spmv_bytes = nnz_cg * 12 + (rows_cg + 1) * 4 + rows_cg * 8 * 2  # values + columns, row pointers, x and y
+        vec_bytes = 18 * 8 * rows_cg  # 3 dots x 2 vectors, 2 axpy x 3, Jacobi x 3, p-update x 3 (8-byte entries)
+        t_spmv = cg.loc["SpMV (q = A p)", "seconds"]
+        cg_traffic = [("SpMV", 100 * spmv_bytes / (spmv_bytes + vec_bytes), 100 * t_spmv / (t_spmv + vec)),
+                      ("vector ops", 100 * vec_bytes / (spmv_bytes + vec_bytes), 100 * vec / (t_spmv + vec))]
+        for name, b, t in cg_traffic:
+            key = "spmv" if name == "SpMV" else "vec"
+            tex.stat(f"seq-cg-bytes-{key}-pct", b, "{:.0f}")
+            tex.stat(f"seq-cg-time-{key}-pct", t, "{:.0f}")
+        tex.stat("seq-cg-iter-mb", (spmv_bytes + vec_bytes) / 1e6, "{:.0f}")
+        print(f"CG iteration: SpMV moves {spmv_bytes / 1e6:.0f} MB, vector ops {vec_bytes / 1e6:.0f} MB "
+              f"({cg_traffic[0][1]:.0f}% / {cg_traffic[1][1]:.0f}% of bytes; {cg_traffic[0][2]:.0f}% / "
+              f"{cg_traffic[1][2]:.0f}% of kernel time)")
         amg = pd.read_csv(args.dir / "amg.csv").query("kind == 'phase'").set_index("name")
         sp = amg.loc[[i for i in amg.index if i.startswith("spgemm")]]
         tex.stat("seq-amg-spgemm-pct", 100 * sp.seconds.sum() / amg.seconds.sum(), "{:.0f}")
@@ -148,6 +173,7 @@ def main():
                 tex.stat("seq-bw-all", float(allt), "{:.1f}")
                 tex.stat("seq-bw-threads", threads)
                 tex.stat("seq-bw-scaling", float(allt) / float(one), "{:.1f}")
+                tex.stat("seq-spmv-bound-gflops", 2 * float(one) / 12, "{:.2f}")  # 2 flops per 12 bytes
                 print(f"\nstreaming bandwidth: 1 thread {one} GB/s, {threads} threads {allt} GB/s "
                       f"({float(allt) / float(one):.1f}x)")
         if ratios:
@@ -156,10 +182,28 @@ def main():
             tex.stat("seq-gpu-speedup-min", min(ratios), "{:.1f}")
             tex.stat("seq-gpu-speedup-max", max(ratios), "{:.1f}")
             tex.table("seq-vs-gpu", ["matrix", "nnz", "seq", "GPU", "ratio"], rows, "lrrrr")
+            speedups = sorted(zip([r[0] for r in rows], ratios), key=lambda x: x[1])
 
     text = buf.getvalue()
     print(text, end="")
     (args.dir / "summary.txt").write_text(text)
+
+    # Data files for the slides' native (pgfplots) charts, next to seq.tex.
+    if args.tex:
+        args.tex.mkdir(parents=True, exist_ok=True)
+        for w, _ in WORKLOADS:
+            p = profiles[w].head(5).iloc[::-1]  # ascending: pgfplots draws the first row at the bottom
+            lines = ["label,top,rest"]  # the largest share (and any tie) in "top", drawn in the accent colour
+            for _, r in p.iterrows():
+                hot = p["pct"].max() - r["pct"] < 1
+                label = tex_escape(DISPLAY.get(r["name"], r["name"]))
+                lines.append(f"{{{label}}},{r['pct'] if hot else 0:.1f},{0 if hot else r['pct']:.1f}")
+            (args.tex / f"gprof_{w}.csv").write_text("\n".join(lines) + "\n")
+        if ratios:
+            (args.tex / "speedup.csv").write_text("label,ratio\n" + "".join(
+                f"{{{name}}},{v:.2f}\n" for name, v in speedups))
+        (args.tex / "cg_traffic.csv").write_text("label,bytes,time\n" + "".join(
+            f"{{{name}}},{b:.1f},{t:.1f}\n" for name, b, t in cg_traffic))
 
     # Figure: top functions per workload, share of the profiled CPU time.
     # Drawn at about the size it is shown on a 16:9 slide, so the labels stay readable there.
