@@ -1,0 +1,12 @@
+NVIDIA GeForce RTX 4050 Laptop GPU | cuSPARSE 12.8.2 | git b62f4b4 | study ooc
+== AxP n=192: 7077888 x 7077888 (nnz 49324032) * 7077888 x 884736 (nnz 7077888)
+  fp64 budget 256 MiB (problem 1048 MiB, ratio 4.09)
+    alg4           209.36 ms  alg4: chunk_b P_AC=38 P_B=1 depth=1 | predicted 162.67 ms, copies 1.35 GB, peak 170 MiB | alg4: copy volume chunk1 2.71 GB, chunk2 0.733 GB | 209.36 ms (estimate 50.83, plan 0.24, exec 158.29) = 0.471 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 189.0 / 256.0 MiB | 39 tiles, 0 replans, 0 splits
+    rasp           120.23 ms  rasp: chunk_b P_AC=35 P_B=1 depth=3 +probe | predicted 101.95 ms, copies 1.35 GB, peak 248 MiB | rasp: fastest simulated candidate (0.968 GFLOP/s predicted) | 120.23 ms (estimate 24.81, plan 6.05, exec 89.38) = 0.820 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 246.6 / 256.0 MiB | 39 tiles, 5 replans, 0 splits
+
+0 failures -> /tmp/rasp_nsys_ooc.csv
+Collecting data...
+Generating '/tmp/nsys-report-a2b8.qdstrm'
+[1/1] [0%                          ] ooc_axp.nsys-rep[1/1] [0%                          ] ooc_axp.nsys-rep[1/1] [=16%                        ] ooc_axp.nsys-rep[1/1] [=17%                        ] ooc_axp.nsys-rep[1/1] [==18%                       ] ooc_axp.nsys-rep[1/1] [===========50%              ] ooc_axp.nsys-rep[1/1] [===========51%              ] ooc_axp.nsys-rep[1/1] [===========52%              ] ooc_axp.nsys-rep[1/1] [===========53%              ] ooc_axp.nsys-rep[1/1] [============54%             ] ooc_axp.nsys-rep[1/1] [============55%             ] ooc_axp.nsys-rep[1/1] [===============65%          ] ooc_axp.nsys-rep[1/1] [================68%         ] ooc_axp.nsys-rep[1/1] [========================100%] ooc_axp.nsys-rep[1/1] [========================100%] ooc_axp.nsys-rep
+Generated:
+	/home/vivian/HPC_Project/results/phase5/nsys/ooc_axp.nsys-rep

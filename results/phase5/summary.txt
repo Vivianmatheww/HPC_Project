@@ -1,0 +1,56 @@
+== CG (G7, SpMV side): 32 matrices, 128 rows
+  solves: 128; converged 124, hit the cap 4, FAILED residual checks 0
+  SpMV share of the solve with cuSPARSE: median 28% (the rest: vector updates, reductions, two host synchronisations per iteration)
+  iterations: median 666, max 5000
+  tree, hint = iteration cap       speedup vs cuSPARSE: geomean 1.049 [0.92, 1.29]; features used 100%, kernel other than cuSPARSE 62%; >5% slower on 3 of 32
+  tree, hint = exact iterations    speedup vs cuSPARSE: geomean 1.028 [0.90, 1.18]; features used 97%, kernel other than cuSPARSE 59%; >5% slower on 6 of 32
+  tree without break-even          speedup vs cuSPARSE: geomean 1.044 [0.86, 1.29]; features used 100%, kernel other than cuSPARSE 62%; >5% slower on 5 of 32
+  wrote results/phase5/cg_speedup.png
+
+== AMG setup (G7, SpGEMM side): 110 rows
+  failed checks (coarse operators differ between methods, or Galerkin row sums off): 0
+  n = 192, budget 256 MiB:
+    alg4              409.6 ms    1.00x vs Alg. 4
+    alg4_overlap      347.6 ms    1.18x vs Alg. 4
+    rasp_static       370.3 ms    1.11x vs Alg. 4
+    rasp              335.4 ms    1.22x vs Alg. 4
+    zerocopy      infeasible: rasp: no SpGEMM plan fits a budget of 260.382392 MB
+    incore            282.1 ms    1.45x vs Alg. 4
+    per product (ms):
+      level 0 grid  192 A*P     alg4   164.82  rasp   119.24
+      level 0 grid  192 R*(AP)  alg4   170.63  rasp   164.82
+      level 1 grid   96 A*P     alg4    34.69  rasp    21.38
+      level 1 grid   96 R*(AP)  alg4    13.45  rasp    10.84
+      level 2 grid   48 A*P     alg4     5.37  rasp     4.45
+      level 2 grid   48 R*(AP)  alg4     3.29  rasp     3.29
+      level 3 grid   24 A*P     alg4     3.21  rasp     2.37
+      level 3 grid   24 R*(AP)  alg4     3.68  rasp     2.72
+      level 4 grid   12 A*P     alg4     2.15  rasp     2.89
+      level 4 grid   12 R*(AP)  alg4     3.03  rasp     3.12
+  n = 256, budget 512 MiB:
+    alg4             1179.0 ms    1.00x vs Alg. 4
+    alg4_overlap      664.6 ms    1.77x vs Alg. 4
+    rasp_static       692.3 ms    1.70x vs Alg. 4
+    rasp              620.2 ms    1.90x vs Alg. 4
+    zerocopy      infeasible: rasp: no SpGEMM plan fits a budget of 520.764785 MB
+    incore        infeasible: rasp: no SpGEMM plan fits a budget of 4383.273124 MB
+    per product (ms):
+      level 0 grid  256 A*P     alg4   395.95  rasp   260.70
+      level 0 grid  256 R*(AP)  alg4   370.26  rasp   270.07
+      level 1 grid  128 A*P     alg4    74.67  rasp    42.16
+      level 1 grid  128 R*(AP)  alg4    45.68  rasp    16.86
+      level 2 grid   64 A*P     alg4    33.35  rasp     7.42
+      level 2 grid   64 R*(AP)  alg4    34.96  rasp     9.03
+      level 3 grid   32 A*P     alg4    32.51  rasp     3.71
+      level 3 grid   32 R*(AP)  alg4    35.31  rasp     2.33
+      level 4 grid   16 A*P     alg4    34.94  rasp     1.68
+      level 4 grid   16 R*(AP)  alg4    33.88  rasp     1.96
+      level 5 grid    8 A*P     alg4    35.52  rasp     1.76
+      level 5 grid    8 R*(AP)  alg4    35.56  rasp     1.92
+
+== Nsight Compute (metrics only; ncu runs at base clocks)
+  spgemm_csr_add_rxa           add_fill_kernel                      0.1 us  DRAM  11.5%  mem  80.5%  occupancy  25.7% (theoretical 100.0%)  read    nan GB/s  stalls: long_scoreboard 88.6, lg_throttle 12.2, wait 2.7
+  spmv_argcsr_D1_rajat23       argcsr_kernel                        0.1 us  DRAM  33.0%  mem  33.0%  occupancy  84.1% (theoretical 100.0%)  read    nan GB/s  stalls: barrier 41.9, long_scoreboard 37.2, wait 3.1
+  spmv_argcsr_D32_rajat23      argcsr_kernel                        0.0 us  DRAM   2.6%  mem   2.6%  occupancy  28.9% (theoretical 100.0%)  read    nan GB/s  stalls: barrier 87.8, long_scoreboard 79.9, wait 3.5
+  spmv_csr_vector_af_shell1    csr_vector_kernel                    0.0 us  DRAM  48.1%  mem  48.1%  occupancy  90.7% (theoretical 100.0%)  read    nan GB/s  stalls: long_scoreboard 195.5, lg_throttle 8.5, short_scoreboard 5.4
+  spmv_cusparse_af_shell1      void csrmv_v3_kernel                 0.0 us  DRAM  48.6%  mem  48.6%  occupancy  72.9% (theoretical  75.0%)  read    nan GB/s  stalls: long_scoreboard 25.8, short_scoreboard 12.2, tex_throttle 3.5

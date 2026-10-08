@@ -1,0 +1,9 @@
+Time (%),Total Time (ns),Instances,Avg (ns),Med (ns),Min (ns),Max (ns),StdDev (ns),Name
+58.8,74112422,599,123726.9,123708.0,114201,126139,603.6,"void cusparse::csrmv_v3_kernel<std::integral_constant<bool, (bool)0>, int, int, double, double, double, double, void>(cusparse::KernelCoeffs<T7>, const T3 *, const T2 *, const T3 *, const T4 *, T2, int, int, const T5 *, T6 *, T3 *, T7 *)"
+27.1,34113425,549,62137.4,62142.0,62014,62302,39.7,"void <unnamed>::update_kernel<double>(int, T1, const T1 *, const T1 *, const T1 *, T1 *, T1 *, T1 *, double *)"
+11.3,14270850,549,25994.3,25919.0,25695,26463,203.3,"void <unnamed>::dot_kernel<double>(int, const T1 *, const T1 *, double *)"
+2.5,3123384,546,5720.5,5728.0,5632,5856,34.0,"void <unnamed>::direction_kernel<double>(int, T1, const T1 *, T1 *)"
+0.1,163226,3,54408.7,54238.0,54238,54750,295.6,"void <unnamed>::init_kernel<double>(int, const T1 *, const T1 *, T1 *, T1 *, T1 *, T1 *, double *)"
+0.1,117275,2,58637.5,58637.5,58173,59102,656.9,"rasp::<unnamed>::features_kernel(int, int, const int *, const int *, rasp::<unnamed>::Acc *)"
+0.1,92221,1,92221.0,92221.0,92221,92221,0.0,"void <unnamed>::inv_diag_kernel<double>(int, const int *, const int *, const T1 *, T1 *)"
+0.0,21214,5,4242.8,3904.0,3679,5632,813.4,"void cusparse::<unnamed>::csr_partition_kernel<int, int>(const T1 *, T2, T1, T1, T2, long, T2 *, T2)"
