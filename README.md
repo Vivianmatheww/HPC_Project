@@ -139,9 +139,10 @@ Without an NVIDIA GPU of your own, a free Kaggle notebook works. It needs a phon
 1. Here: `bash scripts/make_kaggle_zip.sh` and `bash scripts/make_kaggle_zip.sh --matrices`. Upload `rasp_code.zip`
    and `rasp_matrices.zip` (the 6 matrices, 71 MB) on kaggle.com as a **private** dataset. Without the matrices,
    the run downloads them from SuiteSparse, whose file server was failing on 2026-10-19.
-2. In the notebook: **Add Input** → that dataset. Then run one cell (about 40 minutes):
-   `!bash $(find /kaggle/input -name kaggle_run.sh | head -1) go`
-3. Download `rasp_kaggle.zip` from the Output panel, then unzip it into `results/`.
+2. In the notebook: **Add Input** → that dataset. Then run one cell, with your name (about 40 minutes):
+   `!RUN=kaggle_<name> bash $(find /kaggle/input -name kaggle_run.sh | head -1) go`
+3. Download `rasp_kaggle_<name>.zip` from the Output panel, then unzip it into `results/`, which gives
+   `results/kaggle_<name>/` (e.g. [results/kaggle_harsh/](results/kaggle_harsh/)).
 
 [scripts/kaggle_run.sh](scripts/kaggle_run.sh) builds for sm_75 and runs `ctest`. It then runs the sequential version
 (`seq/profile.sh`) and the GPU version on the same machine: SpMV on the 6 checkpoint matrices, CG on Laplace 128³,

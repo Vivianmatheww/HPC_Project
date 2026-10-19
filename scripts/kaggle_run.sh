@@ -5,8 +5,8 @@
 #
 # In a notebook cell (GPU T4 accelerator, Internet on, the code zip and the matrices zip attached as datasets; both
 # zips come from scripts/make_kaggle_zip.sh. Without the matrices zip they are downloaded from SuiteSparse):
-#   !bash $(find /kaggle/input -name kaggle_run.sh | head -1) go        # ~40 min; resumes if run again
-#   !bash /kaggle/temp/rasp/scripts/kaggle_run.sh status                # one screen: what is done, what failed
+#   !RUN=kaggle_<name> bash $(find /kaggle/input -name kaggle_run.sh | head -1) go    # ~40 min; resumes if run again
+#   !RUN=kaggle_<name> bash /kaggle/temp/rasp/scripts/kaggle_run.sh status           # what is done, what failed
 #
 # Code, build and matrices live in /kaggle/temp (not kept); results go to /kaggle/working/rasp-results/<run>/ and
 # /kaggle/working/rasp_<run>.zip, which the notebook's Output panel lets you download. Each finished step leaves a
