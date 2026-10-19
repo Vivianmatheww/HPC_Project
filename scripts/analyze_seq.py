@@ -150,7 +150,10 @@ def main():
         tex.stat("seq-csr-gflops-max", seq.gflops.max(), "{:.1f}")
         gpu = pd.read_csv(args.gpu) if args.gpu.exists() else pd.DataFrame()
         rows, ratios = [], []
-        print("\nSpMV fp64, sequential CSR (one i7-1255U core, warm, mean of 50) vs cuSPARSE ALG1 (RTX 4050, cold L2):")
+        machine = args.dir / "machine.txt"  # written by seq/profile.sh; the laptop runs predate it
+        cpu = machine.read_text().split(",")[0].strip() if machine.exists() else "i7-1255U"
+        gpu_name = re.sub(r"^NVIDIA (GeForce )?|( Laptop)? GPU$", "", str(gpu.gpu.iloc[0])) if "gpu" in gpu else "GPU"
+        print(f"\nSpMV fp64, sequential CSR (one {cpu} core, warm, mean of 50) vs cuSPARSE ALG1 ({gpu_name}, cold L2):")
         for m in MATRICES:
             stem = m.split("/")[1]
             if stem not in seq.index or gpu.empty:
