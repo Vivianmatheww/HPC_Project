@@ -1,0 +1,62 @@
+== SpMV: 6 matrices x 3 formats  (gprof: 6.69 s of samples)
+   30.6%    2.05 s         300 calls  spmv_sell
+   23.6%    1.58 s         306 calls  spmv_csr
+   23.0%    1.54 s         150 calls  spmv_ell
+    8.1%    0.54 s           6 calls  coo_to_csr
+    5.4%    0.36 s          38 calls  std::vector fill
+    4.8%    0.32 s           6 calls  read_matrix_market
+    1.8%    0.12 s           3 calls  csr_to_ell
+  phases (optimised build, wall 9.70 s):
+    read Matrix Market (parse)           3.233 s  33.3%  (user  2.856, system  0.376)
+    build CSR (sort, merge)              0.666 s   6.9%  (user  0.370, system  0.296)
+    features                             0.002 s   0.0%  (user  0.001, system  0.001)
+    SpMV CSR                             1.513 s  15.6%  (user  1.513, system  0.000)
+    convert to SELL-32-256               0.280 s   2.9%  (user  0.162, system  0.118)
+    SpMV SELL-32-256                     2.041 s  21.0%  (user  2.040, system  0.000)
+    convert to ELL                       0.281 s   2.9%  (user  0.168, system  0.113)
+    SpMV ELL                             1.577 s  16.3%  (user  1.576, system  0.000)
+
+== CG solver: Laplace 128³  (gprof: 14.16 s of samples)
+   45.2%    6.40 s         322 calls  spmv_csr
+   21.5%    3.05 s         964 calls  dot
+   13.7%    1.94 s         321 calls  jacobi
+   12.3%    1.74 s         642 calls  axpy
+    6.1%    0.86 s         320 calls  xpby
+    0.9%    0.13 s           1 calls  laplace3d
+    0.1%    0.02 s          17 calls  std::vector fill
+  phases (optimised build, wall 14.17 s):
+    load / generate matrix               0.309 s   2.2%  (user  0.116, system  0.193)
+    set-up (b = A x_true, Jacobi)        0.053 s   0.4%  (user  0.047, system  0.006)
+    SpMV (q = A p)                       6.622 s  46.7%  (user  6.617, system  0.001)
+    dot products                         3.029 s  21.4%  (user  3.024, system  0.002)
+    vector updates (axpy)                2.731 s  19.3%  (user  2.726, system  0.002)
+    preconditioner (Jacobi)              1.318 s   9.3%  (user  1.315, system  0.001)
+
+== AMG set-up: Laplace 160³  (gprof: 2.41 s of samples)
+   56.0%    1.35 s          40 calls  spgemm_numeric
+   15.3%    0.37 s          40 calls  spgemm_symbolic
+   11.6%    0.28 s           1 calls  laplace3d
+    7.9%    0.19 s    42129000 calls  std::sort (per row)
+    5.0%    0.12 s          40 calls  spgemm_flops
+    2.5%    0.06 s          20 calls  transpose
+    1.2%    0.03 s          42 calls  std::vector fill
+  phases (optimised build, wall 1.74 s):
+    generate Laplace3D                   0.624 s  35.9%  (user  0.252, system  0.373)
+    generate P, R = P^T                  0.104 s   6.0%  (user  0.050, system  0.054)
+    spgemm: flop estimate                0.029 s   1.7%  (user  0.029, system  0.000)
+    spgemm: symbolic                     0.106 s   6.1%  (user  0.097, system  0.009)
+    spgemm: numeric                      0.535 s  30.8%  (user  0.443, system  0.092)
+
+one core streams 10.7 GB/s in the dot products (two vectors of 8-byte values per call)
+CG iteration: SpMV moves 217 MB, vector ops 302 MB (42% / 58% of bytes; 48% / 52% of kernel time)
+
+SpMV fp64, sequential CSR (one Intel(R) Xeon(R) CPU @ 2.00GHz core, warm, mean of 50) vs cuSPARSE ALG1 (Tesla T4, cold L2):
+  rajat23        nnz   556,938  seq  1.41  GPU  12.75 GFLOP/s  ->   9.0x
+  ASIC_100k      nnz   954,163  seq  1.58  GPU  27.41 GFLOP/s  ->  17.3x
+  Pres_Poisson   nnz   715,804  seq  2.13  GPU  16.28 GFLOP/s  ->   7.6x
+  torso2         nnz 1,033,473  seq  2.52  GPU  16.66 GFLOP/s  ->   6.6x
+  cop20k_A       nnz 2,624,331  seq  1.39  GPU  10.11 GFLOP/s  ->   7.3x
+  af_shell1      nnz 17,588,875  seq  1.53  GPU  19.92 GFLOP/s  ->  13.0x
+
+streaming bandwidth: 1 thread 9.9 GB/s, 4 threads 27.0 GB/s (2.7x)
+  geomean 9.5x

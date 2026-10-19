@@ -1,0 +1,35 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 56.02      1.35     1.35       40     0.03     0.04  (anonymous namespace)::spgemm_numeric((anonymous namespace)::Csr const&, (anonymous namespace)::Csr const&, std::vector<int, std::allocator<int> >)
+ 15.35      1.72     0.37       40     0.01     0.01  (anonymous namespace)::spgemm_symbolic((anonymous namespace)::Csr const&, (anonymous namespace)::Csr const&)
+ 11.62      2.00     0.28        1     0.28     0.28  (anonymous namespace)::laplace3d(int)
+  6.64      2.16     0.16 21064500     0.00     0.00  void std::__insertion_sort<__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, __gnu_cxx::__ops::_Iter_less_iter>(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, __gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, __gnu_cxx::__ops::_Iter_less_iter)
+  4.98      2.28     0.12       40     0.00     0.00  (anonymous namespace)::spgemm_flops((anonymous namespace)::Csr const&, (anonymous namespace)::Csr const&)
+  2.49      2.34     0.06       20     0.00     0.00  (anonymous namespace)::transpose((anonymous namespace)::Csr const&)
+  1.24      2.37     0.03 21064500     0.00     0.00  void std::__introsort_loop<__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, long, __gnu_cxx::__ops::_Iter_less_iter>(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, __gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, long, __gnu_cxx::__ops::_Iter_less_iter)
+  1.24      2.40     0.03       20     0.00     0.00  std::vector<double, std::allocator<double> >::_M_fill_assign(unsigned long, double const&)
+  0.41      2.41     0.01       20     0.00     0.00  (anonymous namespace)::aggregation(int)
+  0.00      2.41     0.00      282     0.00     0.00  (anonymous namespace)::cpu_times(double&, double&)
+  0.00      2.41     0.00      166     0.00     0.00  void std::vector<int, std::allocator<int> >::_M_realloc_insert<int const&>(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, int const&)
+  0.00      2.41     0.00      141     0.00     0.00  (anonymous namespace)::phase(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+  0.00      2.41     0.00      100     0.00     0.00  std::vector<int, std::allocator<int> >::_M_default_append(unsigned long)
+  0.00      2.41     0.00       60     0.00     0.00  std::vector<double, std::allocator<double> >::_M_default_append(unsigned long)
+  0.00      2.41     0.00       40     0.00     0.05  (anonymous namespace)::spgemm((anonymous namespace)::Csr const&, (anonymous namespace)::Csr const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, long*)
+  0.00      2.41     0.00       26     0.00     0.00  void std::vector<double, std::allocator<double> >::_M_realloc_insert<double const&>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&)
+  0.00      2.41     0.00       20     0.00     0.00  std::vector<int, std::allocator<int> >::_M_fill_assign(unsigned long, int const&)
+  0.00      2.41     0.00       20     0.00     0.00  void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char const*>(char const*, char const*, std::forward_iterator_tag)
+  0.00      2.41     0.00       10     0.00     0.00  void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char*>(char*, char*, std::forward_iterator_tag)
+  0.00      2.41     0.00        3     0.00     0.00  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
+  0.00      2.41     0.00        2     0.00     0.00  (anonymous namespace)::Csr::~Csr()
+  0.00      2.41     0.00        2     0.00     0.00  main::{lambda()#1}::operator()() const
+  0.00      2.41     0.00        1     0.00     2.41  (anonymous namespace)::workload_amg(int, int)
+  0.00      2.41     0.00        1     0.00     0.00  (anonymous namespace)::Csr::operator=((anonymous namespace)::Csr&&)
+  0.00      2.41     0.00        1     0.00     0.00  (anonymous namespace)::Timer::Timer(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+  0.00      2.41     0.00        1     0.00     0.00  (anonymous namespace)::Timer::~Timer()
+  0.00      2.41     0.00        1     0.00     0.00  std::vector<(anonymous namespace)::SpmvResult, std::allocator<(anonymous namespace)::SpmvResult> >::~vector()
+  0.00      2.41     0.00        1     0.00     0.00  std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()
+  0.00      2.41     0.00        1     0.00     0.00  std::vector<int, std::allocator<int> >::reserve(unsigned long)
+  0.00      2.41     0.00        1     0.00     0.00  bool std::operator==<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, char const*)

@@ -1,0 +1,90 @@
+AMG setup: Laplace3D n=160 (4096000 rows, nnz 28518400), 5 levels, budget 8192 MiB
+== incore (context 12586 MiB)
+  level 0 (grid 160) A*P        85.25 ms  incore P_AC=1 P_B=1 depth=1 | predicted 90.66 ms, copies 0.783 GB, peak 1400 MiB | rasp: fastest simulated candidate (0.629 GFLOP/s predicted)
+  level 0 (grid 160) R*(AP)     32.06 ms  incore P_AC=1 P_B=1 depth=1 | predicted 52.87 ms, copies 0.459 GB, peak 810 MiB | rasp: fastest simulated candidate (0.614 GFLOP/s predicted)
+  level 1 (grid  80) A*P        10.92 ms  incore P_AC=1 P_B=1 depth=1 | predicted 11.54 ms, copies 0.0974 GB, peak 175 MiB | rasp: fastest simulated candidate (0.615 GFLOP/s predicted)
+  level 1 (grid  80) R*(AP)      4.22 ms  incore P_AC=1 P_B=1 depth=1 | predicted 6.82 ms, copies 0.0569 GB, peak 101 MiB | rasp: fastest simulated candidate (0.59 GFLOP/s predicted)
+  level 2 (grid  40) A*P         1.62 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.69 ms, copies 0.0121 GB, peak 23 MiB | rasp: fastest simulated candidate (0.519 GFLOP/s predicted)
+  level 2 (grid  40) R*(AP)      0.81 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.10 ms, copies 0.007 GB, peak 13 MiB | rasp: fastest simulated candidate (0.448 GFLOP/s predicted)
+  level 3 (grid  20) A*P         0.45 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.47 ms, copies 0.00148 GB, peak 4 MiB | rasp: fastest simulated candidate (0.228 GFLOP/s predicted)
+  level 3 (grid  20) R*(AP)      0.37 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.40 ms, copies 0.000846 GB, peak 2 MiB | rasp: fastest simulated candidate (0.149 GFLOP/s predicted)
+  level 4 (grid  10) A*P         0.32 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 0.000178 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0399 GFLOP/s predicted)
+  level 4 (grid  10) R*(AP)      0.29 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.31 ms, copies 9.86e-05 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0219 GFLOP/s predicted)
+  setup total 136.16 ms (median of 3)
+== rasp (context 8192 MiB)
+  level 0 (grid 160) A*P        82.10 ms  chunk_b P_AC=2 P_B=1 depth=2 +probe | predicted 83.56 ms, copies 0.783 GB, peak 1832 MiB | rasp: fastest simulated candidate (0.683 GFLOP/s predicted)
+  level 0 (grid 160) R*(AP)     31.15 ms  chunk_b P_AC=2 P_B=1 depth=2 +probe | predicted 48.90 ms, copies 0.459 GB, peak 941 MiB | rasp: fastest simulated candidate (0.664 GFLOP/s predicted)
+  level 1 (grid  80) A*P        10.98 ms  chunk_b P_AC=2 P_B=1 depth=2 +probe | predicted 10.66 ms, copies 0.0974 GB, peak 229 MiB | rasp: fastest simulated candidate (0.665 GFLOP/s predicted)
+  level 1 (grid  80) R*(AP)      4.28 ms  chunk_b P_AC=2 P_B=1 depth=2 +probe | predicted 6.42 ms, copies 0.0569 GB, peak 118 MiB | rasp: fastest simulated candidate (0.626 GFLOP/s predicted)
+  level 2 (grid  40) A*P         1.66 ms  chunk_b P_AC=2 P_B=1 depth=2 +probe | predicted 1.58 ms, copies 0.0121 GB, peak 29 MiB | rasp: fastest simulated candidate (0.554 GFLOP/s predicted)
+  level 2 (grid  40) R*(AP)      0.83 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.10 ms, copies 0.007 GB, peak 13 MiB | rasp: fastest simulated candidate (0.448 GFLOP/s predicted)
+  level 3 (grid  20) A*P         0.49 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.47 ms, copies 0.00148 GB, peak 4 MiB | rasp: fastest simulated candidate (0.228 GFLOP/s predicted)
+  level 3 (grid  20) R*(AP)      0.38 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.40 ms, copies 0.000846 GB, peak 2 MiB | rasp: fastest simulated candidate (0.149 GFLOP/s predicted)
+  level 4 (grid  10) A*P         0.33 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 0.000178 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0399 GFLOP/s predicted)
+  level 4 (grid  10) R*(AP)      0.32 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.31 ms, copies 9.86e-05 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0219 GFLOP/s predicted)
+  setup total 133.21 ms (median of 3)
+
+0 failures -> /kaggle/working/rasp-results/kaggle/amg_gpu.csv
+AMG setup: Laplace3D n=192 (7077888 rows, nnz 49324032), 5 levels, budget 256 MiB
+== alg4 (context 256 MiB)
+  level 0 (grid 192) A*P       160.87 ms  chunk_b P_AC=38 P_B=1 depth=1 | predicted 167.40 ms, copies 1.35 GB, peak 170 MiB | alg4: copy volume chunk1 2.71 GB, chunk2 0.733 GB
+  level 0 (grid 192) R*(AP)    161.44 ms  chunk_b P_AC=23 P_B=3 depth=1 | predicted 246.56 ms, copies 2.33 GB, peak 248 MiB | alg4: copy volume chunk1 2.62 GB, chunk2 1.31 GB
+  level 1 (grid  96) A*P        20.19 ms  chunk_b P_AC=5 P_B=1 depth=1 | predicted 20.92 ms, copies 0.169 GB, peak 76 MiB | alg4: copy volume chunk1 0.183 GB, chunk2 0.0913 GB
+  level 1 (grid  96) R*(AP)      7.16 ms  incore P_AC=1 P_B=1 depth=1 | predicted 11.57 ms, copies 0.0986 GB, peak 175 MiB | alg4: everything fits the budget
+  level 2 (grid  48) A*P         2.53 ms  incore P_AC=1 P_B=1 depth=1 | predicted 2.71 ms, copies 0.0209 GB, peak 38 MiB | alg4: everything fits the budget
+  level 2 (grid  48) R*(AP)      1.16 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.69 ms, copies 0.0122 GB, peak 22 MiB | alg4: everything fits the budget
+  level 3 (grid  24) A*P         0.56 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.60 ms, copies 0.00257 GB, peak 6 MiB | alg4: everything fits the budget
+  level 3 (grid  24) R*(AP)      0.40 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.47 ms, copies 0.00148 GB, peak 4 MiB | alg4: everything fits the budget
+  level 4 (grid  12) A*P         0.33 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.34 ms, copies 0.000311 GB, peak 2 MiB | alg4: everything fits the budget
+  level 4 (grid  12) R*(AP)      0.29 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 0.000175 GB, peak 1 MiB | alg4: everything fits the budget
+  setup total 354.44 ms (median of 3)
+== alg4_overlap (context 256 MiB)
+  level 0 (grid 192) A*P       129.73 ms  chunk_b P_AC=58 P_B=1 depth=2 | predicted 107.32 ms, copies 1.35 GB, peak 170 MiB | alg4: copy volume chunk1 3.51 GB, chunk2 0.733 GB
+  level 0 (grid 192) R*(AP)    114.34 ms  chunk_b P_AC=35 P_B=3 depth=2 | predicted 185.00 ms, copies 2.33 GB, peak 248 MiB | alg4: copy volume chunk1 3.35 GB, chunk2 1.31 GB
+  level 1 (grid  96) A*P        16.70 ms  chunk_b P_AC=8 P_B=1 depth=2 | predicted 13.82 ms, copies 0.169 GB, peak 76 MiB | alg4: copy volume chunk1 0.197 GB, chunk2 0.0913 GB
+  level 1 (grid  96) R*(AP)      7.16 ms  incore P_AC=1 P_B=1 depth=1 | predicted 11.59 ms, copies 0.0986 GB, peak 175 MiB | alg4: everything fits the budget
+  level 2 (grid  48) A*P         2.58 ms  incore P_AC=1 P_B=1 depth=1 | predicted 2.71 ms, copies 0.0209 GB, peak 38 MiB | alg4: everything fits the budget
+  level 2 (grid  48) R*(AP)      1.16 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.69 ms, copies 0.0122 GB, peak 22 MiB | alg4: everything fits the budget
+  level 3 (grid  24) A*P         0.57 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.60 ms, copies 0.00257 GB, peak 6 MiB | alg4: everything fits the budget
+  level 3 (grid  24) R*(AP)      0.41 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.47 ms, copies 0.00148 GB, peak 4 MiB | alg4: everything fits the budget
+  level 4 (grid  12) A*P         0.33 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.34 ms, copies 0.000311 GB, peak 2 MiB | alg4: everything fits the budget
+  level 4 (grid  12) R*(AP)      0.31 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 0.000175 GB, peak 1 MiB | alg4: everything fits the budget
+  setup total 273.60 ms (median of 3)
+== rasp_static (context 256 MiB)
+  level 0 (grid 192) A*P       135.94 ms  chunk_b P_AC=34 P_B=1 depth=3 | predicted 106.94 ms, copies 1.35 GB, peak 248 MiB | rasp: fastest simulated candidate (0.922 GFLOP/s predicted)
+  level 0 (grid 192) R*(AP)    124.61 ms  chunk_b P_AC=47 P_B=3 depth=3 | predicted 184.88 ms, copies 2.33 GB, peak 248 MiB | rasp: fastest simulated candidate (0.304 GFLOP/s predicted)
+  level 1 (grid  96) A*P        16.56 ms  chunk_b P_AC=3 P_B=1 depth=3 | predicted 13.32 ms, copies 0.169 GB, peak 248 MiB | rasp: fastest simulated candidate (0.922 GFLOP/s predicted)
+  level 1 (grid  96) R*(AP)      7.57 ms  chunk_b P_AC=4 P_B=1 depth=2 | predicted 9.17 ms, copies 0.0986 GB, peak 95 MiB | rasp: fastest simulated candidate (0.76 GFLOP/s predicted)
+  level 2 (grid  48) A*P         2.58 ms  incore P_AC=1 P_B=1 depth=1 | predicted 2.71 ms, copies 0.0209 GB, peak 38 MiB | rasp: fastest simulated candidate (0.561 GFLOP/s predicted)
+  level 2 (grid  48) R*(AP)      1.22 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.69 ms, copies 0.0122 GB, peak 22 MiB | rasp: fastest simulated candidate (0.507 GFLOP/s predicted)
+  level 3 (grid  24) A*P         0.59 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.60 ms, copies 0.00257 GB, peak 6 MiB | rasp: fastest simulated candidate (0.313 GFLOP/s predicted)
+  level 3 (grid  24) R*(AP)      0.42 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.47 ms, copies 0.00148 GB, peak 4 MiB | rasp: fastest simulated candidate (0.221 GFLOP/s predicted)
+  level 4 (grid  12) A*P         0.35 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.34 ms, copies 0.000311 GB, peak 2 MiB | rasp: fastest simulated candidate (0.0669 GFLOP/s predicted)
+  level 4 (grid  12) R*(AP)      0.34 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 0.000175 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0378 GFLOP/s predicted)
+  setup total 289.78 ms (median of 3)
+== rasp (context 256 MiB)
+  level 0 (grid 192) A*P       133.70 ms  chunk_b P_AC=35 P_B=1 depth=3 +probe | predicted 106.90 ms, copies 1.35 GB, peak 248 MiB | rasp: fastest simulated candidate (0.923 GFLOP/s predicted)
+  level 0 (grid 192) R*(AP)    124.60 ms  chunk_b P_AC=47 P_B=3 depth=3 | predicted 184.81 ms, copies 2.33 GB, peak 248 MiB | rasp: fastest simulated candidate (0.304 GFLOP/s predicted)
+  level 1 (grid  96) A*P        16.78 ms  chunk_b P_AC=4 P_B=1 depth=2 +probe | predicted 13.31 ms, copies 0.169 GB, peak 170 MiB | rasp: fastest simulated candidate (0.922 GFLOP/s predicted)
+  level 1 (grid  96) R*(AP)      7.39 ms  chunk_b P_AC=4 P_B=1 depth=2 +probe | predicted 9.24 ms, copies 0.0986 GB, peak 112 MiB | rasp: fastest simulated candidate (0.754 GFLOP/s predicted)
+  level 2 (grid  48) A*P         2.52 ms  chunk_b P_AC=2 P_B=1 depth=2 +probe | predicted 2.52 ms, copies 0.0209 GB, peak 50 MiB | rasp: fastest simulated candidate (0.602 GFLOP/s predicted)
+  level 2 (grid  48) R*(AP)      1.21 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.69 ms, copies 0.0122 GB, peak 22 MiB | rasp: fastest simulated candidate (0.507 GFLOP/s predicted)
+  level 3 (grid  24) A*P         0.60 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.60 ms, copies 0.00257 GB, peak 6 MiB | rasp: fastest simulated candidate (0.313 GFLOP/s predicted)
+  level 3 (grid  24) R*(AP)      0.42 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.47 ms, copies 0.00148 GB, peak 4 MiB | rasp: fastest simulated candidate (0.221 GFLOP/s predicted)
+  level 4 (grid  12) A*P         0.35 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.34 ms, copies 0.000311 GB, peak 2 MiB | rasp: fastest simulated candidate (0.0669 GFLOP/s predicted)
+  level 4 (grid  12) R*(AP)      0.31 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 0.000175 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0378 GFLOP/s predicted)
+  setup total 292.81 ms (median of 3)
+== incore (context 12584 MiB)
+  level 0 (grid 192) A*P       147.93 ms  incore P_AC=1 P_B=1 depth=1 | predicted 162.89 ms, copies 1.35 GB, peak 2421 MiB | rasp: fastest simulated candidate (0.606 GFLOP/s predicted)
+  level 0 (grid 192) R*(AP)     55.68 ms  incore P_AC=1 P_B=1 depth=1 | predicted 94.99 ms, copies 0.794 GB, peak 1402 MiB | rasp: fastest simulated candidate (0.591 GFLOP/s predicted)
+  level 1 (grid  96) A*P        18.55 ms  incore P_AC=1 P_B=1 depth=1 | predicted 20.54 ms, copies 0.169 GB, peak 302 MiB | rasp: fastest simulated candidate (0.598 GFLOP/s predicted)
+  level 1 (grid  96) R*(AP)      7.11 ms  incore P_AC=1 P_B=1 depth=1 | predicted 12.05 ms, copies 0.0986 GB, peak 175 MiB | rasp: fastest simulated candidate (0.578 GFLOP/s predicted)
+  level 2 (grid  48) A*P         2.54 ms  incore P_AC=1 P_B=1 depth=1 | predicted 2.81 ms, copies 0.0209 GB, peak 38 MiB | rasp: fastest simulated candidate (0.541 GFLOP/s predicted)
+  level 2 (grid  48) R*(AP)      1.18 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.75 ms, copies 0.0122 GB, peak 22 MiB | rasp: fastest simulated candidate (0.49 GFLOP/s predicted)
+  level 3 (grid  24) A*P         0.57 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.61 ms, copies 0.00257 GB, peak 6 MiB | rasp: fastest simulated candidate (0.307 GFLOP/s predicted)
+  level 3 (grid  24) R*(AP)      0.42 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.48 ms, copies 0.00148 GB, peak 4 MiB | rasp: fastest simulated candidate (0.218 GFLOP/s predicted)
+  level 4 (grid  12) A*P         0.34 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.34 ms, copies 0.000311 GB, peak 2 MiB | rasp: fastest simulated candidate (0.0666 GFLOP/s predicted)
+  level 4 (grid  12) R*(AP)      0.29 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 0.000175 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0377 GFLOP/s predicted)
+  setup total 234.56 ms (median of 3)
+
+0 failures -> /kaggle/working/rasp-results/kaggle/amg_gpu.csv

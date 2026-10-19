@@ -1,0 +1,29 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 45.20      6.40     6.40      322     0.02     0.02  (anonymous namespace)::spmv_csr((anonymous namespace)::Csr const&, double const*, double*)
+ 21.54      9.45     3.05      964     0.00     0.00  (anonymous namespace)::dot(std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&)
+ 13.70     11.39     1.94      321     0.01     0.01  (anonymous namespace)::jacobi(std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> >&)
+ 12.29     13.13     1.74      642     0.00     0.00  (anonymous namespace)::axpy(double, std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> >&)
+  6.07     13.99     0.86      320     0.00     0.00  (anonymous namespace)::xpby(std::vector<double, std::allocator<double> > const&, double, std::vector<double, std::allocator<double> >&)
+  0.92     14.12     0.13        1     0.13     0.13  (anonymous namespace)::laplace3d(int)
+  0.14     14.14     0.02        2     0.01     0.01  std::vector<double, std::allocator<double> >::vector(unsigned long, double const&, std::allocator<double> const&)
+  0.14     14.16     0.02        1     0.02    14.16  (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double)
+  0.00     14.16     0.00     4492     0.00     0.00  (anonymous namespace)::cpu_times(double&, double&)
+  0.00     14.16     0.00     2246     0.00     0.00  (anonymous namespace)::phase(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+  0.00     14.16     0.00       25     0.00     0.00  void std::vector<double, std::allocator<double> >::_M_realloc_insert<double const&>(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&)
+  0.00     14.16     0.00       25     0.00     0.00  void std::vector<int, std::allocator<int> >::_M_realloc_insert<int const&>(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, int const&)
+  0.00     14.16     0.00       12     0.00     0.00  void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<char*>(char*, char*, std::forward_iterator_tag)
+  0.00     14.16     0.00        8     0.00     0.00  std::vector<double, std::allocator<double> >::~vector()
+  0.00     14.16     0.00        5     0.00     0.00  std::vector<double, std::allocator<double> >::vector(unsigned long, std::allocator<double> const&)
+  0.00     14.16     0.00        4     0.00     0.00  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
+  0.00     14.16     0.00        2     0.00     0.00  (anonymous namespace)::Csr::~Csr()
+  0.00     14.16     0.00        2     0.00     0.00  (anonymous namespace)::Timer::Timer(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+  0.00     14.16     0.00        2     0.00     0.00  (anonymous namespace)::Timer::~Timer()
+  0.00     14.16     0.00        2     0.00     0.00  std::vector<double, std::allocator<double> >::operator=(std::vector<double, std::allocator<double> > const&)
+  0.00     14.16     0.00        1     0.00     0.00  (anonymous namespace)::Csr::operator=((anonymous namespace)::Csr&&)
+  0.00     14.16     0.00        1     0.00     0.00  std::vector<(anonymous namespace)::SpmvResult, std::allocator<(anonymous namespace)::SpmvResult> >::~vector()
+  0.00     14.16     0.00        1     0.00     0.00  std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()
+  0.00     14.16     0.00        1     0.00     0.00  std::vector<int, std::allocator<int> >::reserve(unsigned long)
