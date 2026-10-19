@@ -3,7 +3,8 @@
 # version (seq/, one CPU core) with the GPU version on the checkpoint's three workloads (SpMV on the 6 matrices,
 # CG on Laplace 128^3, AMG set-up on Laplace 160^3), plus the out-of-core AMG study at n = 192 and the live demo.
 #
-# In a notebook cell (GPU T4 accelerator, Internet on, the repo zip attached as a dataset):
+# In a notebook cell (GPU T4 accelerator, Internet on, the code zip and the matrices zip attached as datasets; both
+# zips come from scripts/make_kaggle_zip.sh. Without the matrices zip they are downloaded from SuiteSparse):
 #   !bash $(find /kaggle/input -name kaggle_run.sh | head -1) go        # ~40 min; resumes if run again
 #   !bash /kaggle/temp/rasp/scripts/kaggle_run.sh status                # one screen: what is done, what failed
 #
@@ -17,6 +18,7 @@ RUN=${RUN:-kaggle}
 ARCH=${ARCH:-75}
 WORK=${WORK:-/kaggle/working}
 TMP=${TMP:-/kaggle/temp}
+INPUT=${INPUT:-/kaggle/input}
 CODE=$TMP/rasp
 DATA=$TMP/rasp-data/seq
 OUT=$WORK/rasp-results/$RUN
@@ -72,7 +74,31 @@ build() {  # not a step: incremental, so it is cheap to run every time
     ${CMAKE_ARGS:-} > "$OUT/build.log" 2>&1 && cmake --build "$TMP/rasp-build" -j "$(nproc)" >> "$OUT/build.log" 2>&1
 }
 tests() { ctest --test-dir "$TMP/rasp-build" --output-on-failure; }
-data() { python3 scripts/fetch_matrices.py --count 0 --out "$DATA" --names $NAMES; }
+data() {  # the 6 matrices from an attached dataset (the same files as the laptop runs), else from SuiteSparse
+  local src root
+  src=$(find "$INPUT" -path "*/Rajat/rajat23.mtx" 2>/dev/null | head -n 1)
+  if [ -z "$src" ]; then
+    echo "no matrices dataset under $INPUT: downloading from SuiteSparse"
+    python3 scripts/fetch_matrices.py --count 0 --out "$DATA" --names $NAMES
+    return
+  fi
+  root=${src%/Rajat/rajat23.mtx}
+  echo "matrices from $root"
+  mkdir -p "$DATA" && cp -r "$root/." "$DATA/" && chmod -R u+w "$DATA" || return 1
+  python3 - "$DATA" <<'PY'  # the manifest's paths point at the laptop's data/seq: point them here
+import csv, pathlib, sys
+data = pathlib.Path(sys.argv[1])
+rows = list(csv.DictReader(open(data / "manifest.csv")))
+for r in rows:
+    r["path"] = str(data / r["group"] / f"{r['name']}.mtx")
+    assert pathlib.Path(r["path"]).exists(), r["path"]
+with open(data / "manifest.csv", "w", newline="") as f:
+    w = csv.DictWriter(f, fieldnames=rows[0].keys())
+    w.writeheader()
+    w.writerows(rows)
+print(f"{len(rows)} matrices in {data}")
+PY
+}
 seq_run() { OUT=$OUT/seq DATA=$DATA bash seq/profile.sh; }
 gpu_spmv() { "$TMP/rasp-build/bench_spmv" --matrices "$DATA" --kernels all --precisions fp64 --out "$OUT/spmv_gpu.csv"; }
 gpu_cg() {

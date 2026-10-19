@@ -136,7 +136,9 @@ reports the median of 20 runs after 5 warm-ups. Matrix Market files are parsed o
 Without an NVIDIA GPU of your own, a free Kaggle notebook works. It needs a phone-verified account, the
 **GPU T4 x2** accelerator and **Internet: On**.
 
-1. Here: `bash scripts/make_kaggle_zip.sh`. Upload `rasp_code.zip` on kaggle.com as a new **private** dataset.
+1. Here: `bash scripts/make_kaggle_zip.sh` and `bash scripts/make_kaggle_zip.sh --matrices`. Upload `rasp_code.zip`
+   and `rasp_matrices.zip` (the 6 matrices, 71 MB) on kaggle.com as a **private** dataset. Without the matrices,
+   the run downloads them from SuiteSparse, whose file server was failing on 2026-10-19.
 2. In the notebook: **Add Input** → that dataset. Then run one cell (about 40 minutes):
    `!bash $(find /kaggle/input -name kaggle_run.sh | head -1) go`
 3. Download `rasp_kaggle.zip` from the Output panel, then unzip it into `results/`.
