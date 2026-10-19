@@ -131,6 +131,22 @@ reports the median of 20 runs after 5 warm-ups. Matrix Market files are parsed o
 | [tests/](tests/) | Unit tests (`ctest`) and `.mtx` fixtures |
 | [scripts/](scripts/) | Data download/generation and plotting |
 
+### On a Kaggle GPU (Tesla T4)
+
+Without an NVIDIA GPU of your own, a free Kaggle notebook works. It needs a phone-verified account, the
+**GPU T4 x2** accelerator and **Internet: On**.
+
+1. Here: `bash scripts/make_kaggle_zip.sh`. Upload `rasp_code.zip` on kaggle.com as a new **private** dataset.
+2. In the notebook: **Add Input** → that dataset. Then run one cell (about 40 minutes):
+   `!bash $(find /kaggle/input -name kaggle_run.sh | head -1) go`
+3. Download `rasp_kaggle.zip` from the Output panel, then unzip it into `results/`.
+
+[scripts/kaggle_run.sh](scripts/kaggle_run.sh) builds for sm_75 and runs `ctest`. It then runs the sequential version
+(`seq/profile.sh`) and the GPU version on the same machine: SpMV on the 6 checkpoint matrices, CG on Laplace 128³,
+AMG on 160³ plus the out-of-core study at n = 192, and the demo. It finishes with
+[scripts/compare_seq_gpu.py](scripts/compare_seq_gpu.py), the same-machine speedup table. Running `go` again resumes
+after a crash; `status` shows progress.
+
 ## API
 
 ```cpp
