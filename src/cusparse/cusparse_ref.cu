@@ -47,8 +47,10 @@ CusparseSpmv<T>::CusparseSpmv(const DeviceCsr<T>& A, SpmvAlg alg, const T* x, T*
     RASP_CUDA(cudaEventCreate(&e0));
     RASP_CUDA(cudaEventCreate(&e1));
     RASP_CUDA(cudaEventRecord(e0));
+#if CUDART_VERSION >= 12040  // cusparseSpMV_preprocess arrived in CUDA 12.4; before it, nothing to preprocess
     RASP_CUSPARSE(cusparseSpMV_preprocess(handle_, CUSPARSE_OPERATION_NON_TRANSPOSE, &alpha, mat_, vx_, &beta, vy_,
                                           cuda_type<T>(), alg_, buffer_.data()));
+#endif
     RASP_CUDA(cudaEventRecord(e1));
     RASP_CUDA(cudaEventSynchronize(e1));
     float ms = 0;

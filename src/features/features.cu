@@ -31,6 +31,17 @@ __device__ inline V warp_sum(V v) {
   return v;
 }
 
+// Warp-wide max, returned to every lane. __reduce_max_sync needs sm_80; older GPUs (the T4 on Kaggle and Colab is
+// sm_75) use a butterfly of shuffles.
+__device__ inline int warp_max(int v) {
+#if __CUDA_ARCH__ >= 800
+  return __reduce_max_sync(0xffffffffu, v);
+#else
+  for (int o = 16; o > 0; o >>= 1) v = max(v, __shfl_xor_sync(0xffffffffu, v, o));
+  return v;
+#endif
+}
+
 // Warp lanes always cover 32 consecutive, 32-aligned rows (the stride is a multiple of 32), so a warp-wide
 // max is exactly one SELL-32 slice.
 __global__ void features_kernel(int rows, int cols, const int* __restrict__ rp, const int* __restrict__ ci,
@@ -56,7 +67,7 @@ __global__ void features_kernel(int rows, int cols, const int* __restrict__ rp, 
       }
       if (len > kLongRow) long_nnz += len;
     }
-    const int slice_max = __reduce_max_sync(0xffffffffu, len);
+    const int slice_max = warp_max(len);
     if (lane == 0) slots += 32ull * slice_max;
   }
   sq = warp_sum(sq);
@@ -66,7 +77,7 @@ __global__ void features_kernel(int rows, int cols, const int* __restrict__ rp, 
   slots = warp_sum(slots);
   long_nnz = warp_sum(long_nnz);
   for (int k = 0; k < kLenBuckets; ++k) hist[k] = warp_sum(hist[k]);
-  mx = __reduce_max_sync(0xffffffffu, mx);
+  mx = warp_max(mx);
   if (lane == 0) {
     atomicAdd(&acc->sum_sq, sq);
     atomicAdd(&acc->span_sum, span);
