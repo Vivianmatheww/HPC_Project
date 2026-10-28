@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # RASP on a Kaggle GPU notebook (Tesla T4): build, run the tests, then the same-machine comparison of the sequential
 # version (seq/, one CPU core) with the GPU version on the checkpoint's three workloads (SpMV on the 6 matrices,
-# CG on Laplace 128^3, AMG set-up on Laplace 160^3), plus the out-of-core AMG study at n = 192 and the live demo.
+# CG on Laplace 128^3, AMG set-up on Laplace 160^3), plus the out-of-core AMG study at n = 192 and the live demo,
+# and the OpenMP version's thread sweep (seq/scaling.sh) once that is in the code.
 #
 # In a notebook cell (GPU T4 accelerator, Internet on, the code zip and the matrices zip attached as datasets; both
 # zips come from scripts/make_kaggle_zip.sh. Without the matrices zip they are downloaded from SuiteSparse):
@@ -47,7 +48,7 @@ mkdir -p "$OUT/.done" "$TMP"
 
 if [ "$MODE" = status ]; then
   echo "results: $OUT"
-  for s in deps tests data seq gpu_spmv gpu_spmv_warm gpu_cg gpu_amg demo; do
+  for s in deps tests data seq gpu_spmv gpu_spmv_warm gpu_cg gpu_amg demo omp; do
     if [ -f "$OUT/.done/$s" ]; then echo "  done     $s"
     elif [ -f "$OUT/$s.log" ]; then echo "  STARTED  $s (not finished): $(tail -n 1 "$OUT/$s.log")"
     else echo "  pending  $s"; fi
@@ -157,6 +158,7 @@ demo() {
   for f in $NAMES; do m="$m${m:+,}$DATA/$f.mtx"; done
   "$TMP/rasp-build/rasp_demo" --spmv "$m" | tee "$OUT/demo.txt"
 }
+omp_run() { OUT=$OUT/omp DATA=$DATA bash seq/scaling.sh; }  # the OpenMP version: <results>/omp/t<threads>/
 
 {
   echo "run $RUN, $(date -u -Iseconds), code $(cat GIT_COMMIT 2>/dev/null || git describe --always --dirty 2>/dev/null ||
@@ -178,6 +180,11 @@ step gpu_spmv_warm gpu_spmv_warm
 step gpu_cg gpu_cg
 step gpu_amg gpu_amg
 step demo demo
+if [ -f seq/scaling.sh ]; then
+  step omp omp_run
+else
+  echo "== omp: skipped (no seq/scaling.sh yet, the OpenMP thread sweep); run go again once it is in the code"
+fi
 
 echo "== analysis"
 python3 scripts/analyze_seq.py --dir "$OUT/seq" --gpu "$OUT/spmv_gpu.csv" > "$OUT/seq/analysis.log" 2>&1 ||
