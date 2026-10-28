@@ -12,16 +12,35 @@
 # /kaggle/working/rasp_<run>.zip, which the notebook's Output panel lets you download. Each finished step leaves a
 # marker in <results>/.done, so `go` after a crash or a restart skips what is already done. RUN=name sets <run>
 # (default kaggle), ARCH=sm sets the GPU architecture (default 75, the T4), CMAKE_ARGS adds CMake options.
+#
+# On any other machine with an NVIDIA GPU (e.g. the RTX 4050 laptop) it runs in place, from the repo root:
+#   RUN=rtx4050_<name> ARCH=89 bash scripts/kaggle_run.sh go
+# The matrices come from data/seq/ (unzip rasp_matrices.zip -d data), the build goes to build/kaggle_run/ and the
+# results straight to results/<run>/, ready to commit (ARCH defaults to native there).
 set -uo pipefail
 MODE=${1:-go}
-RUN=${RUN:-kaggle}
-ARCH=${ARCH:-75}
-WORK=${WORK:-/kaggle/working}
-TMP=${TMP:-/kaggle/temp}
-INPUT=${INPUT:-/kaggle/input}
-CODE=$TMP/rasp
+SRC=$(cd "$(dirname "$0")/.." && pwd)
+if [ -d /kaggle/working ]; then  # a Kaggle notebook: read-only inputs, results downloaded from the Output panel
+  RUN=${RUN:-kaggle}
+  ARCH=${ARCH:-75}
+  WORK=${WORK:-/kaggle/working}
+  TMP=${TMP:-/kaggle/temp}
+  INPUT=${INPUT:-/kaggle/input}
+  CODE=${CODE:-$TMP/rasp}
+  OUT=${OUT:-$WORK/rasp-results/$RUN}
+  ZIP=${ZIP:-1}
+else  # any other GPU machine: in place, results into results/<run>/
+  RUN=${RUN:-local}
+  ARCH=${ARCH:-native}
+  TMP=${TMP:-$SRC/build/kaggle_run}
+  WORK=${WORK:-$TMP}
+  INPUT=${INPUT:-$SRC/data/seq}
+  CODE=${CODE:-$SRC}
+  OUT=${OUT:-$SRC/results/$RUN}
+  ZIP=${ZIP:-0}
+  [ -f "$SRC/.venv/bin/activate" ] && source "$SRC/.venv/bin/activate"
+fi
 DATA=$TMP/rasp-data/seq
-OUT=$WORK/rasp-results/$RUN
 export CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}  # Kaggle gives two T4s; every number here is from one
 NAMES="Rajat/rajat23 Sandia/ASIC_100k ACUSIM/Pres_Poisson Norris/torso2 Williams/cop20k_A Schenk_AFE/af_shell1"
 mkdir -p "$OUT/.done" "$TMP"
@@ -35,13 +54,12 @@ if [ "$MODE" = status ]; then
   done
   [ -f "$OUT/comparison.txt" ] && { echo; cat "$OUT/comparison.txt"; }
   nvidia-smi --query-gpu=index,name,utilization.gpu,memory.used --format=csv,noheader
-  df -h "$WORK" | tail -n 1
+  df -h "$OUT" | tail -n 1
   exit 0
 fi
 [ "$MODE" = go ] || { echo "usage: kaggle_run.sh go|status"; exit 2; }
 
 # The dataset is read-only: work on a writable copy. Timestamps are kept, so an unchanged file is not rebuilt.
-SRC=$(cd "$(dirname "$0")/.." && pwd)
 if [ "$SRC" != "$CODE" ]; then
   mkdir -p "$CODE" && chmod -R u+w "$CODE" && cp -r --preserve=timestamps "$SRC/." "$CODE/" && chmod -R u+w "$CODE" ||
     { echo "!! could not copy the code from $SRC to $CODE"; exit 1; }
@@ -63,11 +81,11 @@ step() {  # step NAME FUNCTION: run FUNCTION once, its output in $OUT/NAME.log; 
   fi
 }
 
-deps() {
-  python3 -c "import ssgetpy" 2>/dev/null || pip install -q ssgetpy
+deps() {  # what the steps below need; fails here rather than after 40 minutes
+  python3 -c "import pandas, matplotlib" 2>/dev/null || pip install -q pandas matplotlib
   command -v ninja >/dev/null || pip install -q ninja
   command -v gprof >/dev/null || { apt-get -qq update && apt-get -qq install -y binutils; }
-  command -v gprof
+  python3 -c "import pandas, matplotlib" && command -v ninja && command -v gprof
 }
 build() {  # not a step: incremental, so it is cheap to run every time
   cmake -S . -B "$TMP/rasp-build" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_CUDA_ARCHITECTURES="$ARCH" \
@@ -79,6 +97,7 @@ data() {  # the 6 matrices from an attached dataset (the same files as the lapto
   src=$(find "$INPUT" -path "*/Rajat/rajat23.mtx" 2>/dev/null | head -n 1)
   if [ -z "$src" ]; then
     echo "no matrices dataset under $INPUT: downloading from SuiteSparse"
+    python3 -c "import ssgetpy" 2>/dev/null || pip install -q ssgetpy
     python3 scripts/fetch_matrices.py --count 0 --out "$DATA" --names $NAMES
     return
   fi
@@ -100,8 +119,13 @@ print(f"{len(rows)} matrices in {data}")
 PY
 }
 seq_run() { OUT=$OUT/seq DATA=$DATA bash seq/profile.sh; }
-gpu_spmv() { "$TMP/rasp-build/bench_spmv" --matrices "$DATA" --kernels all --precisions fp64 --out "$OUT/spmv_gpu.csv"; }
+# The benchmarks append to their CSV: a step that is run again after failing halfway starts from an empty file.
+gpu_spmv() {
+  rm -f "$OUT/spmv_gpu.csv"
+  "$TMP/rasp-build/bench_spmv" --matrices "$DATA" --kernels all --precisions fp64 --out "$OUT/spmv_gpu.csv"
+}
 gpu_cg() {
+  rm -f "$OUT/cg_gpu.csv"
   python3 - "$DATA/manifest.csv" > "$OUT/spd_list.txt" <<'EOF'
 import csv, sys
 for r in csv.DictReader(open(sys.argv[1])):
@@ -112,8 +136,15 @@ EOF
     --out "$OUT/cg_gpu.csv"
 }
 gpu_amg() {
-  local B=$TMP/rasp-build/amg_setup
-  "$B" --n 160 --budget-mb 8192 --methods incore,rasp --reps 3 --out "$OUT/amg_gpu.csv" &&
+  local B=$TMP/rasp-build/amg_setup mem big
+  rm -f "$OUT/amg_gpu.csv"
+  # n=160 with a budget everything fits in: 8 GiB, or 70% of a smaller GPU (the budget is a single cudaMalloc)
+  mem=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits -i "${CUDA_VISIBLE_DEVICES%%,*}" 2>/dev/null |
+    head -n 1 | tr -dc 0-9)
+  big=$(( ${mem:-0} * 7 / 10 ))
+  [ "$big" -gt 0 ] && [ "$big" -lt 8192 ] || big=8192
+  echo "GPU memory ${mem:-unknown} MiB: in-core budget $big MiB at n=160"
+  "$B" --n 160 --budget-mb "$big" --methods incore,rasp --reps 3 --out "$OUT/amg_gpu.csv" &&
   "$B" --n 192 --budget-mb 256 --methods alg4,alg4_overlap,rasp_static,rasp,incore --reps 3 --out "$OUT/amg_gpu.csv"
 }
 demo() {
@@ -123,7 +154,8 @@ demo() {
 }
 
 {
-  echo "run $RUN, $(date -u -Iseconds), code $(cat GIT_COMMIT 2>/dev/null || echo unknown)"
+  echo "run $RUN, $(date -u -Iseconds), code $(cat GIT_COMMIT 2>/dev/null || git describe --always --dirty 2>/dev/null ||
+    echo unknown)"
   nvidia-smi --query-gpu=name,driver_version,clocks.max.sm,clocks.max.mem,memory.total --format=csv
   nvcc --version | tail -n 1
   lscpu | sed -n 's/^Model name: *//p'; nproc; free -g | sed -n 2p
@@ -146,6 +178,10 @@ python3 scripts/analyze_seq.py --dir "$OUT/seq" --gpu "$OUT/spmv_gpu.csv" > "$OU
   echo "   analyze_seq.py failed: see $OUT/seq/analysis.log"
 python3 scripts/compare_seq_gpu.py --seq "$OUT/seq" --spmv "$OUT/spmv_gpu.csv" --cg "$OUT/cg_gpu.csv" \
   --amg "$OUT/amg_gpu.csv" | tee "$OUT/comparison.txt"
-python3 -c "import shutil, sys; print(shutil.make_archive(sys.argv[1], 'zip', sys.argv[2], sys.argv[3]))" \
-  "$WORK/rasp_$RUN" "$WORK/rasp-results" "$RUN"
-echo "== Done $(date -u +%H:%M) UTC. Download $WORK/rasp_$RUN.zip from the Output panel."
+if [ "$ZIP" = 1 ]; then
+  python3 -c "import shutil, sys; print(shutil.make_archive(sys.argv[1], 'zip', sys.argv[2], sys.argv[3]))" \
+    "$WORK/rasp_$RUN" "$(dirname "$OUT")" "$(basename "$OUT")"
+  echo "== Done $(date -u +%H:%M) UTC. Download $WORK/rasp_$RUN.zip from the Output panel."
+else
+  echo "== Done $(date -u +%H:%M) UTC. Results in $OUT (commit them: git add $OUT)."
+fi

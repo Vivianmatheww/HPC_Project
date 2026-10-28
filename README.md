@@ -150,6 +150,10 @@ AMG on 160³ plus the out-of-core study at n = 192, and the demo. It finishes wi
 [scripts/compare_seq_gpu.py](scripts/compare_seq_gpu.py), the same-machine speedup table. Running `go` again resumes
 after a crash; `status` shows progress.
 
+The same script works on any machine with an NVIDIA GPU. From the repo root, with the matrices in `data/seq/`
+(`unzip rasp_matrices.zip -d data`): `RUN=rtx4050_<name> ARCH=89 bash scripts/kaggle_run.sh go`. It runs in place,
+builds in `build/kaggle_run/` and writes `results/rtx4050_<name>/`, ready to commit.
+
 ## API
 
 ```cpp
