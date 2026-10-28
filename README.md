@@ -145,8 +145,8 @@ Without an NVIDIA GPU of your own, a free Kaggle notebook works. It needs a phon
    `results/kaggle_<name>/` (e.g. [results/kaggle_harsh/](results/kaggle_harsh/)).
 
 [scripts/kaggle_run.sh](scripts/kaggle_run.sh) builds for sm_75 and runs `ctest`. It then runs the sequential version
-(`seq/profile.sh`) and the GPU version on the same machine: SpMV on the 6 checkpoint matrices, CG on Laplace 128³,
-AMG on 160³ plus the out-of-core study at n = 192, and the demo. It finishes with
+(`seq/profile.sh`) and the GPU version on the same machine: SpMV on the 6 checkpoint matrices (L2 cache flushed,
+then warm), CG on Laplace 128³, AMG on 160³ plus the out-of-core study at n = 192, and the demo. It finishes with
 [scripts/compare_seq_gpu.py](scripts/compare_seq_gpu.py), the same-machine speedup table. Running `go` again resumes
 after a crash; `status` shows progress.
 

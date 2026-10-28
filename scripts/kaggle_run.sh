@@ -47,7 +47,7 @@ mkdir -p "$OUT/.done" "$TMP"
 
 if [ "$MODE" = status ]; then
   echo "results: $OUT"
-  for s in deps tests data seq gpu_spmv gpu_cg gpu_amg demo; do
+  for s in deps tests data seq gpu_spmv gpu_spmv_warm gpu_cg gpu_amg demo; do
     if [ -f "$OUT/.done/$s" ]; then echo "  done     $s"
     elif [ -f "$OUT/$s.log" ]; then echo "  STARTED  $s (not finished): $(tail -n 1 "$OUT/$s.log")"
     else echo "  pending  $s"; fi
@@ -124,6 +124,11 @@ gpu_spmv() {
   rm -f "$OUT/spmv_gpu.csv"
   "$TMP/rasp-build/bench_spmv" --matrices "$DATA" --kernels all --precisions fp64 --out "$OUT/spmv_gpu.csv"
 }
+gpu_spmv_warm() {  # L2 not flushed between calls, as inside a solver loop (on the T4 this halves some times)
+  rm -f "$OUT/spmv_gpu_warm.csv"
+  "$TMP/rasp-build/bench_spmv" --matrices "$DATA" --kernels all --precisions fp64 --no-flush \
+    --out "$OUT/spmv_gpu_warm.csv"
+}
 gpu_cg() {
   rm -f "$OUT/cg_gpu.csv"
   python3 - "$DATA/manifest.csv" > "$OUT/spd_list.txt" <<'EOF'
@@ -169,6 +174,7 @@ step tests tests
 step data data
 step seq seq_run
 step gpu_spmv gpu_spmv
+step gpu_spmv_warm gpu_spmv_warm
 step gpu_cg gpu_cg
 step gpu_amg gpu_amg
 step demo demo
@@ -176,8 +182,8 @@ step demo demo
 echo "== analysis"
 python3 scripts/analyze_seq.py --dir "$OUT/seq" --gpu "$OUT/spmv_gpu.csv" > "$OUT/seq/analysis.log" 2>&1 ||
   echo "   analyze_seq.py failed: see $OUT/seq/analysis.log"
-python3 scripts/compare_seq_gpu.py --seq "$OUT/seq" --spmv "$OUT/spmv_gpu.csv" --cg "$OUT/cg_gpu.csv" \
-  --amg "$OUT/amg_gpu.csv" | tee "$OUT/comparison.txt"
+python3 scripts/compare_seq_gpu.py --seq "$OUT/seq" --spmv "$OUT/spmv_gpu.csv" --spmv-warm "$OUT/spmv_gpu_warm.csv" \
+  --cg "$OUT/cg_gpu.csv" --amg "$OUT/amg_gpu.csv" | tee "$OUT/comparison.txt"
 if [ "$ZIP" = 1 ]; then
   python3 -c "import shutil, sys; print(shutil.make_archive(sys.argv[1], 'zip', sys.argv[2], sys.argv[3]))" \
     "$WORK/rasp_$RUN" "$(dirname "$OUT")" "$(basename "$OUT")"
