@@ -1,0 +1,99 @@
+\section{A multi-core CPU baseline: the OpenMP version}\label{sec:omp}
+
+Comparing one CPU core with a whole GPU is an unfair contest, and a reader can fairly ask whether the GPU wins
+only because it is parallel. We therefore parallelised the sequential program (\texttt{seq/rasp\_seq.cpp}) with OpenMP, changing no algorithm, so
+that all CPU cores can be compared with the GPU. The sequential, OpenMP and CUDA versions read the same inputs and
+print the same phase breakdown. All numbers here come from one laptop CPU (an Intel Core i5-1235U: two
+performance cores with two hardware threads each and eight efficiency cores, 12 hardware threads, under WSL2
+Ubuntu, g++ 15 with \texttt{-O2 -march=native}), with the sequential baseline measured on the same machine.
+Threads are pinned to separate cores (\texttt{OMP\_PROC\_BIND=close}, \texttt{OMP\_PLACES=cores}).
+
+\subsection{What was parallelised}
+\begin{table}[t]
+\centering\small
+\caption{Kernels of \texttt{seq/rasp\_omp.cpp} and how each is parallelised.}\label{tab:omp-kernels}
+\begin{tabular}{@{}p{3.1cm}p{9.6cm}@{}}
+\toprule
+kernel & OpenMP \\
+\midrule
+SpMV CSR, SELL & \texttt{parallel for} over rows (CSR) or slices (SELL); loop schedule chosen at run time (\texttt{--schedule}) \\
+SpMV ELL & one contiguous block of rows per thread, each running the original column-by-column loops (no fork/join per column) \\
+\texttt{dot} & \texttt{reduction(+)}; the summation order changes, so CG may differ from the sequential run in rounding only \\
+\texttt{axpy}, Jacobi, $p$-update, CG diagonal & \texttt{parallel for schedule(static)} \\
+SpGEMM flop estimate & \texttt{parallel for} with a \texttt{reduction(+)} \\
+SpGEMM symbolic pass & per-thread marker array; each row stores only its count, the prefix sum is sequential ($O(\text{rows})$) \\
+SpGEMM numeric pass & per-thread accumulator, marker and list of touched columns; row $i$ writes only its own slice $[rp_i, rp_{i+1})$ of $C$, so there are no conflicts \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Rows have very different lengths, which makes the loop schedule matter for SpMV on irregular matrices: this is the
+CPU version of the load-balancing problem ArgCSR addresses on the GPU. The SpGEMM loops use
+\texttt{schedule(dynamic, 256)} for the same reason. File parsing and format conversion stay sequential, because
+the comparisons do not time them.
+
+\subsection{Correctness}
+\texttt{rasp\_omp --verify} keeps the original sequential kernels and compares against them on the same inputs, at
+1, 2 and all threads. SpMV in every format must agree to a relative error of $10^{-12}$; CG must converge to the
+same tolerance within two iterations of the sequential count; and every AMG coarse matrix must have exactly the
+sequential \texttt{row\_ptr} and \texttt{col}, with values equal to $10^{-12}$. All checks pass (in practice SpMV
+CSR matches exactly, the other formats differ by about $10^{-16}$, and the CG and AMG results are identical).
+
+\subsection{Scaling}
+\begin{figure}[t]
+\centering\rfig[0.62\linewidth]{omp_scaling}
+\caption{Speedup over the sequential run against thread count (fastest of two sweeps). The dashed line is the
+ratio of all-thread to single-thread streaming bandwidth (\stat{omp-bw-1}\,GB/s to \stat{omp-bw-all}\,GB/s,
+\stat{omp-bw-ceiling}\x), the expected ceiling for memory-bound kernels.}\label{fig:omp-scaling}
+\end{figure}
+
+\begin{table}[t]
+\centering\small
+\caption{Speedup over the sequential version on the same machine (fastest of two sweeps). SpMV is the geometric
+mean over six matrices; CG solves a $128^3$ Laplacian; AMG is the SpGEMM time of a $160^3$ Laplace hierarchy.}\label{tab:omp-scaling}
+\stattable{omp-scaling}
+\end{table}
+
+\Cref{tab:omp-scaling} and \cref{fig:omp-scaling} show the result. Speedups stop at about \stat{omp-spmv-best-speedup}\x{} (SpMV, \stat{omp-spmv-best-threads}
+threads), \stat{omp-cg-best-speedup}\x{} (CG, \stat{omp-cg-best-threads} threads) and \stat{omp-amg-best-speedup}\x{} (AMG SpGEMM,
+\stat{omp-amg-best-threads} threads), against a hardware limit of 12. Within one sweep, where no baseline drift enters, the
+best gains over the same code on one thread are \stat{omp-spmv-best-speedup-vs1}\x, \stat{omp-cg-best-speedup-vs1}\x{} and
+\stat{omp-amg-best-speedup-vs1}\x. The OpenMP version on one thread runs as fast as the sequential version (back-to-back runs agree
+within measurement noise), so the OpenMP overhead itself is negligible.
+
+\textbf{Memory bandwidth is the ceiling for SpMV and CG.} These kernels do two flops per twelve bytes read, so they
+are limited by memory bandwidth, and a CPU saturates it with few threads: one thread streams \stat{omp-bw-1}\,GB/s,
+all \stat{omp-bw-threads} threads \stat{omp-bw-all}\,GB/s. CG, whose time is
+dominated by SpMV and by streaming vector updates, flattens at about this ratio. SpMV reaches slightly above it on some matrices, plausibly because part of their
+working set stays in cache. For comparison the RTX~4050 reads \stat{pf-device-read}\,GB/s: the GPU's advantage on these kernels
+is mainly bandwidth, which no number of CPU cores supplies.
+
+\textbf{The loop schedule is not resolved at this noise level.} \Cref{tab:omp-sched} compares the loop schedules at the highest thread
+count. We would expect \texttt{dynamic} to help on matrices with a few very long rows (\texttt{rajat23}), as the
+GPU's row grouping does; at this thread count the three schedules are dominated by run-to-run noise, so we draw no
+conclusion about their ranking.
+
+\begin{table}[t]
+\centering\small
+\caption{SpMV CSR with each loop schedule at the highest thread count (geometric mean over six matrices).}\label{tab:omp-sched}
+\stattable{omp-schedule}
+\end{table}
+
+\textbf{SpGEMM is held back by sequential system time, not by memory bandwidth.} We expected the AMG set-up to scale
+further than SpMV, since it is hash and accumulator work. It does not. In the numeric pass, \texttt{std::vector::resize}
+zero-fills the output arrays on a single thread, and the kernel page faults that this causes are charged as system time:
+\stat{omp-amg-numeric-sys-s-t1}\,s (\stat{omp-amg-numeric-sys-pct-t1}\% of the pass) on one thread
+and \stat{omp-amg-numeric-sys-s-best}\,s (\stat{omp-amg-numeric-sys-pct-best}\% of the pass) at the best thread count. That time does not shrink with the thread count, so
+Amdahl's law caps the speedup. The prefix sum of the symbolic pass is sequential too, but it is negligible next to this.
+
+\textbf{Limits of this measurement.} The i5-1235U has two kinds of core and the sequential run may land on a
+performance core with a high turbo clock, which makes parallel efficiency look lower than it is. The 12-thread
+results use hyperthread siblings and efficiency cores and varied much more between the two sweeps than the
+1--8 thread results, so we do not rely on them; sequential-baseline drift between runs is about $\pm$10\%.
+WSL2 also inflates system time. The same sweep runs on the Kaggle and RTX~4050 machines, so every
+comparison is against a sequential and a GPU run on the same hardware.
+
+\subsection{OpenMP against the GPU}
+Even with every core busy, the CPU version is limited to \stat{omp-cg-best-speedup}--\stat{omp-spmv-best-speedup}\x{} over one core on its memory-bound kernels,
+because its bandwidth rises only \stat{omp-bw-ceiling}\x{} with all threads, while the GPU has several times the bandwidth.
+\todo{add the same-machine OpenMP-vs-GPU table (Kaggle T4 and RTX 4050) from scripts/compare\_seq\_gpu.py once those runs are in}

@@ -24,6 +24,7 @@
 \InputIfFileExists{../report/generated/phase3.tex}{}{}
 \InputIfFileExists{../report/generated/phase4.tex}{}{}
 \InputIfFileExists{../report/generated/phase5.tex}{}{}
+\InputIfFileExists{../report/generated/omp.tex}{}{}
 % \rfig looks in figures/ relative to the report; point it there from here.
 \renewcommand{\rfig}[2][\linewidth]{%
   \IfFileExists{../report/figures/#2.pdf}{\includegraphics[width=#1]{../report/figures/#2.pdf}}{%
@@ -203,6 +204,42 @@
   \item Laplace $A\cdot P$ under a budget: Alg.~4 vs RASP plans, times, measured model, first pipeline tiles.
   \item \textcolor{red}{transcript appears here after \texttt{scripts/run\_phase5.sh}}
   \end{itemize}}
+\end{frame}
+
+\begin{frame}{OpenMP version: what was parallelised}
+\begin{columns}[T]
+\column{0.56\textwidth}
+Same algorithms and output as the sequential version; only the loops changed.
+\begin{itemize}
+\item SpMV CSR / SELL: \texttt{parallel for} over rows / slices, run-time schedule (static, dynamic, guided)
+\item SpMV ELL: a block of rows per thread, no fork/join per column
+\item CG: \texttt{reduction(+)} in the dot products, \texttt{parallel for} in the vector updates
+\item SpGEMM: per-thread marker and accumulator; each row writes its own slice of $C$; prefix sum stays sequential
+\end{itemize}
+\column{0.42\textwidth}
+\textbf{Checked against the sequential kernels} (\texttt{--verify}, 1, 2 and all threads):
+\begin{itemize}
+\item SpMV: relative error $\le 10^{-12}$
+\item CG: same convergence, iterations within 2
+\item AMG: identical \texttt{row\_ptr}/\texttt{col}, values to $10^{-12}$
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Scaling: why the GPU still wins}
+\begin{columns}[T]
+\column{0.54\textwidth}
+\rfig{omp_scaling}
+\column{0.44\textwidth}
+\begin{itemize}
+\item Best speedup over one core: SpMV \stat{omp-spmv-best-speedup}\x, CG \stat{omp-cg-best-speedup}\x, AMG SpGEMM \stat{omp-amg-best-speedup}\x
+\item SpMV and CG are memory-bound: this CPU streams \stat{omp-bw-1} $\to$ \stat{omp-bw-all}\,GB/s with all threads
+  (\stat{omp-bw-ceiling}\x); the RTX~4050 reads \stat{pf-device-read}\,GB/s
+\item SpGEMM: \stat{omp-amg-numeric-sys-pct-best}\% of the numeric pass is single-threaded page-fault time
+  (Amdahl's law)
+\item 12 threads = hyperthreads and efficiency cores: noisy, not relied on
+\end{itemize}
+\end{columns}
 \end{frame}
 
 \begin{frame}{Conclusions}
