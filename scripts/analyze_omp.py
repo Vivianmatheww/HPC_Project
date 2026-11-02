@@ -108,6 +108,13 @@ def main():
             tex.stat(f"omp-{w}-best-speedup", sp[i], "{:.1f}")
             tex.stat(f"omp-{w}-best-threads", threads[i])
             tex.stat(f"omp-{w}-speedup-t{tmax}", sp[-1], "{:.1f}")
+            tex.stat(f"omp-{w}-best-speedup-vs1", t[0] / min(t), "{:.1f}")  # inside one sweep: no baseline drift
+            if w == "amg":  # the zero-filling of C is single-threaded system time that no thread count removes
+                for key, T in (("t1", 1), ("best", threads[i])):
+                    num = pd.read_csv(args.omp[0] / f"t{T}" / "amg.csv").query("name == 'spgemm: numeric'").iloc[0]
+                    tex.stat(f"omp-amg-numeric-sys-s-{key}", num.sys, "{:.2f}")
+                    tex.stat(f"omp-amg-numeric-sys-pct-{key}", 100 * num.sys / num.seconds, "{:.0f}")
+                    print(f"{'numeric pass system time (T=' + str(T) + ')':<34}{num.sys:9.3f} s = {100 * num.sys / num.seconds:.0f}% of the pass")
             rows.append([title.split(" (")[0].replace("³", "$^3$")] + [f"{x:.2f}$\\times$" for x in sp])
         tex.table("omp-scaling", ["workload"] + [f"{T}\\,thr" for T in threads], rows, "l" + "r" * len(threads))
 
@@ -139,6 +146,9 @@ def main():
                 print(f"\nstreaming bandwidth: 1 thread {vals[0][1]} GB/s, {vals[1][0]} threads {vals[1][1]} GB/s "
                       f"-> expected ceiling of SpMV/CG ~{ceiling:.1f}x")
                 tex.stat("omp-bw-ceiling", ceiling, "{:.1f}")
+                tex.stat("omp-bw-1", float(vals[0][1]), "{:.1f}")
+                tex.stat("omp-bw-all", float(vals[1][1]), "{:.1f}")
+                tex.stat("omp-bw-threads", vals[1][0])
     text = buf.getvalue()
     print(text, end="")
     (out_dir / "summary.txt").write_text(text)

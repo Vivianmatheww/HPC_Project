@@ -31,6 +31,8 @@ speedup vs sequential                          1.05x    1.41x    1.72x    1.92x 
 speedup vs T=1                                 1.00x    1.35x    1.64x    1.83x    1.48x
 efficiency (vs seq)                             105%      71%      43%      24%      13%
 busy cores (user/wall)                           0.6      1.1      1.8      3.4      5.5
+numeric pass system time (T=1)        0.202 s = 47% of the pass
+numeric pass system time (T=8)        0.208 s = 90% of the pass
 
 == SpMV CSR per matrix  [ms per SpMV; speedup vs sequential]
                       seq      T=1      T=2      T=4      T=8     T=12
