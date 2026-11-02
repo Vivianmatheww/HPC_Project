@@ -1,0 +1,28 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 50.62      5.27     5.27      322     0.02     0.02  (anonymous namespace)::spmv_csr((anonymous namespace)::Csr const&, double const*, double*)
+ 17.58      7.10     1.83      964     0.00     0.00  (anonymous namespace)::dot(std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&)
+ 14.70      8.63     1.53      642     0.00     0.00  (anonymous namespace)::axpy(double, std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> >&)
+  8.84      9.55     0.92      321     0.00     0.00  (anonymous namespace)::jacobi(std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> >&)
+  6.82     10.26     0.71      320     0.00     0.00  (anonymous namespace)::xpby(std::vector<double, std::allocator<double> > const&, double, std::vector<double, std::allocator<double> >&)
+  1.06     10.37     0.11        1     0.11     0.11  (anonymous namespace)::laplace3d(int)
+  0.29     10.40     0.03        1     0.03    10.41  (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, int, double)
+  0.10     10.41     0.01        2     0.01     0.01  std::vector<double, std::allocator<double> >::vector(unsigned long, double const&, std::allocator<double> const&)
+  0.00     10.41     0.00     4492     0.00     0.00  (anonymous namespace)::cpu_times(double&, double&)
+  0.00     10.41     0.00     2246     0.00     0.00  (anonymous namespace)::phase(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+  0.00     10.41     0.00       25     0.00     0.00  void std::vector<double, std::allocator<double> >::_M_realloc_append<double const&>(double const&)
+  0.00     10.41     0.00       25     0.00     0.00  void std::vector<int, std::allocator<int> >::_M_realloc_append<int const&>(int const&)
+  0.00     10.41     0.00       12     0.00     0.00  void std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::_M_construct<true>(char const*, unsigned long)
+  0.00     10.41     0.00        8     0.00     0.00  std::_Vector_base<double, std::allocator<double> >::~_Vector_base()
+  0.00     10.41     0.00        5     0.00     0.00  std::vector<double, std::allocator<double> >::vector(unsigned long, std::allocator<double> const&)
+  0.00     10.41     0.00        4     0.00     0.00  std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<std::allocator<char> >(char const*, std::allocator<char> const&)
+  0.00     10.41     0.00        2     0.00     0.00  (anonymous namespace)::Csr::~Csr()
+  0.00     10.41     0.00        2     0.00     0.00  (anonymous namespace)::Timer::~Timer()
+  0.00     10.41     0.00        2     0.00     0.00  std::vector<double, std::allocator<double> >::operator=(std::vector<double, std::allocator<double> > const&)
+  0.00     10.41     0.00        1     0.00     0.00  (anonymous namespace)::Csr::operator=((anonymous namespace)::Csr&&)
+  0.00     10.41     0.00        1     0.00     0.00  std::vector<(anonymous namespace)::SpmvResult, std::allocator<(anonymous namespace)::SpmvResult> >::~vector()
+  0.00     10.41     0.00        1     0.00     0.00  std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()
+  0.00     10.41     0.00        1     0.00     0.00  std::vector<int, std::allocator<int> >::reserve(unsigned long)

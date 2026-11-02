@@ -1,0 +1,55 @@
+machine: 12th Gen Intel(R) Core(TM) i5-1235U, 12 threads, g++ (Ubuntu 15.2.0-16ubuntu1) 15.2.0, OMP_PROC_BIND=close OMP_PLACES=cores
+runs: 2 sweep(s) of threads [1, 2, 4, 8, 12], fastest time of each metric
+  run-to-run spread at 1 thread(s): spmv 12.4%, cg 3.7%, amg 2.0%
+  run-to-run spread at 2 thread(s): spmv 25.2%, cg 11.8%, amg 1.1%
+  run-to-run spread at 4 thread(s): spmv 22.1%, cg 8.5%, amg 21.2%
+  run-to-run spread at 8 thread(s): spmv 32.8%, cg 7.2%, amg 27.8%
+  run-to-run spread at 12 thread(s): spmv 223.6%, cg 106.8%, amg 67.1%
+
+== time (speedup vs the sequential run, vs T=1; parallel efficiency = speedup / T; busy = user CPU / wall)
+
+SpMV CSR (geomean of 6 matrices)  [ms]
+                                        seq      T=1      T=2      T=4      T=8     T=12
+time                                  1.688    1.482    0.938    0.776    0.828    2.071
+speedup vs sequential                          1.14x    1.80x    2.17x    2.04x    0.82x
+speedup vs T=1                                 1.00x    1.58x    1.91x    1.79x    0.72x
+efficiency (vs seq)                             114%      90%      54%      25%       7%
+busy cores (user/wall)                           1.0      2.0      3.9      7.7     11.4
+
+CG solve (Laplace 128³)  [s]
+                                        seq      T=1      T=2      T=4      T=8     T=12
+time                                 10.252    9.448    6.719    6.061    6.261    8.084
+speedup vs sequential                          1.09x    1.53x    1.69x    1.64x    1.27x
+speedup vs T=1                                 1.00x    1.41x    1.56x    1.51x    1.17x
+efficiency (vs seq)                             109%      76%      42%      20%      11%
+busy cores (user/wall)                           1.0      2.0      4.0      7.9     11.9
+
+AMG SpGEMM (Laplace 160³)  [s]
+                                        seq      T=1      T=2      T=4      T=8     T=12
+time                                  0.567    0.541    0.401    0.330    0.295    0.365
+speedup vs sequential                          1.05x    1.41x    1.72x    1.92x    1.55x
+speedup vs T=1                                 1.00x    1.35x    1.64x    1.83x    1.48x
+efficiency (vs seq)                             105%      71%      43%      24%      13%
+busy cores (user/wall)                           0.6      1.1      1.8      3.4      5.5
+
+== SpMV CSR per matrix  [ms per SpMV; speedup vs sequential]
+                      seq      T=1      T=2      T=4      T=8     T=12
+rajat23             0.682    0.667    0.519    0.280    0.402    4.774
+  speedup                    1.02x    1.31x    2.44x    1.70x    0.14x
+ASIC_100k           0.980    1.001    0.568    0.735    0.622    2.159
+  speedup                    0.98x    1.72x    1.33x    1.58x    0.45x
+Pres_Poisson        0.680    0.419    0.334    0.215    0.364    1.654
+  speedup                    1.62x    2.03x    3.16x    1.87x    0.41x
+torso2              0.966    1.022    0.502    0.419    0.350    0.517
+  speedup                    0.95x    1.92x    2.31x    2.76x    1.87x
+cop20k_A            3.528    2.754    1.465    1.544    1.607    1.310
+  speedup                    1.28x    2.41x    2.28x    2.20x    2.69x
+af_shell1          14.945   13.444    9.389    7.642    6.313    6.832
+  speedup                    1.11x    1.59x    1.96x    2.37x    2.19x
+
+== SpMV CSR loop schedule at T=12  [geomean ms; speedup vs sequential]
+  static         2.071 ms   0.82x
+  dynamic,64     1.801 ms   0.94x
+  guided         2.897 ms   0.58x
+
+streaming bandwidth: 1 thread 18.5 GB/s, 12 threads 33.4 GB/s -> expected ceiling of SpMV/CG ~1.8x

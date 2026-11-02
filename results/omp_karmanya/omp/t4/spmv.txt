@@ -1,0 +1,36 @@
+OpenMP: 4 threads, SpMV schedule static
+rajat23              110355 rows     556938 nnz | mean 5.0 max 3401 cv 3.84 | ELL fill 673.9x, SELL-32 fill 4.50x
+  SpMV CSR              0.280 ms    3.98 GFLOP/s
+  ELL skipped (padding 673.9x > 3x)
+  SpMV SELL-32-256      1.172 ms    0.95 GFLOP/s
+ASIC_100k             99340 rows     954163 nnz | mean 9.6 max 99029 cv 43.82 | ELL fill 10310.1x, SELL-32 fill 5.23x
+  SpMV CSR              0.765 ms    2.49 GFLOP/s
+  ELL skipped (padding 10310.1x > 3x)
+  SpMV SELL-32-256      5.068 ms    0.38 GFLOP/s
+Pres_Poisson          14822 rows     715804 nnz | mean 48.3 max 50 cv 0.11 | ELL fill 1.0x, SELL-32 fill 1.03x
+  SpMV CSR              0.225 ms    6.37 GFLOP/s
+  SpMV ELL              0.391 ms    3.66 GFLOP/s
+  SpMV SELL-32-256      0.274 ms    5.22 GFLOP/s
+torso2               115967 rows    1033473 nnz | mean 8.9 max 10 cv 0.07 | ELL fill 1.1x, SELL-32 fill 1.00x
+  SpMV CSR              0.577 ms    3.58 GFLOP/s
+  SpMV ELL              0.694 ms    2.98 GFLOP/s
+  SpMV SELL-32-256      0.507 ms    4.08 GFLOP/s
+cop20k_A             121192 rows    2624331 nnz | mean 21.7 max 81 cv 0.64 | ELL fill 3.7x, SELL-32 fill 1.19x
+  SpMV CSR              1.544 ms    3.40 GFLOP/s
+  ELL skipped (padding 3.7x > 3x)
+  SpMV SELL-32-256      1.504 ms    3.49 GFLOP/s
+af_shell1            504855 rows   17588875 nnz | mean 34.8 max 40 cv 0.04 | ELL fill 1.1x, SELL-32 fill 1.01x
+  SpMV CSR              7.642 ms    4.60 GFLOP/s
+  SpMV ELL             11.189 ms    3.14 GFLOP/s
+  SpMV SELL-32-256      8.031 ms    4.38 GFLOP/s
+
+       phase                                 wall s   share   user s    sys s     calls
+spmv   read Matrix Market (parse)             3.794   56.9%    1.809    0.406         6
+spmv   build CSR (sort, merge)                0.503    7.5%    0.219    0.284         6
+spmv   features                               0.001    0.0%    0.001    0.000         6
+spmv   SpMV CSR                               0.552    8.3%    2.159    0.001         6
+spmv   convert to SELL-32-256                 0.168    2.5%    0.225    0.089         6
+spmv   SpMV SELL-32-256                       0.828   12.4%    3.298    0.000         6
+spmv   convert to ELL                         0.127    1.9%    0.115    0.080         3
+spmv   SpMV ELL                               0.614    9.2%    2.440    0.004         3
+       total                                   6.662

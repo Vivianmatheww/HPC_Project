@@ -1,0 +1,1 @@
+12th Gen Intel(R) Core(TM) i5-1235U, 12 threads, g++ (Ubuntu 15.2.0-16ubuntu1) 15.2.0, OMP_PROC_BIND=close OMP_PLACES=cores

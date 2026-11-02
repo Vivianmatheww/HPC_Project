@@ -1,0 +1,15 @@
+OpenMP: 8 threads, SpMV schedule static
+AMG level grid 160: A  4096000 rows nnz  28518400 -> coarse  512000 rows nnz  3545600
+AMG level grid  80: A   512000 rows nnz   3545600 -> coarse   64000 rows nnz   438400
+AMG level grid  40: A    64000 rows nnz    438400 -> coarse    8000 rows nnz    53600
+AMG level grid  20: A     8000 rows nnz     53600 -> coarse    1000 rows nnz     6400
+AMG level grid  10: A     1000 rows nnz      6400 -> coarse     125 rows nnz      725
+AMG set-up (x1): 5.11e+07 multiply-adds per set-up
+
+       phase                                 wall s   share   user s    sys s     calls
+amg    generate Laplace3D                     0.445   39.2%    0.137    0.308         1
+amg    generate P, R = P^T                    0.110    9.6%    0.032    0.077         5
+amg    spgemm: flop estimate                  0.017    1.5%    0.128    0.000        10
+amg    spgemm: symbolic                       0.045    3.9%    0.267    0.022        10
+amg    spgemm: numeric                        0.233   20.5%    0.620    0.208        10
+       total                                   1.137
