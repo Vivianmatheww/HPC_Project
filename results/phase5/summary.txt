@@ -49,8 +49,8 @@
       level 5 grid    8 R*(AP)  alg4    35.56  rasp     1.92
 
 == Nsight Compute (metrics only; ncu runs at base clocks)
-  spgemm_csr_add_rxa           add_fill_kernel                      0.1 us  DRAM  11.5%  mem  80.5%  occupancy  25.7% (theoretical 100.0%)  read    nan GB/s  stalls: long_scoreboard 88.6, lg_throttle 12.2, wait 2.7
-  spmv_argcsr_D1_rajat23       argcsr_kernel                        0.1 us  DRAM  33.0%  mem  33.0%  occupancy  84.1% (theoretical 100.0%)  read    nan GB/s  stalls: barrier 41.9, long_scoreboard 37.2, wait 3.1
-  spmv_argcsr_D32_rajat23      argcsr_kernel                        0.0 us  DRAM   2.6%  mem   2.6%  occupancy  28.9% (theoretical 100.0%)  read    nan GB/s  stalls: barrier 87.8, long_scoreboard 79.9, wait 3.5
-  spmv_csr_vector_af_shell1    csr_vector_kernel                    0.0 us  DRAM  48.1%  mem  48.1%  occupancy  90.7% (theoretical 100.0%)  read    nan GB/s  stalls: long_scoreboard 195.5, lg_throttle 8.5, short_scoreboard 5.4
-  spmv_cusparse_af_shell1      void csrmv_v3_kernel                 0.0 us  DRAM  48.6%  mem  48.6%  occupancy  72.9% (theoretical  75.0%)  read    nan GB/s  stalls: long_scoreboard 25.8, short_scoreboard 12.2, tex_throttle 3.5
+  spgemm_csr_add_rxa           add_fill_kernel                     67.3 us  DRAM  23.0%  mem  81.4%  occupancy  25.7% (theoretical 100.0%)  DRAM   43.6 GB/s from L2 misses (ncu dram__bytes  14.7), L2 hit 89.4%  stalls: long_scoreboard 88.6, lg_throttle 12.2, wait 2.7
+  spmv_argcsr_D1_rajat23       argcsr_kernel                       84.3 us  DRAM  66.0%  mem  66.0%  occupancy  84.1% (theoretical 100.0%)  DRAM  126.6 GB/s from L2 misses (ncu dram__bytes  42.2), L2 hit 27.1%  stalls: barrier 41.9, long_scoreboard 37.2, wait 3.1
+  spmv_argcsr_D32_rajat23      argcsr_kernel                     1432.2 us  DRAM   5.2%  mem   5.2%  occupancy  28.9% (theoretical 100.0%)  DRAM    9.7 GB/s from L2 misses (ncu dram__bytes   3.3), L2 hit 18.9%  stalls: barrier 87.8, long_scoreboard 79.9, wait 3.5
+  spmv_csr_vector_af_shell1    csr_vector_kernel                 1201.8 us  DRAM  96.1%  mem  96.1%  occupancy  90.7% (theoretical 100.0%)  DRAM  180.7 GB/s from L2 misses (ncu dram__bytes  61.5), L2 hit 20.2%  stalls: long_scoreboard 195.5, lg_throttle 8.5, short_scoreboard 5.4
+  spmv_cusparse_af_shell1      void csrmv_v3_kernel              1184.4 us  DRAM  97.1%  mem  97.1%  occupancy  72.9% (theoretical  75.0%)  DRAM  185.3 GB/s from L2 misses (ncu dram__bytes  62.1), L2 hit 13.7%  stalls: long_scoreboard 25.8, short_scoreboard 12.2, tex_throttle 3.5

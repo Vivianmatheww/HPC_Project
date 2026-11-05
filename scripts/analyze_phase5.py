@@ -142,8 +142,18 @@ def amg(path, tex):
 
 
 # Nsight Compute raw pages: header row of metric names, then a row of units, then one row per profiled kernel.
-SCALE_NS = {"nsecond": 1, "usecond": 1e3, "msecond": 1e6, "second": 1e9}
-SCALE_B = {"byte": 1, "Kbyte": 1e3, "Mbyte": 1e6, "Gbyte": 1e9, "Kibyte": 1024, "Mibyte": 2**20, "Gibyte": 2**30}
+# Older ncu versions spell the time units nsecond/usecond/msecond, newer ones ns/us/ms.
+SCALE_NS = {"nsecond": 1, "usecond": 1e3, "msecond": 1e6, "second": 1e9, "ns": 1, "us": 1e3, "ms": 1e6, "s": 1e9}
+SCALE_B = {"byte": 1, "Kbyte": 1e3, "Mbyte": 1e6, "Gbyte": 1e9, "Tbyte": 1e12, "Kibyte": 1024, "Mibyte": 2**20,
+           "Gibyte": 2**30}
+L2_SECTOR_B = 32
+# DRAM counters on the RTX 4050 Laptop GPU (ncu 2025.x): every dram__/gpu__dram_throughput metric has two instances,
+# one of which always reads 0 (min = 0, avg = max / 2), so the .avg percentage ncu reports is half the real one; and
+# dram__bytes.sum.per_second is ~1/3 of the traffic implied by the timing, as if only one of the three 32-bit memory
+# partitions of the 96-bit bus were counted. The L2 miss count does agree with the timing (cuSPARSE on af_shell1:
+# 6.86 M sectors x 32 B in 1.18 ms = 185 GB/s, against ~178 GB/s from the bench and 192 GB/s peak), and the L2 hit
+# rate (14%) rules out ncu replaying with a warm L2. So the table gives DRAM % from the busy instance (.max) and
+# DRAM GB/s from L2 misses; ncu's own dram__bytes figure is printed in summary.txt for reference only.
 
 
 def ncu_table(ncu_dir, tex):
@@ -179,13 +189,15 @@ def ncu_table(ncu_dir, tex):
         name = str(r[col(df, "Kernel Name", "Function Name") or df.columns[0]])
         dur_c = col(df, r"gpu__time_duration\.sum")
         dur_ns = num(dur_c) * SCALE_NS.get(str(units[dur_c]), 1) if dur_c else np.nan
-        dram = num(col(df, r"gpu__dram_throughput\.avg\.pct_of_peak_sustained_elapsed",
-                       r"dram__throughput\.avg\.pct_of_peak_sustained_elapsed"))
-        mem = num(col(df, r"gpu__compute_memory_throughput\.avg\.pct_of_peak_sustained_elapsed"))
+        dram = num(col(df, r"gpu__dram_throughput\.max\.pct_of_peak_sustained_elapsed",
+                       r"dram__throughput\.max\.pct_of_peak_sustained_elapsed"))
+        mem = num(col(df, r"gpu__compute_memory_throughput\.max\.pct_of_peak_sustained_elapsed"))
         occ = num(col(df, r"sm__warps_active\.avg\.pct_of_peak_sustained_active"))
         theo = num(col(df, r"sm__maximum_warps_per_active_cycle_pct"))
-        rd_c = col(df, r"dram__bytes_read\.sum")
-        rd = num(rd_c) * SCALE_B.get(str(units[rd_c]), 1) if rd_c else np.nan
+        bw_c = col(df, r"dram__bytes\.sum\.per_second")  # bytes/s; unreliable here, see above
+        ncu_gbs = num(bw_c) * SCALE_B.get(str(units[bw_c]).removesuffix("/s"), 1) / 1e9 if bw_c else np.nan
+        miss = num(col(df, r"lts__t_sectors_lookup_miss\.sum"))
+        hit = num(col(df, r"lts__t_sector_hit_rate\.pct"))
         stalls = {}
         for c in df.columns:
             m = re.fullmatch(r"smsp__average_warps_issue_stalled_(\w+)_per_issue_active\.ratio", c) or \
@@ -196,17 +208,21 @@ def ncu_table(ncu_dir, tex):
                     stalls[m.group(1)] = v
         top = sorted(stalls.items(), key=lambda kv: -kv[1])[:3]
         short = re.sub(r"\(.*", "", name).split("<")[0].split("::")[-1][:40]
-        gbs = rd / dur_ns if np.isfinite(rd) and dur_ns > 0 else np.nan
+        gbs = miss * L2_SECTOR_B / dur_ns if np.isfinite(miss) and dur_ns > 0 else np.nan  # bytes/ns = GB/s
         print(f"  {f.stem:<28} {short:<30} {dur_ns / 1e3:9.1f} us  DRAM {dram:5.1f}%  mem {mem:5.1f}%  "
-              f"occupancy {occ:5.1f}% (theoretical {theo:5.1f}%)  read {gbs:6.1f} GB/s  stalls: "
+              f"occupancy {occ:5.1f}% (theoretical {theo:5.1f}%)  DRAM {gbs:6.1f} GB/s from L2 misses "
+              f"(ncu dram__bytes {ncu_gbs:5.1f}), L2 hit {hit:4.1f}%  stalls: "
               + ", ".join(f"{k} {v:.1f}" for k, v in top))
-        rows.append([tex_escape(f.stem), tex_escape(short), f"{dur_ns / 1e3:.0f}", f"{dram:.0f}", f"{occ:.0f}",
-                     f"{theo:.0f}", tex_escape(", ".join(k.replace("_", " ") for k, _ in top))])
+        rows.append([tex_escape(f.stem), tex_escape(short), f"{dur_ns / 1e3:.0f}", f"{dram:.0f}", f"{gbs:.0f}",
+                     f"{occ:.0f}", f"{theo:.0f}", tex_escape(", ".join(k.replace("_", " ") for k, _ in top))])
         key = f.stem.replace("_", "-")
+        tex.stat(f"p5-ncu-{key}-us", dur_ns / 1e3, "{:.0f}")
         tex.stat(f"p5-ncu-{key}-dram", dram, "{:.0f}")
+        tex.stat(f"p5-ncu-{key}-gbs", gbs, "{:.0f}")
+        tex.stat(f"p5-ncu-{key}-l2hit", hit, "{:.0f}")
         tex.stat(f"p5-ncu-{key}-occ", occ, "{:.0f}")
-    tex.table("p5-ncu", ["profile", "kernel", "$\\mu$s", "DRAM \\%", "occ.\\ \\%", "theor.\\ \\%", "top stalls"], rows,
-              "llrrrrl")
+    tex.table("p5-ncu", ["profile", "kernel", "$\\mu$s", "DRAM \\%", "GB/s", "occ.\\ \\%", "theor.\\ \\%",
+                         "top stalls"], rows, "llrrrrrl")
 
 
 def main():
