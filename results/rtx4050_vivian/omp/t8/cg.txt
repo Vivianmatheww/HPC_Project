@@ -1,0 +1,11 @@
+OpenMP: 8 threads, SpMV schedule static
+CG on laplace:128: 2097152 rows, nnz 14581760, 321 iterations, |r|/|b| = 9.96e-09
+
+       phase                                 wall s   share   user s    sys s     calls
+cg     load / generate matrix                 0.068    1.6%    0.050    0.018         1
+cg     set-up (b = A x_true, Jacobi)          0.014    0.3%    0.031    0.000         1
+cg     SpMV (q = A p)                         1.848   44.7%   14.766    0.001       321
+cg     dot products                           0.608   14.7%    4.851    0.021       962
+cg     vector updates (axpy)                  1.079   26.1%    8.658    0.021       641
+cg     preconditioner (Jacobi)                0.492   11.9%    3.759    0.001       320
+       total                                   4.137
