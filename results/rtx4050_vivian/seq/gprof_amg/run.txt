@@ -1,0 +1,14 @@
+AMG level grid 160: A  4096000 rows nnz  28518400 -> coarse  512000 rows nnz  3545600
+AMG level grid  80: A   512000 rows nnz   3545600 -> coarse   64000 rows nnz   438400
+AMG level grid  40: A    64000 rows nnz    438400 -> coarse    8000 rows nnz    53600
+AMG level grid  20: A     8000 rows nnz     53600 -> coarse    1000 rows nnz     6400
+AMG level grid  10: A     1000 rows nnz      6400 -> coarse     125 rows nnz      725
+AMG set-up (x4): 5.11e+07 multiply-adds per set-up
+
+       phase                                 wall s   share   user s    sys s     calls
+amg    generate Laplace3D                     0.300   10.1%    0.049    0.251         1
+amg    generate P, R = P^T                    0.169    5.7%    0.076    0.093        20
+amg    spgemm: flop estimate                  0.102    3.4%    0.095    0.007        40
+amg    spgemm: symbolic                       0.266    8.9%    0.249    0.017        40
+amg    spgemm: numeric                        1.349   45.3%    1.136    0.213        40
+       total                                   2.975

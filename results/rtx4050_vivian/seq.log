@@ -1,0 +1,92 @@
+== machine: AMD Ryzen 7 7840HS w/ Radeon 780M Graphics, 16 threads, g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+== timed runs (optimised build)
+rajat23              110355 rows     556938 nnz | mean 5.0 max 3401 cv 3.84 | ELL fill 673.9x, SELL-32 fill 4.50x
+  SpMV CSR              0.317 ms    3.51 GFLOP/s
+  ELL skipped (padding 673.9x > 3x)
+  SpMV SELL-32-256      1.559 ms    0.71 GFLOP/s
+ASIC_100k             99340 rows     954163 nnz | mean 9.6 max 99029 cv 43.82 | ELL fill 10310.1x, SELL-32 fill 5.23x
+  SpMV CSR              0.726 ms    2.63 GFLOP/s
+  ELL skipped (padding 10310.1x > 3x)
+  SpMV SELL-32-256      4.165 ms    0.46 GFLOP/s
+Pres_Poisson          14822 rows     715804 nnz | mean 48.3 max 50 cv 0.11 | ELL fill 1.0x, SELL-32 fill 1.03x
+  SpMV CSR              0.304 ms    4.72 GFLOP/s
+  SpMV ELL              0.491 ms    2.92 GFLOP/s
+  SpMV SELL-32-256      0.468 ms    3.06 GFLOP/s
+torso2               115967 rows    1033473 nnz | mean 8.9 max 10 cv 0.07 | ELL fill 1.1x, SELL-32 fill 1.00x
+  SpMV CSR              0.534 ms    3.87 GFLOP/s
+  SpMV ELL              0.655 ms    3.16 GFLOP/s
+  SpMV SELL-32-256      0.705 ms    2.93 GFLOP/s
+cop20k_A             121192 rows    2624331 nnz | mean 21.7 max 81 cv 0.64 | ELL fill 3.7x, SELL-32 fill 1.19x
+  SpMV CSR              1.808 ms    2.90 GFLOP/s
+  ELL skipped (padding 3.7x > 3x)
+  SpMV SELL-32-256      2.770 ms    1.90 GFLOP/s
+af_shell1            504855 rows   17588875 nnz | mean 34.8 max 40 cv 0.04 | ELL fill 1.1x, SELL-32 fill 1.01x
+  SpMV CSR              7.344 ms    4.79 GFLOP/s
+  SpMV ELL             15.720 ms    2.24 GFLOP/s
+  SpMV SELL-32-256     12.898 ms    2.73 GFLOP/s
+
+       phase                                 wall s   share   user s    sys s     calls
+spmv   read Matrix Market (parse)             1.320   29.9%    0.952    0.368         6
+spmv   build CSR (sort, merge)                0.388    8.8%    0.199    0.189         6
+spmv   features                               0.001    0.0%    0.000    0.000         6
+spmv   SpMV CSR                               0.552   12.5%    0.550    0.002         6
+spmv   convert to SELL-32-256                 0.109    2.5%    0.089    0.020         6
+spmv   SpMV SELL-32-256                       1.128   25.5%    1.128    0.000         6
+spmv   convert to ELL                         0.062    1.4%    0.033    0.030         3
+spmv   SpMV ELL                               0.843   19.1%    0.842    0.001         3
+       total                                   4.423
+CG on laplace:128: 2097152 rows, nnz 14581760, 321 iterations, |r|/|b| = 9.96e-09
+
+       phase                                 wall s   share   user s    sys s     calls
+cg     load / generate matrix                 0.070    0.9%    0.049    0.020         1
+cg     set-up (b = A x_true, Jacobi)          0.025    0.3%    0.025    0.000         1
+cg     SpMV (q = A p)                         4.260   56.1%    4.258    0.000       321
+cg     dot products                           1.408   18.5%    1.403    0.001       962
+cg     vector updates (axpy)                  1.207   15.9%    1.204    0.001       641
+cg     preconditioner (Jacobi)                0.588    7.7%    0.586    0.000       320
+       total                                   7.590
+AMG level grid 160: A  4096000 rows nnz  28518400 -> coarse  512000 rows nnz  3545600
+AMG level grid  80: A   512000 rows nnz   3545600 -> coarse   64000 rows nnz   438400
+AMG level grid  40: A    64000 rows nnz    438400 -> coarse    8000 rows nnz    53600
+AMG level grid  20: A     8000 rows nnz     53600 -> coarse    1000 rows nnz     6400
+AMG level grid  10: A     1000 rows nnz      6400 -> coarse     125 rows nnz      725
+AMG set-up (x1): 5.11e+07 multiply-adds per set-up
+
+       phase                                 wall s   share   user s    sys s     calls
+amg    generate Laplace3D                     0.180   15.9%    0.094    0.086         1
+amg    generate P, R = P^T                    0.090    7.9%    0.040    0.049         5
+amg    spgemm: flop estimate                  0.020    1.7%    0.014    0.006        10
+amg    spgemm: symbolic                       0.081    7.1%    0.073    0.007        10
+amg    spgemm: numeric                        0.536   47.3%    0.275    0.260        10
+       total                                   1.132
+== streaming memory bandwidth (one thread, all threads)
+dot product,  1 thread(s):   22.0 GB/s (best of 7)
+dot product, 16 thread(s):   50.7 GB/s (best of 7)
+== gprof runs (instrumented build; AMG repeated 4x for enough samples)
+-- spmv
+ time   seconds   seconds    calls  ms/call  ms/call  name    
+ 32.61      1.05     1.05      300     3.50     3.50  (anonymous namespace)::spmv_sell((anonymous namespace)::Sell const
+ 30.75      2.04     0.99      150     6.60     6.60  (anonymous namespace)::spmv_ell((anonymous namespace)::Ell const&,
+ 19.57      2.67     0.63      306     2.06     2.06  (anonymous namespace)::spmv_csr((anonymous namespace)::Csr const&,
+  6.83      2.89     0.22        6    36.67    41.11  (anonymous namespace)::coo_to_csr((anonymous namespace)::Coo const
+  3.42      3.00     0.11        6    18.33    18.33  (anonymous namespace)::read_matrix_market(std::__cxx11::basic_stri
+  1.55      3.05     0.05        9     5.56     5.56  std::vector<double, std::allocator<double> >::_M_fill_assign(unsig
+  1.55      3.10     0.05        6     8.33    17.22  (anonymous namespace)::csr_to_sell((anonymous namespace)::Csr cons
+-- cg
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 57.63      4.23     4.23      322     0.01     0.01  (anonymous namespace)::spmv_csr((anonymous namespace)::Csr const&,
+ 17.71      5.53     1.30      964     0.00     0.00  (anonymous namespace)::dot(std::vector<double, std::allocator<doub
+ 11.85      6.40     0.87      642     0.00     0.00  (anonymous namespace)::axpy(double, std::vector<double, std::alloc
+  7.22      6.93     0.53      321     0.00     0.00  (anonymous namespace)::jacobi(std::vector<double, std::allocator<d
+  4.90      7.29     0.36      320     0.00     0.00  (anonymous namespace)::xpby(std::vector<double, std::allocator<dou
+  0.54      7.33     0.04        1     0.04     0.04  (anonymous namespace)::laplace3d(int)
+  0.14      7.34     0.01        1     0.01     7.34  (anonymous namespace)::workload_cg(std::__cxx11::basic_string<char
+-- amg
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 53.70      0.87     0.87       40     0.02     0.02  (anonymous namespace)::spgemm_numeric((anonymous namespace)::Csr c
+ 16.67      1.14     0.27       40     0.01     0.01  (anonymous namespace)::spgemm_symbolic((anonymous namespace)::Csr 
+ 11.73      1.33     0.19        1     0.19     0.19  (anonymous namespace)::laplace3d(int)
+  7.41      1.45     0.12       40     0.00     0.00  (anonymous namespace)::spgemm_flops((anonymous namespace)::Csr con
+  3.70      1.51     0.06 21064500     0.00     0.00  void std::__insertion_sort<__gnu_cxx::__normal_iterator<int*, std:
+  3.09      1.56     0.05       20     0.00     0.00  (anonymous namespace)::transpose((anonymous namespace)::Csr const&
+  1.85      1.59     0.03       20     0.00     0.00  (anonymous namespace)::aggregation(int)

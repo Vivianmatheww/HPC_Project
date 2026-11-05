@@ -1,0 +1,9 @@
+NVIDIA GeForce RTX 4050 Laptop GPU | cuSPARSE 12.8.2 | git 6045bc0 | 6 matrices x 40 configs | reps 20, warmup 5, L2 flush off
+[1/6] ACUSIM/Pres_Poisson  14822 x 14822  nnz 715804  (load 11 ms)
+[2/6] Norris/torso2  115967 x 115967  nnz 1033473  (load 12 ms)
+[3/6] Rajat/rajat23  110355 x 110355  nnz 556938  (load 15 ms)
+[4/6] Sandia/ASIC_100k  99340 x 99340  nnz 954163  (load 20 ms)
+[5/6] Schenk_AFE/af_shell1  504855 x 504855  nnz 17588875  (load 113 ms)
+[6/6] Williams/cop20k_A  121192 x 121192  nnz 2624331  (load 17 ms)
+
+237 result rows, 0 correctness failures, 3 infeasible, 0 errors, 0 skipped -> /home/vivian/HPC_Project/results/rtx4050_vivian/spmv_gpu_warm.csv

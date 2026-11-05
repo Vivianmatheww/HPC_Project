@@ -1,0 +1,40 @@
+Same machine. CPU: AMD Ryzen 7 7840HS w/ Radeon 780M Graphics, 16 threads, g++ (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+             GPU: RTX 4050 (CUDA 13.3, cuSPARSE 12.8.2)
+
+SpMV, fp64, time per call (sequential: mean of 50 warm calls; GPU: median, L2 flushed)
+  matrix                 nnz    seq CSR   cuSPARSE  speedup   fastest of 40 GPU configs           speedup  vs cuSPARSE
+  Pres_Poisson       715,804    0.304ms    0.086ms     3.5x   csr_vector_v8             0.073ms     4.2x        1.18x
+  torso2           1,033,473    0.534ms    0.125ms     4.3x   argcsr_B128_D16           0.112ms     4.8x        1.12x
+  rajat23            556,938    0.317ms    0.086ms     3.7x   cusparse_alg2             0.082ms     3.9x        1.05x
+  ASIC_100k          954,163    0.726ms    0.116ms     6.3x   cusparse_alg2             0.115ms     6.3x        1.01x
+  af_shell1       17,588,875    7.344ms    1.223ms     6.0x   cusparse_alg1             1.223ms     6.0x        1.00x
+  cop20k_A         2,624,331    1.808ms    0.245ms     7.4x   cusparse_alg1             0.245ms     7.4x        1.00x
+  geomean                                              5.0x                                          5.3x        1.06x
+
+SpMV, fp64, time per call (sequential: mean of 50 warm calls; GPU: median, L2 warm, no flush)
+  matrix                 nnz    seq CSR   cuSPARSE  speedup   fastest of 40 GPU configs           speedup  vs cuSPARSE
+  Pres_Poisson       715,804    0.304ms    0.066ms     4.6x   csr_vector_v4             0.016ms    18.5x        4.03x
+  torso2           1,033,473    0.534ms    0.065ms     8.3x   ell                       0.018ms    29.0x        3.50x
+  rajat23            556,938    0.317ms    0.049ms     6.4x   csr_binned_t4             0.029ms    10.9x        1.68x
+  ASIC_100k          954,163    0.726ms    0.062ms    11.8x   cusparse_alg1             0.062ms    11.8x        1.00x
+  af_shell1       17,588,875    7.344ms    1.320ms     5.6x   ell                       1.212ms     6.1x        1.09x
+  cop20k_A         2,624,331    1.808ms    0.185ms     9.8x   cusparse_alg1             0.185ms     9.8x        1.00x
+  geomean                                              7.3x                                         12.6x        1.72x
+
+CG, Laplace 128^3 (2.1M unknowns), fp64, Jacobi preconditioner, until |r| <= 1e-8 |b|
+  sequential                7.49 s    321 iterations    23.32 ms/iter
+  GPU, always_cusparse      0.82 s    317 iterations     2.59 ms/iter  ->   9.1x  (per iteration   9.0x)  [cusparse_alg1]
+  GPU, tree                 0.80 s    317 iterations     2.53 ms/iter  ->   9.3x  (per iteration   9.2x)  [cusparse_alg1]
+  GPU, tree_exact           0.81 s    317 iterations     2.54 ms/iter  ->   9.3x  (per iteration   9.2x)  [cusparse_alg1]
+  GPU, tree_nobe            0.81 s    317 iterations     2.56 ms/iter  ->   9.2x  (per iteration   9.1x)  [cusparse_alg1]
+
+AMG set-up, SpGEMMs R(AP) of every level (the sequential run uses a 160^3 grid)
+  sequential, n=160        0.636 s
+  GPU incore        n=160  budget   4311 MiB     0.128 s  ->   5.0x
+  GPU rasp          n=160  budget   4298 MiB     0.122 s  ->   5.2x
+  GPU alg4          n=192  budget    256 MiB     0.326 s
+  GPU alg4_overlap  n=192  budget    256 MiB     0.247 s
+  GPU incore        n=192  budget   4310 MiB     0.224 s
+  GPU rasp          n=192  budget    256 MiB     0.297 s
+  GPU rasp_static   n=192  budget    256 MiB     0.275 s
+  (GPU times include copying A, P, R in and every product out over PCIe)

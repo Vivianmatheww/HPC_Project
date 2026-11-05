@@ -1,0 +1,12 @@
+[1/2] ACUSIM/Pres_Poisson  14822 x 14822  nnz 715804
+  fp64 always_cusparse  cusparse_alg1            683 it conv  total   90.551 ms (plan 0.136)  true res 9.7e-09
+  fp64 tree             csr_vector_v4            688 it conv  total   72.710 ms (plan 0.158)  true res 8.2e-09
+  fp64 tree_exact       csr_vector_v4            683 it conv  total   72.319 ms (plan 0.111)  true res 9.7e-09
+  fp64 tree_nobe        csr_vector_v4            683 it conv  total   71.602 ms (plan 0.121)  true res 9.6e-09
+[2/2] gallery/laplace3d_n128  2097152 x 2097152  nnz 14581760
+  fp64 always_cusparse  cusparse_alg1            317 it conv  total  819.791 ms (plan 0.708)  true res 1.0e-08
+  fp64 tree             cusparse_alg1            317 it conv  total  803.424 ms (plan 0.953)  true res 1.0e-08
+  fp64 tree_exact       cusparse_alg1            317 it conv  total  805.748 ms (plan 0.657)  true res 1.0e-08
+  fp64 tree_nobe        cusparse_alg1            317 it conv  total  810.480 ms (plan 0.847)  true res 1.0e-08
+
+0 failures -> /home/vivian/HPC_Project/results/rtx4050_vivian/cg_gpu.csv

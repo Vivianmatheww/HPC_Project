@@ -1,0 +1,25 @@
+Test project /home/vivian/HPC_Project/build/kaggle_run/rasp-build
+      Start  1: test_io
+ 1/10 Test  #1: test_io ..........................   Passed    0.01 sec
+      Start  2: test_spmv
+ 2/10 Test  #2: test_spmv ........................   Passed    4.08 sec
+      Start  3: test_spgemm
+ 3/10 Test  #3: test_spgemm ......................   Passed    1.38 sec
+      Start  4: test_harness
+ 4/10 Test  #4: test_harness .....................   Passed    1.44 sec
+      Start  5: test_formats
+ 5/10 Test  #5: test_formats .....................   Passed    2.21 sec
+      Start  6: test_selector
+ 6/10 Test  #6: test_selector ....................   Passed    1.66 sec
+      Start  7: test_spgemm_plan
+ 7/10 Test  #7: test_spgemm_plan .................   Passed    0.02 sec
+      Start  8: test_spgemm_ooc
+ 8/10 Test  #8: test_spgemm_ooc ..................   Passed    7.50 sec
+      Start  9: app_cg_solver
+ 9/10 Test  #9: app_cg_solver ....................   Passed    0.70 sec
+      Start 10: app_amg_setup
+10/10 Test #10: app_amg_setup ....................   Passed    1.35 sec
+
+100% tests passed out of 10
+
+Total Test time (real) =  20.34 sec
