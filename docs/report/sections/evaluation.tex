@@ -133,7 +133,15 @@ and \stat{p4-place-AxP-c}\x. Managed memory behaves exactly like pinned memory u
 \stat{p4-managed-vs-pinned}\x). The flop-count bound overestimates $\mathrm{nnz}(C)$: the real compression is
 \stat{p4-gamma-AxP} for $A\cdot P$ and \stat{p4-gamma-RxA} for $R\cdot A$, which is why RASP measures it instead of
 sizing $C$ by the bound.
-\todo{interpret the table once measured: which placements are tolerable on PCIe, and how this compares with the NVLink ratios.}
+Over PCIe (WSL2, \stat{p4-h2d-gbs}\,GB/s measured host-to-device) only one placement is close to free: the left
+operand of $R\cdot A$ in pinned or managed memory (\stat{p4-place-RxA-a}\x), because $R$ is read once, row by row, in
+streaming order. Every other single operand off the device costs 2.3--4.0\x: $C$ is written across the bus, and $B$,
+which every row of the left operand gathers from at random, is the worst. With all three operands in host memory the
+product is \stat{p4-place-RxA-all}--\stat{p4-place-AxP-all}\x{} slower. These ratios are smaller than paper~1's
+7--29\x{} for $B$ on NVLink, even though our link is slower. A slowdown is relative to the device-resident kernel, and
+on our laptop GPU that kernel reaches only 3.7--5.6\,GFLOP/s, so there is less speed to lose. The conclusion is the
+paper's: $B$ must stay on the device, while $A$ (and, at a higher price, $C$) can be streamed. This is the split that
+Algorithm~4 and RASP use.
 
 \subsection{G6: overlapped, adaptive out-of-core SpGEMM}\label{sec:eval-g6}
 \begin{figure}[t]
@@ -160,13 +168,33 @@ cuSPARSE workspace per multiply-add. The cost model's predicted execution time w
 \stat{p4-model-accuracy} of the measured one (median), and estimation plus planning took \stat{p4-overhead-pct}\% of
 the total. Out of core, RASP reaches \stat{p4-frac-of-device} of the device-only kernel's throughput: what PCIe leaves
 on the table. \Cref{fig:timeline} shows both schedules for the most out-of-core configuration.
-\todo{interpret after the runs: where each step of the ablation helps, how often re-planning fired, behaviour as the
-problem/budget ratio grows, and the in-core comparison when everything fits.}
+\textbf{G6 is met for $A\cdot P$ but not for $R\cdot A$, and most of the gain is copy/compute overlap, not RASP's cost
+model.} Double buffering with Algorithm~4's own partitions already gives \stat{p4-speedup-alg4-overlap-AxP}\x{} and
+\stat{p4-speedup-alg4-overlap-RxA}\x. The cost model's static plan is slower than that on both workloads, and
+calibration plus re-planning add only a few per cent on $A\cdot P$. On this machine the overlapped Algorithm~4 is the
+better schedule for both products. On $A\cdot P$, RASP's deficit is its own overhead: estimation and planning take a
+median \stat{p4-overhead-pct}\% of the total. On $R\cdot A$ the cause is tile shape. Once the problem is 2--5\x{} the
+budget, both planners split $B$ into 2--5 blocks, but RASP also cuts $A$ and $C$ into more row blocks, giving
+1.4--4\x{} as many tiles as overlapped Algorithm~4 (546 against 132 at $n=224$). The per-tile cost then dominates:
+RASP runs at 0.91--0.94\x{} of Algorithm~4 at 2--3\x{} the budget, 0.66\x{} at $n=224$, and recovers only to
+1.1--1.2\x{} at 4--5\x. Where RASP keeps $B$ whole and Algorithm~4 does not ($n=192$ at 1.5\x{} the budget), RASP is
+the fastest method (1.62\x). Re-planning fired \stat{p4-replans-mean} times per
+run on average, but only in plans with $B$ whole. In every plan that splits $B$ it never fired, so adaptivity could not
+correct the bad partition. On $A\cdot P$ the speedup stays at 1.30--1.47\x{} up to 4\x{} the budget, and falls to
+1.16\x{} at $n=256$. When everything fits, the pipelined out-of-core schedules beat the in-core path, which copies and
+then computes (at $n=192$: 110\,ms for RASP at half the budget against 143\,ms in core for $A\cdot P$). They still reach
+only \stat{p4-frac-of-device} of the device-only kernel's throughput: PCIe dominates.
 
 \begin{figure}[t]
 \centering\rfig[\linewidth]{p4_timeline}
 \caption{Copy engine and compute stream over time for Algorithm~4 (sequential) and RASP (pipelined), from per-tile CUDA
-events. \texttt{figures/nsys\_overlap.png} shows the same run in Nsight Systems.}\label{fig:timeline}
+events. \Cref{fig:nsys} shows the same run in Nsight Systems.}\label{fig:timeline}
+\end{figure}
+
+\begin{figure}[t]
+\centering\rfig[\linewidth]{nsys_overlap}
+\caption{Nsight Systems trace of RASP's out-of-core $A\cdot P$: copies on one stream (green host-to-device, pink
+device-to-host) overlap the per-tile SpGEMM kernels (blue) on the others.}\label{fig:nsys}
 \end{figure}
 
 \subsection{G7: end-to-end applications}\label{sec:eval-g7}
@@ -193,7 +221,17 @@ and two host synchronisations per iteration take the rest, which caps what any S
 \paragraph{AMG set-up.} The Galerkin products $A_{l+1} = R_l(A_lP_l)$ of a Laplace3D hierarchy run through
 \texttt{SpgemmContext} under a fast-memory budget (\cref{tab:amg}). Every method produces the same coarse operators
 and satisfies the Galerkin row-sum identity on every level.
-\todo{interpret after the runs: which levels run out of core, and where the set-up time goes.}
+At $n=192$ under 256\,MiB only the finest levels are tiled: level~0 (both products) and level~1's $A\cdot P$ for
+Algorithm~4; RASP also tiles level~1's $R\cdot(AP)$ and level~2's $A\cdot P$. Everything coarser runs in core. Level~0
+is 82--85\% of the set-up time. RASP gains on its $A\cdot P$ (165 to 119\,ms) but hardly on its $R\cdot(AP)$ (171 to
+165\,ms), which is the $R\cdot A$ weakness of \cref{sec:eval-g6}. Overall RASP is \stat{p5-amg-192-rasp-speedup}\x{}
+faster than Algorithm~4, about the same as overlapped Algorithm~4 (\stat{p5-amg-192-alg4-overlap-speedup}\x). In core,
+with a budget everything fits, the set-up is \stat{p5-amg-192-incore-speedup}\x{} faster.
+The \stat{p5-amg-256-rasp-speedup}\x{} at $n=256$ (512\,MiB) overstates RASP's advantage. In that run every Algorithm~4
+product takes 33--36\,ms even on the $8^3$ grid, and 31--35\,ms of it is the host-side size estimate. RASP does that in
+0.4--0.6\,ms with the same function, and overlapped Algorithm~4 shows no such cost at the same size. So this looks like a
+disturbance in that run, not a cost of Algorithm~4. With overlapped Algorithm~4's estimate times in its place, RASP's
+speedup at $n=256$ would be about 1.37\x. The final run re-measures it.
 
 \begin{table}[t]
 \centering\small
@@ -211,5 +249,19 @@ and satisfies the Galerkin row-sum identity on every level.
 reaches \stat{p5-ncu-spmv-csr-vector-af-shell1-dram}\% of peak DRAM throughput; ArgCSR on \texttt{rajat23} reaches
 \stat{p5-ncu-spmv-argcsr-D32-rajat23-dram}\% with chunk size 32 and \stat{p5-ncu-spmv-argcsr-D1-rajat23-dram}\% with
 chunk size~1 (\cref{sec:eval-g1} gives the padding of each).
-\todo{interpret once profiled: is CSR-vector bandwidth-bound, does ArgCSR D=32 spend its traffic on padding, and what
-limits the partial-product summation kernels (stall reasons)?}
+On this GPU every DRAM counter has two instances, one of which always reads zero. Nsight Compute's average therefore
+halves the DRAM percentage, and its byte count is about a third of the real traffic. The table gives the busy
+instance, and computes bandwidth from L2 misses (32\,B sectors), which agrees with the timing.
+\textbf{CSR-vector on \texttt{af\_shell1} is bandwidth-bound.} DRAM is busy \stat{p5-ncu-spmv-csr-vector-af-shell1-dram}\%
+of the time at \stat{p5-ncu-spmv-csr-vector-af-shell1-gbs}\,GB/s (peak 192\,GB/s), and its warps stall mostly on
+global loads (long scoreboard). cuSPARSE sits at the same limit (\stat{p5-ncu-spmv-cusparse-af-shell1-gbs}\,GB/s), so no
+kernel can gain much on this matrix.
+\textbf{ArgCSR with $D=32$ does not lose its time to padding traffic.} On \texttt{rajat23} it moves only 1.3\x{} the
+DRAM bytes of $D=1$ (13.9 against 10.7\,MB of L2 misses) but takes 17\x{} as long
+(\stat{p5-ncu-spmv-argcsr-D32-rajat23-us} against \stat{p5-ncu-spmv-argcsr-D1-rajat23-us}\,\textmu s), at
+\stat{p5-ncu-spmv-argcsr-D32-rajat23-gbs}\,GB/s. Its warps stall on barriers, and achieved occupancy is
+\stat{p5-ncu-spmv-argcsr-D32-rajat23-occ}\% against a theoretical 100\%: the cost is synchronisation, not bandwidth.
+The partial-product summation of $R\cdot A$ (\texttt{add\_fill\_kernel}) hits in L2
+\stat{p5-ncu-spgemm-csr-add-rxa-l2hit}\% of the time but is latency-bound. Its warps wait on memory (long scoreboard),
+and with only 29 blocks of 256 threads for 20 SMs, achieved occupancy is \stat{p5-ncu-spgemm-csr-add-rxa-occ}\%, too
+little to hide that latency.
