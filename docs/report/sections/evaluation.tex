@@ -205,7 +205,16 @@ best \stat{p5-cg-tree-best}\x), and \stat{p5-cg-tree-exact-geomean}\x{} when it 
 (\cref{tab:cg}, \cref{fig:cg}). SpMV is only \stat{p5-cg-spmv-share}\% of a solve (median); vector updates, reductions
 and two host synchronisations per iteration take the rest, which caps what any SpMV selector can gain end to end.
 \stat{p5-cg-failures} solves failed the CPU residual check.
-\todo{interpret: when the iteration cap overstates the work, does break-even over-invest? Compare tree vs tree\_exact.}
+\textbf{The iteration cap does not make break-even over-invest.} The cap overstates the work by up to
+\stat{p5-cg-cap-overstate-max}\x{} (a 5000-iteration cap on a solve that converges in 17), yet both hints choose the
+same kernel on \stat{p5-cg-hint-same} of the \stat{p5-cg-matrices} matrices. The feature pass and conversion are cheap
+next to any solve: a median \stat{p5-cg-plan-pct-median}\% of the time-to-solution (at most
+\stat{p5-cg-plan-pct-max}\%, on the shortest solve), so even a heavily overstated hint costs almost nothing. The gap
+between the two geomeans is therefore run-to-run noise: with the same kernel, the exact-hint speedup is
+\stat{p5-cg-hint-noise-lo}--\stat{p5-cg-hint-noise-hi}\x{} that of the cap. The one difference goes the other way.
+On \texttt{ted\_B} (17 iterations) the exact hint makes break-even decline the feature pass and keep cuSPARSE, where
+the cap's choice, CSR-vector, was slightly faster. With a hint this small the test is conservative, not wasteful, and on
+a 3\,ms solve the difference is within the noise.
 
 \begin{table}[t]
 \centering\small

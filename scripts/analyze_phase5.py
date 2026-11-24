@@ -75,6 +75,32 @@ def cg(path, out, fig_dir, formats, tex):
     tex.stat("p5-cg-spmv-share", float(100 * base.base_spmv_share.median()), "{:.0f}")
     tex.stat("p5-cg-failures", int(len(fails)))
 
+    # Does the iteration cap (an overstated hint) make break-even over-invest? Compare the two hints per matrix.
+    cap = j[j.selector == "tree"].set_index("matrix")
+    exact = j[j.selector == "tree_exact"].set_index("matrix")
+    both = cap.index.intersection(exact.index)
+    if len(both):
+        cap, exact = cap.loc[both], exact.loc[both]
+        same = cap.config == exact.config
+        ratio = exact.speedup / cap.speedup
+        overhead = 100 * (cap.plan_ms + cap.convert_ms) / cap.total_ms
+        over = cap.expected_calls / cap.iters
+        diff = ", ".join(f"{m.split('/')[-1]} (cap {cap.config[m]}, exact {exact.config[m]}: {exact.reason[m]})"
+                         for m in both[~same])
+        print(f"  cap vs exact hint: same kernel on {int(same.sum())} of {len(both)}; on those, exact/cap speedup "
+              f"median {ratio[same].median():.3f} [{ratio[same].min():.2f}, {ratio[same].max():.2f}]; "
+              f"cap overstates the iterations up to {over.max():.0f}x; plan + conversion with the cap: median "
+              f"{overhead.median():.2f}% of the solve, max {overhead.max():.1f}%")
+        if diff:
+            print(f"  different kernel: {diff}")
+        tex.stat("p5-cg-hint-same", int(same.sum()))
+        tex.stat("p5-cg-hint-diff", int((~same).sum()))
+        tex.stat("p5-cg-hint-noise-lo", float(ratio[same].min()))
+        tex.stat("p5-cg-hint-noise-hi", float(ratio[same].max()))
+        tex.stat("p5-cg-cap-overstate-max", float(over.max()), "{:.0f}")
+        tex.stat("p5-cg-plan-pct-median", float(overhead.median()), "{:.1f}")
+        tex.stat("p5-cg-plan-pct-max", float(overhead.max()), "{:.0f}")
+
     # Per-matrix speedups, sorted by nnz.
     order = j[j.selector == "tree"].sort_values("nnz")["matrix"].tolist()
     if not order:
