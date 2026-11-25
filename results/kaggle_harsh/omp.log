@@ -1,0 +1,264 @@
+== machine: Intel(R) Xeon(R) CPU @ 2.00GHz, 4 threads, g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, OMP_PROC_BIND=close OMP_PLACES=cores
+== 1 thread(s)
+OpenMP: 1 threads, SpMV schedule static
+rajat23              110355 rows     556938 nnz | mean 5.0 max 3401 cv 3.84 | ELL fill 673.9x, SELL-32 fill 4.50x
+  SpMV CSR              0.790 ms    1.41 GFLOP/s
+  ELL skipped (padding 673.9x > 3x)
+  SpMV SELL-32-256      1.848 ms    0.60 GFLOP/s
+ASIC_100k             99340 rows     954163 nnz | mean 9.6 max 99029 cv 43.82 | ELL fill 10310.1x, SELL-32 fill 5.23x
+  SpMV CSR              1.254 ms    1.52 GFLOP/s
+  ELL skipped (padding 10310.1x > 3x)
+  SpMV SELL-32-256     10.454 ms    0.18 GFLOP/s
+Pres_Poisson          14822 rows     715804 nnz | mean 48.3 max 50 cv 0.11 | ELL fill 1.0x, SELL-32 fill 1.03x
+  SpMV CSR              0.661 ms    2.17 GFLOP/s
+  SpMV ELL              0.783 ms    1.83 GFLOP/s
+  SpMV SELL-32-256      0.778 ms    1.84 GFLOP/s
+torso2               115967 rows    1033473 nnz | mean 8.9 max 10 cv 0.07 | ELL fill 1.1x, SELL-32 fill 1.00x
+  SpMV CSR              0.829 ms    2.49 GFLOP/s
+  SpMV ELL              1.406 ms    1.47 GFLOP/s
+  SpMV SELL-32-256      1.238 ms    1.67 GFLOP/s
+cop20k_A             121192 rows    2624331 nnz | mean 21.7 max 81 cv 0.64 | ELL fill 3.7x, SELL-32 fill 1.19x
+  SpMV CSR              4.350 ms    1.21 GFLOP/s
+  ELL skipped (padding 3.7x > 3x)
+  SpMV SELL-32-256      5.701 ms    0.92 GFLOP/s
+af_shell1            504855 rows   17588875 nnz | mean 34.8 max 40 cv 0.04 | ELL fill 1.1x, SELL-32 fill 1.01x
+  SpMV CSR             23.030 ms    1.53 GFLOP/s
+  SpMV ELL             30.003 ms    1.17 GFLOP/s
+  SpMV SELL-32-256     24.255 ms    1.45 GFLOP/s
+
+       phase                                 wall s   share   user s    sys s     calls
+spmv   read Matrix Market (parse)             3.221   32.3%    2.832    0.387         6
+spmv   build CSR (sort, merge)                0.698    7.0%    0.415    0.283         6
+spmv   features                               0.002    0.0%    0.002    0.000         6
+spmv   SpMV CSR                               1.546   15.5%    1.545    0.000         6
+spmv   convert to SELL-32-256                 0.281    2.8%    0.166    0.115         6
+spmv   SpMV SELL-32-256                       2.214   22.2%    2.212    0.000         6
+spmv   convert to ELL                         0.287    2.9%    0.178    0.109         3
+spmv   SpMV ELL                               1.610   16.2%    1.609    0.000         3
+       total                                   9.964
+OpenMP: 1 threads, SpMV schedule static
+CG on laplace:128: 2097152 rows, nnz 14581760, 321 iterations, |r|/|b| = 9.96e-09
+
+       phase                                 wall s   share   user s    sys s     calls
+cg     load / generate matrix                 0.303    2.1%    0.116    0.187         1
+cg     set-up (b = A x_true, Jacobi)          0.054    0.4%    0.046    0.008         1
+cg     SpMV (q = A p)                         6.565   45.8%    6.553    0.006       321
+cg     dot products                           3.083   21.5%    3.068    0.011       962
+cg     vector updates (axpy)                  2.882   20.1%    2.870    0.008       641
+cg     preconditioner (Jacobi)                1.355    9.4%    1.352    0.002       320
+       total                                  14.349
+OpenMP: 1 threads, SpMV schedule static
+AMG level grid 160: A  4096000 rows nnz  28518400 -> coarse  512000 rows nnz  3545600
+AMG level grid  80: A   512000 rows nnz   3545600 -> coarse   64000 rows nnz   438400
+AMG level grid  40: A    64000 rows nnz    438400 -> coarse    8000 rows nnz    53600
+AMG level grid  20: A     8000 rows nnz     53600 -> coarse    1000 rows nnz     6400
+AMG level grid  10: A     1000 rows nnz      6400 -> coarse     125 rows nnz      725
+AMG set-up (x1): 5.11e+07 multiply-adds per set-up
+
+       phase                                 wall s   share   user s    sys s     calls
+amg    generate Laplace3D                     0.625   37.4%    0.260    0.364         1
+amg    generate P, R = P^T                    0.105    6.3%    0.057    0.048         5
+amg    spgemm: flop estimate                  0.030    1.8%    0.029    0.000        10
+amg    spgemm: symbolic                       0.106    6.4%    0.100    0.006        10
+amg    spgemm: numeric                        0.471   28.2%    0.365    0.106        10
+       total                                   1.669
+== 2 thread(s)
+OpenMP: 2 threads, SpMV schedule static
+rajat23              110355 rows     556938 nnz | mean 5.0 max 3401 cv 3.84 | ELL fill 673.9x, SELL-32 fill 4.50x
+  SpMV CSR              0.398 ms    2.80 GFLOP/s
+  ELL skipped (padding 673.9x > 3x)
+  SpMV SELL-32-256      0.952 ms    1.17 GFLOP/s
+ASIC_100k             99340 rows     954163 nnz | mean 9.6 max 99029 cv 43.82 | ELL fill 10310.1x, SELL-32 fill 5.23x
+  SpMV CSR              0.774 ms    2.47 GFLOP/s
+  ELL skipped (padding 10310.1x > 3x)
+  SpMV SELL-32-256      8.820 ms    0.22 GFLOP/s
+Pres_Poisson          14822 rows     715804 nnz | mean 48.3 max 50 cv 0.11 | ELL fill 1.0x, SELL-32 fill 1.03x
+  SpMV CSR              0.349 ms    4.10 GFLOP/s
+  SpMV ELL              0.371 ms    3.86 GFLOP/s
+  SpMV SELL-32-256      0.414 ms    3.46 GFLOP/s
+torso2               115967 rows    1033473 nnz | mean 8.9 max 10 cv 0.07 | ELL fill 1.1x, SELL-32 fill 1.00x
+  SpMV CSR              0.427 ms    4.85 GFLOP/s
+  SpMV ELL              0.653 ms    3.16 GFLOP/s
+  SpMV SELL-32-256      0.673 ms    3.07 GFLOP/s
+cop20k_A             121192 rows    2624331 nnz | mean 21.7 max 81 cv 0.64 | ELL fill 3.7x, SELL-32 fill 1.19x
+  SpMV CSR              2.058 ms    2.55 GFLOP/s
+  ELL skipped (padding 3.7x > 3x)
+  SpMV SELL-32-256      2.520 ms    2.08 GFLOP/s
+af_shell1            504855 rows   17588875 nnz | mean 34.8 max 40 cv 0.04 | ELL fill 1.1x, SELL-32 fill 1.01x
+  SpMV CSR             11.654 ms    3.02 GFLOP/s
+  SpMV ELL             15.021 ms    2.34 GFLOP/s
+  SpMV SELL-32-256     12.334 ms    2.85 GFLOP/s
+
+       phase                                 wall s   share   user s    sys s     calls
+spmv   read Matrix Market (parse)             3.225   43.1%    2.940    0.349         6
+spmv   build CSR (sort, merge)                0.693    9.3%    0.393    0.299         6
+spmv   features                               0.002    0.0%    0.001    0.000         6
+spmv   SpMV CSR                               0.783   10.5%    1.562    0.000         6
+spmv   convert to SELL-32-256                 0.284    3.8%    0.219    0.114         6
+spmv   SpMV SELL-32-256                       1.286   17.2%    2.568    0.000         6
+spmv   convert to ELL                         0.293    3.9%    0.206    0.111         3
+spmv   SpMV ELL                               0.802   10.7%    1.603    0.001         3
+       total                                   7.479
+OpenMP: 2 threads, SpMV schedule static
+CG on laplace:128: 2097152 rows, nnz 14581760, 321 iterations, |r|/|b| = 9.96e-09
+
+       phase                                 wall s   share   user s    sys s     calls
+cg     load / generate matrix                 0.309    3.9%    0.137    0.172         1
+cg     set-up (b = A x_true, Jacobi)          0.035    0.4%    0.047    0.008         1
+cg     SpMV (q = A p)                         3.486   44.2%    6.957    0.005       321
+cg     dot products                           1.573   19.9%    3.133    0.005       962
+cg     vector updates (axpy)                  1.582   20.0%    3.151    0.002       641
+cg     preconditioner (Jacobi)                0.805   10.2%    1.614    0.001       320
+       total                                   7.896
+OpenMP: 2 threads, SpMV schedule static
+AMG level grid 160: A  4096000 rows nnz  28518400 -> coarse  512000 rows nnz  3545600
+AMG level grid  80: A   512000 rows nnz   3545600 -> coarse   64000 rows nnz   438400
+AMG level grid  40: A    64000 rows nnz    438400 -> coarse    8000 rows nnz    53600
+AMG level grid  20: A     8000 rows nnz     53600 -> coarse    1000 rows nnz     6400
+AMG level grid  10: A     1000 rows nnz      6400 -> coarse     125 rows nnz      725
+AMG set-up (x1): 5.11e+07 multiply-adds per set-up
+
+       phase                                 wall s   share   user s    sys s     calls
+amg    generate Laplace3D                     0.630   42.1%    0.251    0.379         1
+amg    generate P, R = P^T                    0.106    7.1%    0.052    0.055         5
+amg    spgemm: flop estimate                  0.016    1.1%    0.031    0.000        10
+amg    spgemm: symbolic                       0.067    4.5%    0.125    0.008        10
+amg    spgemm: numeric                        0.331   22.1%    0.422    0.109        10
+       total                                   1.495
+== 4 thread(s)
+OpenMP: 4 threads, SpMV schedule static
+rajat23              110355 rows     556938 nnz | mean 5.0 max 3401 cv 3.84 | ELL fill 673.9x, SELL-32 fill 4.50x
+  SpMV CSR              0.340 ms    3.27 GFLOP/s
+  ELL skipped (padding 673.9x > 3x)
+  SpMV SELL-32-256      0.775 ms    1.44 GFLOP/s
+ASIC_100k             99340 rows     954163 nnz | mean 9.6 max 99029 cv 43.82 | ELL fill 10310.1x, SELL-32 fill 5.23x
+  SpMV CSR              0.641 ms    2.98 GFLOP/s
+  ELL skipped (padding 10310.1x > 3x)
+  SpMV SELL-32-256      9.057 ms    0.21 GFLOP/s
+Pres_Poisson          14822 rows     715804 nnz | mean 48.3 max 50 cv 0.11 | ELL fill 1.0x, SELL-32 fill 1.03x
+  SpMV CSR              0.265 ms    5.41 GFLOP/s
+  SpMV ELL              0.342 ms    4.19 GFLOP/s
+  SpMV SELL-32-256      0.394 ms    3.63 GFLOP/s
+torso2               115967 rows    1033473 nnz | mean 8.9 max 10 cv 0.07 | ELL fill 1.1x, SELL-32 fill 1.00x
+  SpMV CSR              0.383 ms    5.40 GFLOP/s
+  SpMV ELL              0.602 ms    3.43 GFLOP/s
+  SpMV SELL-32-256      0.589 ms    3.51 GFLOP/s
+cop20k_A             121192 rows    2624331 nnz | mean 21.7 max 81 cv 0.64 | ELL fill 3.7x, SELL-32 fill 1.19x
+  SpMV CSR              1.991 ms    2.64 GFLOP/s
+  ELL skipped (padding 3.7x > 3x)
+  SpMV SELL-32-256      2.615 ms    2.01 GFLOP/s
+af_shell1            504855 rows   17588875 nnz | mean 34.8 max 40 cv 0.04 | ELL fill 1.1x, SELL-32 fill 1.01x
+  SpMV CSR              8.859 ms    3.97 GFLOP/s
+  SpMV ELL             13.354 ms    2.63 GFLOP/s
+  SpMV SELL-32-256     10.024 ms    3.51 GFLOP/s
+
+       phase                                 wall s   share   user s    sys s     calls
+spmv   read Matrix Market (parse)             3.219   44.8%    3.051    0.361         6
+spmv   build CSR (sort, merge)                0.726   10.1%    0.423    0.302         6
+spmv   features                               0.002    0.0%    0.002    0.000         6
+spmv   SpMV CSR                               0.624    8.7%    2.455    0.002         6
+spmv   convert to SELL-32-256                 0.291    4.1%    0.331    0.112         6
+spmv   SpMV SELL-32-256                       1.173   16.3%    4.640    0.004         6
+spmv   convert to ELL                         0.309    4.3%    0.273    0.113         3
+spmv   SpMV ELL                               0.715   10.0%    2.826    0.002         3
+       total                                   7.184
+OpenMP: 4 threads, SpMV schedule static
+CG on laplace:128: 2097152 rows, nnz 14581760, 321 iterations, |r|/|b| = 9.96e-09
+
+       phase                                 wall s   share   user s    sys s     calls
+cg     load / generate matrix                 0.311    5.0%    0.118    0.193         1
+cg     set-up (b = A x_true, Jacobi)          0.033    0.5%    0.076    0.006         1
+cg     SpMV (q = A p)                         2.963   48.0%   11.689    0.010       321
+cg     dot products                           0.991   16.1%    3.905    0.008       962
+cg     vector updates (axpy)                  1.153   18.7%    4.535    0.014       641
+cg     preconditioner (Jacobi)                0.612    9.9%    2.403    0.006       320
+       total                                   6.172
+OpenMP: 4 threads, SpMV schedule static
+AMG level grid 160: A  4096000 rows nnz  28518400 -> coarse  512000 rows nnz  3545600
+AMG level grid  80: A   512000 rows nnz   3545600 -> coarse   64000 rows nnz   438400
+AMG level grid  40: A    64000 rows nnz    438400 -> coarse    8000 rows nnz    53600
+AMG level grid  20: A     8000 rows nnz     53600 -> coarse    1000 rows nnz     6400
+AMG level grid  10: A     1000 rows nnz      6400 -> coarse     125 rows nnz      725
+AMG set-up (x1): 5.11e+07 multiply-adds per set-up
+
+       phase                                 wall s   share   user s    sys s     calls
+amg    generate Laplace3D                     0.622   40.2%    0.244    0.378         1
+amg    generate P, R = P^T                    0.108    7.0%    0.056    0.052         5
+amg    spgemm: flop estimate                  0.014    0.9%    0.044    0.001        10
+amg    spgemm: symbolic                       0.070    4.5%    0.268    0.013        10
+amg    spgemm: numeric                        0.367   23.7%    0.874    0.132        10
+       total                                   1.549
+-- SpMV, schedule dynamic,64
+OpenMP: 4 threads, SpMV schedule dynamic,64
+rajat23              110355 rows     556938 nnz | mean 5.0 max 3401 cv 3.84 | ELL fill 673.9x, SELL-32 fill 4.50x
+  SpMV CSR              0.408 ms    2.73 GFLOP/s
+  ELL skipped (padding 673.9x > 3x)
+  SpMV SELL-32-256      0.765 ms    1.46 GFLOP/s
+ASIC_100k             99340 rows     954163 nnz | mean 9.6 max 99029 cv 43.82 | ELL fill 10310.1x, SELL-32 fill 5.23x
+  SpMV CSR              0.546 ms    3.49 GFLOP/s
+  ELL skipped (padding 10310.1x > 3x)
+  SpMV SELL-32-256      8.462 ms    0.23 GFLOP/s
+Pres_Poisson          14822 rows     715804 nnz | mean 48.3 max 50 cv 0.11 | ELL fill 1.0x, SELL-32 fill 1.03x
+  SpMV CSR              0.268 ms    5.35 GFLOP/s
+  SpMV ELL              0.334 ms    4.29 GFLOP/s
+  SpMV SELL-32-256      0.426 ms    3.36 GFLOP/s
+torso2               115967 rows    1033473 nnz | mean 8.9 max 10 cv 0.07 | ELL fill 1.1x, SELL-32 fill 1.00x
+  SpMV CSR              0.458 ms    4.52 GFLOP/s
+  SpMV ELL              0.555 ms    3.72 GFLOP/s
+  SpMV SELL-32-256      0.595 ms    3.47 GFLOP/s
+cop20k_A             121192 rows    2624331 nnz | mean 21.7 max 81 cv 0.64 | ELL fill 3.7x, SELL-32 fill 1.19x
+  SpMV CSR              1.614 ms    3.25 GFLOP/s
+  ELL skipped (padding 3.7x > 3x)
+  SpMV SELL-32-256      2.031 ms    2.58 GFLOP/s
+af_shell1            504855 rows   17588875 nnz | mean 34.8 max 40 cv 0.04 | ELL fill 1.1x, SELL-32 fill 1.01x
+  SpMV CSR              9.328 ms    3.77 GFLOP/s
+  SpMV ELL             13.306 ms    2.64 GFLOP/s
+  SpMV SELL-32-256      9.994 ms    3.52 GFLOP/s
+
+       phase                                 wall s   share   user s    sys s     calls
+spmv   read Matrix Market (parse)             3.230   45.5%    3.078    0.350         6
+spmv   build CSR (sort, merge)                0.706    9.9%    0.413    0.293         6
+spmv   features                               0.002    0.0%    0.002    0.000         6
+spmv   SpMV CSR                               0.631    8.9%    2.484    0.002         6
+spmv   convert to SELL-32-256                 0.293    4.1%    0.334    0.119         6
+spmv   SpMV SELL-32-256                       1.114   15.7%    4.393    0.005         6
+spmv   convert to ELL                         0.291    4.1%    0.254    0.109         3
+spmv   SpMV ELL                               0.710   10.0%    2.807    0.001         3
+       total                                   7.102
+-- SpMV, schedule guided
+OpenMP: 4 threads, SpMV schedule guided
+rajat23              110355 rows     556938 nnz | mean 5.0 max 3401 cv 3.84 | ELL fill 673.9x, SELL-32 fill 4.50x
+  SpMV CSR              0.347 ms    3.21 GFLOP/s
+  ELL skipped (padding 673.9x > 3x)
+  SpMV SELL-32-256      0.875 ms    1.27 GFLOP/s
+ASIC_100k             99340 rows     954163 nnz | mean 9.6 max 99029 cv 43.82 | ELL fill 10310.1x, SELL-32 fill 5.23x
+  SpMV CSR              0.605 ms    3.16 GFLOP/s
+  ELL skipped (padding 10310.1x > 3x)
+  SpMV SELL-32-256      9.214 ms    0.21 GFLOP/s
+Pres_Poisson          14822 rows     715804 nnz | mean 48.3 max 50 cv 0.11 | ELL fill 1.0x, SELL-32 fill 1.03x
+  SpMV CSR              0.248 ms    5.78 GFLOP/s
+  SpMV ELL              0.335 ms    4.28 GFLOP/s
+  SpMV SELL-32-256      0.390 ms    3.67 GFLOP/s
+torso2               115967 rows    1033473 nnz | mean 8.9 max 10 cv 0.07 | ELL fill 1.1x, SELL-32 fill 1.00x
+  SpMV CSR              0.378 ms    5.47 GFLOP/s
+  SpMV ELL              0.583 ms    3.55 GFLOP/s
+  SpMV SELL-32-256      0.607 ms    3.41 GFLOP/s
+cop20k_A             121192 rows    2624331 nnz | mean 21.7 max 81 cv 0.64 | ELL fill 3.7x, SELL-32 fill 1.19x
+  SpMV CSR              2.288 ms    2.29 GFLOP/s
+  ELL skipped (padding 3.7x > 3x)
+  SpMV SELL-32-256      2.881 ms    1.82 GFLOP/s
+af_shell1            504855 rows   17588875 nnz | mean 34.8 max 40 cv 0.04 | ELL fill 1.1x, SELL-32 fill 1.01x
+  SpMV CSR              8.709 ms    4.04 GFLOP/s
+  SpMV ELL             13.343 ms    2.64 GFLOP/s
+  SpMV SELL-32-256     10.071 ms    3.49 GFLOP/s
+
+       phase                                 wall s   share   user s    sys s     calls
+spmv   read Matrix Market (parse)             3.226   44.9%    3.032    0.382         6
+spmv   build CSR (sort, merge)                0.700    9.7%    0.438    0.261         6
+spmv   features                               0.002    0.0%    0.002    0.000         6
+spmv   SpMV CSR                               0.629    8.7%    2.477    0.002         6
+spmv   convert to SELL-32-256                 0.292    4.1%    0.329    0.119         6
+spmv   SpMV SELL-32-256                       1.202   16.7%    4.755    0.005         6
+spmv   convert to ELL                         0.292    4.1%    0.261    0.104         3
+spmv   SpMV ELL                               0.713    9.9%    2.821    0.001         3
+       total                                   7.187

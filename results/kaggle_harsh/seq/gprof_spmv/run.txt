@@ -1,35 +1,35 @@
 rajat23              110355 rows     556938 nnz | mean 5.0 max 3401 cv 3.84 | ELL fill 673.9x, SELL-32 fill 4.50x
-  SpMV CSR              0.779 ms    1.43 GFLOP/s
+  SpMV CSR              0.751 ms    1.48 GFLOP/s
   ELL skipped (padding 673.9x > 3x)
-  SpMV SELL-32-256      1.939 ms    0.57 GFLOP/s
+  SpMV SELL-32-256      1.765 ms    0.63 GFLOP/s
 ASIC_100k             99340 rows     954163 nnz | mean 9.6 max 99029 cv 43.82 | ELL fill 10310.1x, SELL-32 fill 5.23x
-  SpMV CSR              1.220 ms    1.56 GFLOP/s
+  SpMV CSR              1.276 ms    1.50 GFLOP/s
   ELL skipped (padding 10310.1x > 3x)
-  SpMV SELL-32-256      7.811 ms    0.24 GFLOP/s
+  SpMV SELL-32-256     10.577 ms    0.18 GFLOP/s
 Pres_Poisson          14822 rows     715804 nnz | mean 48.3 max 50 cv 0.11 | ELL fill 1.0x, SELL-32 fill 1.03x
-  SpMV CSR              0.669 ms    2.14 GFLOP/s
-  SpMV ELL              0.760 ms    1.88 GFLOP/s
-  SpMV SELL-32-256      0.769 ms    1.86 GFLOP/s
+  SpMV CSR              0.686 ms    2.09 GFLOP/s
+  SpMV ELL              0.735 ms    1.95 GFLOP/s
+  SpMV SELL-32-256      0.773 ms    1.85 GFLOP/s
 torso2               115967 rows    1033473 nnz | mean 8.9 max 10 cv 0.07 | ELL fill 1.1x, SELL-32 fill 1.00x
-  SpMV CSR              0.875 ms    2.36 GFLOP/s
-  SpMV ELL              1.352 ms    1.53 GFLOP/s
-  SpMV SELL-32-256      1.640 ms    1.26 GFLOP/s
+  SpMV CSR              0.879 ms    2.35 GFLOP/s
+  SpMV ELL              1.309 ms    1.58 GFLOP/s
+  SpMV SELL-32-256      1.194 ms    1.73 GFLOP/s
 cop20k_A             121192 rows    2624331 nnz | mean 21.7 max 81 cv 0.64 | ELL fill 3.7x, SELL-32 fill 1.19x
-  SpMV CSR              3.818 ms    1.37 GFLOP/s
+  SpMV CSR              4.188 ms    1.25 GFLOP/s
   ELL skipped (padding 3.7x > 3x)
-  SpMV SELL-32-256      5.001 ms    1.05 GFLOP/s
+  SpMV SELL-32-256      5.563 ms    0.94 GFLOP/s
 af_shell1            504855 rows   17588875 nnz | mean 34.8 max 40 cv 0.04 | ELL fill 1.1x, SELL-32 fill 1.01x
-  SpMV CSR             23.482 ms    1.50 GFLOP/s
-  SpMV ELL             28.727 ms    1.22 GFLOP/s
-  SpMV SELL-32-256     23.725 ms    1.48 GFLOP/s
+  SpMV CSR             24.264 ms    1.45 GFLOP/s
+  SpMV ELL             29.463 ms    1.19 GFLOP/s
+  SpMV SELL-32-256     23.765 ms    1.48 GFLOP/s
 
        phase                                 wall s   share   user s    sys s     calls
-spmv   read Matrix Market (parse)             3.185   32.9%    2.789    0.395         6
-spmv   build CSR (sort, merge)                0.702    7.3%    0.423    0.279         6
+spmv   read Matrix Market (parse)             3.197   32.1%    2.850    0.345         6
+spmv   build CSR (sort, merge)                0.717    7.2%    0.431    0.286         6
 spmv   features                               0.002    0.0%    0.001    0.000         6
-spmv   SpMV CSR                               1.542   15.9%    1.542    0.000         6
-spmv   convert to SELL-32-256                 0.278    2.9%    0.168    0.110         6
-spmv   SpMV SELL-32-256                       2.044   21.1%    2.044    0.000         6
-spmv   convert to ELL                         0.280    2.9%    0.168    0.112         3
-spmv   SpMV ELL                               1.542   15.9%    1.540    0.001         3
-       total                                   9.682
+spmv   SpMV CSR                               1.602   16.1%    1.601    0.000         6
+spmv   convert to SELL-32-256                 0.288    2.9%    0.167    0.121         6
+spmv   SpMV SELL-32-256                       2.182   21.9%    2.180    0.000         6
+spmv   convert to ELL                         0.285    2.9%    0.172    0.113         3
+spmv   SpMV ELL                               1.575   15.8%    1.575    0.000         3
+       total                                   9.952

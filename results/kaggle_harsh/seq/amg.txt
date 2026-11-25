@@ -6,9 +6,9 @@ AMG level grid  10: A     1000 rows nnz      6400 -> coarse     125 rows nnz    
 AMG set-up (x1): 5.11e+07 multiply-adds per set-up
 
        phase                                 wall s   share   user s    sys s     calls
-amg    generate Laplace3D                     0.624   35.9%    0.252    0.373         1
-amg    generate P, R = P^T                    0.104    6.0%    0.050    0.054         5
-amg    spgemm: flop estimate                  0.029    1.7%    0.029    0.000        10
-amg    spgemm: symbolic                       0.106    6.1%    0.097    0.009        10
-amg    spgemm: numeric                        0.535   30.8%    0.443    0.092        10
-       total                                   1.740
+amg    generate Laplace3D                     0.677   37.3%    0.262    0.415         1
+amg    generate P, R = P^T                    0.105    5.8%    0.053    0.052         5
+amg    spgemm: flop estimate                  0.030    1.6%    0.029    0.000        10
+amg    spgemm: symbolic                       0.105    5.8%    0.096    0.008        10
+amg    spgemm: numeric                        0.543   29.9%    0.426    0.117        10
+       total                                   1.816

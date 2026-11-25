@@ -1,0 +1,9 @@
+Tesla T4 | cuSPARSE 12.5.8 | git  | 6 matrices x 40 configs | reps 20, warmup 5, L2 flush off
+[1/6] ACUSIM/Pres_Poisson  14822 x 14822  nnz 715804  (load 8 ms)
+[2/6] Norris/torso2  115967 x 115967  nnz 1033473  (load 5 ms)
+[3/6] Rajat/rajat23  110355 x 110355  nnz 556938  (load 4 ms)
+[4/6] Sandia/ASIC_100k  99340 x 99340  nnz 954163  (load 6 ms)
+[5/6] Schenk_AFE/af_shell1  504855 x 504855  nnz 17588875  (load 226 ms)
+[6/6] Williams/cop20k_A  121192 x 121192  nnz 2624331  (load 16 ms)
+
+237 result rows, 0 correctness failures, 3 infeasible, 0 errors, 0 skipped -> /kaggle/working/rasp-results/kaggle_harsh/spmv_gpu_warm.csv

@@ -1,0 +1,1 @@
+Intel(R) Xeon(R) CPU @ 2.00GHz, 4 threads, g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, OMP_PROC_BIND=close OMP_PLACES=cores

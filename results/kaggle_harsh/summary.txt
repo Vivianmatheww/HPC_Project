@@ -1,0 +1,52 @@
+machine: Intel(R) Xeon(R) CPU @ 2.00GHz, 4 threads, g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, OMP_PROC_BIND=close OMP_PLACES=cores
+runs: 1 sweep(s) of threads [1, 2, 4], fastest time of each metric
+
+== time (speedup vs the sequential run, vs T=1; parallel efficiency = speedup / T; busy = user CPU / wall)
+
+SpMV CSR (geomean of 6 matrices)  [ms]
+                                        seq      T=1      T=2      T=4
+time                                  1.979    1.947    1.016    0.855
+speedup vs sequential                          1.02x    1.95x    2.31x
+speedup vs T=1                                 1.00x    1.92x    2.28x
+efficiency (vs seq)                             102%      97%      58%
+busy cores (user/wall)                           1.0      2.0      3.9
+
+CG solve (Laplace 128³)  [s]
+                                        seq      T=1      T=2      T=4
+time                                 15.534   13.938    7.481    5.751
+speedup vs sequential                          1.11x    2.08x    2.70x
+speedup vs T=1                                 1.00x    1.86x    2.42x
+efficiency (vs seq)                             111%     104%      68%
+busy cores (user/wall)                           1.0      2.0      3.9
+
+AMG SpGEMM (Laplace 160³)  [s]
+                                        seq      T=1      T=2      T=4
+time                                  0.677    0.607    0.413    0.450
+speedup vs sequential                          1.12x    1.64x    1.50x
+speedup vs T=1                                 1.00x    1.47x    1.35x
+efficiency (vs seq)                             112%      82%      38%
+busy cores (user/wall)                           0.8      1.4      2.6
+numeric pass system time (T=1)        0.106 s = 23% of the pass
+numeric pass system time (T=2)        0.109 s = 33% of the pass
+
+== SpMV CSR per matrix  [ms per SpMV; speedup vs sequential]
+                      seq      T=1      T=2      T=4
+rajat23             0.793    0.790    0.398    0.340
+  speedup                    1.00x    1.99x    2.33x
+ASIC_100k           1.262    1.254    0.774    0.641
+  speedup                    1.01x    1.63x    1.97x
+Pres_Poisson        0.668    0.661    0.349    0.265
+  speedup                    1.01x    1.92x    2.52x
+torso2              0.899    0.829    0.427    0.383
+  speedup                    1.08x    2.11x    2.35x
+cop20k_A            4.253    4.350    2.058    1.991
+  speedup                    0.98x    2.07x    2.14x
+af_shell1          23.504   23.030   11.654    8.859
+  speedup                    1.02x    2.02x    2.65x
+
+== SpMV CSR loop schedule at T=4  [geomean ms; speedup vs sequential]
+  static         0.855 ms   2.31x
+  dynamic,64     0.862 ms   2.29x
+  guided         0.855 ms   2.31x
+
+streaming bandwidth: 1 thread 9.9 GB/s, 4 threads 26.5 GB/s -> expected ceiling of SpMV/CG ~2.7x

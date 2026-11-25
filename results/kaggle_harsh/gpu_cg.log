@@ -1,12 +1,12 @@
 [1/2] ACUSIM/Pres_Poisson  14822 x 14822  nnz 715804
-  fp64 always_cusparse  cusparse_alg1            688 it conv  total   67.478 ms (plan 1.785)  true res 8.0e-09
-  fp64 tree             csr_vector_v4            686 it conv  total   70.942 ms (plan 0.102)  true res 9.8e-09
-  fp64 tree_exact       csr_vector_v4            687 it conv  total   71.065 ms (plan 0.100)  true res 9.8e-09
-  fp64 tree_nobe        csr_vector_v4            686 it conv  total   72.729 ms (plan 0.102)  true res 8.9e-09
+  fp64 always_cusparse  cusparse_alg1            684 it conv  total   67.212 ms (plan 1.271)  true res 9.9e-09
+  fp64 tree             csr_vector_v4            684 it conv  total   71.588 ms (plan 0.127)  true res 9.4e-09
+  fp64 tree_exact       csr_vector_v4            684 it conv  total   72.370 ms (plan 0.103)  true res 9.6e-09
+  fp64 tree_nobe        csr_vector_v4            685 it conv  total   72.341 ms (plan 0.118)  true res 8.8e-09
 [2/2] gallery/laplace3d_n128  2097152 x 2097152  nnz 14581760
-  fp64 always_cusparse  cusparse_alg1            317 it conv  total  646.464 ms (plan 1.356)  true res 1.0e-08
-  fp64 tree             cusparse_alg1            317 it conv  total  646.566 ms (plan 1.753)  true res 1.0e-08
-  fp64 tree_exact       cusparse_alg1            317 it conv  total  646.465 ms (plan 1.848)  true res 1.0e-08
-  fp64 tree_nobe        cusparse_alg1            317 it conv  total  646.314 ms (plan 1.745)  true res 1.0e-08
+  fp64 always_cusparse  cusparse_alg1            317 it conv  total  648.044 ms (plan 1.362)  true res 1.0e-08
+  fp64 tree             cusparse_alg1            317 it conv  total  648.427 ms (plan 1.778)  true res 1.0e-08
+  fp64 tree_exact       cusparse_alg1            317 it conv  total  648.033 ms (plan 1.923)  true res 1.0e-08
+  fp64 tree_nobe        cusparse_alg1            317 it conv  total  647.817 ms (plan 1.801)  true res 1.0e-08
 
-0 failures -> /kaggle/working/rasp-results/kaggle/cg_gpu.csv
+0 failures -> /kaggle/working/rasp-results/kaggle_harsh/cg_gpu.csv
