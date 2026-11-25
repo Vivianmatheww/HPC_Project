@@ -190,7 +190,7 @@ echo "== analysis"
 python3 scripts/analyze_seq.py --dir "$OUT/seq" --gpu "$OUT/spmv_gpu.csv" > "$OUT/seq/analysis.log" 2>&1 ||
   echo "   analyze_seq.py failed: see $OUT/seq/analysis.log"
 python3 scripts/compare_seq_gpu.py --seq "$OUT/seq" --spmv "$OUT/spmv_gpu.csv" --spmv-warm "$OUT/spmv_gpu_warm.csv" \
-  --cg "$OUT/cg_gpu.csv" --amg "$OUT/amg_gpu.csv" | tee "$OUT/comparison.txt"
+  --cg "$OUT/cg_gpu.csv" --amg "$OUT/amg_gpu.csv" --omp "$OUT/omp" | tee "$OUT/comparison.txt"
 if [ "$ZIP" = 1 ]; then
   python3 -c "import shutil, sys; print(shutil.make_archive(sys.argv[1], 'zip', sys.argv[2], sys.argv[3]))" \
     "$WORK/rasp_$RUN" "$(dirname "$OUT")" "$(basename "$OUT")"

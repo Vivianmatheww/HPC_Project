@@ -50,8 +50,8 @@ Experiments run on an RTX~4050 Laptop GPU on PCIe~4.0 with an 8-core Ryzen~7 784
 cuSPARSE~12.8), with cross-checks on a Kaggle Tesla~T4 and a Core i5-1235U.
 On \stat{p3-heldout-matrices} unseen SuiteSparse matrices the SpMV selector runs within \stat{p3-g2-tree}\x{} of the
 per-matrix best, and on the same machine the GPU is 5.0\x{} (SpMV), 9.1\x{} (conjugate gradients) and 5.0\x{} (AMG
-set-up) faster than one CPU core, while OpenMP on all cores gains only \stat{omp-cg-best-speedup}--\stat{omp-spmv-best-speedup}\x{}
-because CPU memory bandwidth saturates.
+set-up) faster than one CPU core, and still 1.5--4.7\x{} faster than OpenMP on all eight cores, whose memory bandwidth
+saturates.
 Out of core, overlapping PCIe copies with computation makes SpGEMM \stat{p4-g6-AxP}\x{} faster than the baseline on
 $A\cdot P$ but only \stat{p4-g6-RxA}\x{} on $R\cdot A$, and the data transfers still hold it to
 \stat{p4-frac-of-device} of the in-memory kernel's throughput.

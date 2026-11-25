@@ -63,27 +63,28 @@ levels are tiled, and level~0 takes 82--85\% of the set-up time. Every method pr
 satisfy the Galerkin row-sum identity. The \stat{p5-amg-256-rasp-speedup}\x{} measured at $n=256$ is inflated by an
 anomalous host-side estimate in that Algorithm~4 run (\cref{sec:eval-g7}).
 
-\subsection{GPU against the sequential CPU code}\label{sec:res-seq}
-\Cref{tab:same-machine} compares the GPU with one core of the same machine. On the RTX~4050 laptop the GPU is
-5.0\x{} faster for SpMV, 9.1\x{} for CG and 5.0\x{} for the AMG set-up, including PCIe transfers. The T4's ratios are
-higher mainly because Kaggle's 2\,GHz Xeon is slower: sequential CG takes 15.5\,s there against 7.5\,s on the Ryzen.
-With a warm L2 cache, the T4's best-configuration lead over cuSPARSE falls from 1.44\x{} to 1.28\x, so we report
-flushed numbers throughout.
-\todo{add the OpenMP (all cores) column for both machines from results/*/omp via scripts/compare\_seq\_gpu.py}
+\subsection{GPU and OpenMP against one CPU core}\label{sec:res-seq}
+\Cref{tab:same-machine} compares all three versions on the same machines. On the RTX~4050 laptop the GPU is
+5.0\x{} faster than one core for SpMV, 9.1\x{} for CG and 5.0\x{} for the AMG set-up, including PCIe transfers. OpenMP
+on the eight Ryzen cores reaches 3.3\x, 1.9\x{} and 3.0\x, so the GPU's lead over the whole CPU is 1.5\x, 4.7\x{} and
+1.7\x. The T4's ratios are higher mainly because Kaggle's 2\,GHz Xeon is slower. With a warm L2 cache, the T4's
+best-configuration lead over cuSPARSE falls from 1.44\x{} to 1.28\x, so we report flushed numbers.
 
 \begin{table}[t]
 \centering\small
-\caption{Speedup of the GPU over the sequential CPU code on the same machine (\texttt{results/*/comparison.txt}).
-SpMV: geometric mean over six matrices, fp64, L2 flushed. CG: Laplace $128^3$. AMG: set-up at $n=160$, in core.}\label{tab:same-machine}
+\caption{Speedup over one core of the same CPU (\texttt{results/*/comparison.txt}). OpenMP: best thread count.
+SpMV: cuSPARSE, geometric mean over six matrices, fp64, L2 flushed. CG: Laplace $128^3$. AMG: set-up at $n=160$, in
+core, GPU including transfers.}\label{tab:same-machine}
 \resizebox{\columnwidth}{!}{%
-\begin{tabular}{@{}lrr@{}}
+\begin{tabular}{@{}lrrrr@{}}
 \toprule
- & RTX 4050 / Ryzen 7 7840HS & Tesla T4 / Xeon 2\,GHz \\
+ & \multicolumn{2}{c}{RTX 4050 / Ryzen 7 7840HS} & \multicolumn{2}{c}{Tesla T4 / Xeon 2\,GHz} \\
+\cmidrule(lr){2-3}\cmidrule(l){4-5}
+ & OpenMP & GPU & OpenMP & GPU \\
 \midrule
-SpMV, cuSPARSE & 5.0\x & 10.4\x \\
-SpMV, fastest GPU configuration & 5.3\x & 14.9\x \\
-CG, time to solution & 9.1\x & 24.0\x \\
-AMG set-up, incl.\ transfers & 5.0\x & 4.8\x \\
+SpMV & 3.3\x{} (8 t) & 5.0\x & 2.3\x{} (4 t) & 10.4\x \\
+CG, time to solution & 1.9\x{} (4 t) & 9.1\x & 2.7\x{} (4 t) & 24.0\x \\
+AMG set-up & 3.0\x{} (16 t) & 5.0\x & 1.6\x{} (2 t) & 4.8\x \\
 \bottomrule
 \end{tabular}}
 \end{table}

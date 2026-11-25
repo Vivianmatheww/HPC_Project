@@ -38,3 +38,15 @@ AMG set-up, SpGEMMs R(AP) of every level (the sequential run uses a 160^3 grid)
   GPU rasp          n=192  budget    256 MiB     0.289 s
   GPU rasp_static   n=192  budget    256 MiB     0.294 s
   (GPU times include copying A, P, R in and every product out over PCIe)
+
+OpenMP version, speedup over the sequential run (same CPU; SpMV: CSR, geomean over 6 matrices)
+  threads     SpMV       CG  AMG SpGEMM
+        1    1.02x    1.11x       1.12x
+        2    1.95x    2.08x       1.64x
+        4    2.31x    2.70x       1.50x
+
+Summary: speedup over one core of the same CPU (SpMV: cuSPARSE, L2 flushed; CG: always_cusparse; AMG: incore, n=160)
+                                      SpMV            CG    AMG SpGEMM
+  OpenMP, best thread count     2.3x (4 t)    2.7x (4 t)    1.6x (2 t)
+  GPU                                10.4x         24.0x          4.8x
+  GPU over OpenMP                     4.5x          8.9x          2.9x
