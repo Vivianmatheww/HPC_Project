@@ -1,0 +1,29 @@
+\section{Objective of the Work}\label{sec:objective}
+
+The objective is to replace the static choices of the two papers with choices made at run time, and to show on
+measurements that this is fast, cheap and safe. For SpMV, a selector should pick a format and its parameters for
+each matrix, come within 10\% of the best of all configurations on matrices it has never seen, cost no more than about
+two SpMVs to decide, and never be slower than cuSPARSE when the matrix is used only once. For SpGEMM, a planner should
+keep every product within a fixed GPU memory budget, overlap PCIe copies with computation, and be at least 1.3\x{}
+faster than paper~1's Algorithm~4 whenever the problem exceeds the budget. Along the way we re-test both papers'
+claims on current hardware and libraries, and we show both techniques at work inside real applications (CG and AMG
+set-up). Finally, we compare the GPU with sequential and OpenMP CPU versions on the same machine.
+\Cref{tab:goals} lists the measurable goals and where each is evaluated.
+
+\begin{table*}[t]
+\centering\small
+\caption{Project goals and where they are evaluated.}\label{tab:goals}
+\begin{tabular}{@{}lp{6.4cm}p{6.6cm}l@{}}
+\toprule
+ & Goal & Target & Section \\
+\midrule
+\G1 & Reproduce paper 2 (ArgCSR) on modern hardware & same qualitative winners and losers & \ref{sec:res-g1} \\
+\G2 & Runtime SpMV selector & geomean $T_\text{selected}/T_\text{oracle} \le 1.10$; never $>$5\% slower than cuSPARSE on matrices $\ge$ 1M nnz & \ref{sec:res-g2} \\
+\G3 & Selection is cheap & features + inference $\le$ 2 SpMVs & \ref{sec:res-g2} \\
+\G4 & Conversion-aware choice & never $>$5\% worse than cuSPARSE at $N=1$ call & \ref{sec:res-g4} \\
+\G5 & Paper 1's placement study on a PCIe GPU & our version of its Table 3 & \ref{sec:res-g5} \\
+\G6 & Overlapped, adaptive out-of-core SpGEMM & $\ge 1.3\times$ over Algorithm 4 when the problem exceeds the budget & \ref{sec:res-g6} \\
+\G7 & End-to-end applications & CG (SpMV) and AMG set-up (SpGEMM) working and timed & \ref{sec:res-cg}, \ref{sec:res-amg} \\
+\bottomrule
+\end{tabular}
+\end{table*}

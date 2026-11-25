@@ -1,4 +1,22 @@
-\section{Evaluation}\label{sec:eval}
+\section{Detailed evaluation}\label{sec:eval}
+This appendix gives the full evaluation behind \cref{sec:results}.
+
+\subsection{Measurement procedure}
+\paragraph{Timing.} Kernels are timed with CUDA events: 5 warm-up runs, then the median of 20 with the
+interquartile range. The 24\,MB L2 cache is flushed before every timed SpMV, because matrices smaller than the cache
+would otherwise look faster than they are. Out-of-core SpGEMM is timed on the host from pinned inputs to pinned output,
+including every transfer and the estimation and planning time. Pinned allocation and context creation are excluded
+from the total and reported separately. Under WSL2, host-side timing shows position effects of 5--10\,\textmu s, which
+a fixed order of methods turned into fake differences of $\pm 9\%$ at $N=1$ in Phase~3. Every comparison of
+selectors or SpGEMM methods therefore runs the methods in a freshly shuffled order in each repetition. Median timing
+noise in the Phase~1 baseline was \stat{p1-iqr-median-pct}\% (IQR over median).
+
+\paragraph{Correctness.} Every SpMV result is compared with a CPU reference accumulated in double precision
+(relative $L_2$ error $\le 10^{-12}$ in fp64, $\le 10^{-5}$ in fp32). Every SpGEMM run must give the same
+$\mathrm{nnz}(C)$ as every other method, and 2,000 random rows (plus the first and the last) are recomputed on the CPU.
+CG residuals are recomputed on the CPU from the downloaded solution. Each AMG level is checked against the other
+methods and against the Galerkin row-sum identity $A_{l+1}\mathbf 1 = R_l(A_l \mathbf 1)$, which holds exactly for
+Laplace. All CSVs carry the GPU, driver, CUDA and cuSPARSE versions, the git commit and a dirty flag.
 
 \subsection{Baseline: how well does cuSPARSE use the GPU?}
 cuSPARSE \texttt{CSR\_ALG1} reaches a median of \stat{p1-fp64-csr-alg1-bw}\% of the measured device bandwidth in
@@ -200,8 +218,8 @@ device-to-host) overlap the per-tile SpGEMM kernels (blue) on the others.}\label
 \subsection{G7: end-to-end applications}\label{sec:eval-g7}
 \paragraph{Conjugate gradients.} A solver knows its iteration cap, and that is the natural \texttt{expected\_calls}
 hint for break-even. Over \stat{p5-cg-matrices} SPD matrices, Jacobi-preconditioned CG with \texttt{SpmvPlan} given that
-hint takes \stat{p5-cg-tree-geomean}\x{} the time of the same solver with cuSPARSE (worst \stat{p5-cg-tree-worst}\x,
-best \stat{p5-cg-tree-best}\x), and \stat{p5-cg-tree-exact-geomean}\x{} when it knows the exact iteration count
+hint is \stat{p5-cg-tree-geomean}\x{} faster than the same solver with cuSPARSE (worst \stat{p5-cg-tree-worst}\x,
+best \stat{p5-cg-tree-best}\x), and \stat{p5-cg-tree-exact-geomean}\x{} faster when it knows the exact iteration count
 (\cref{tab:cg}, \cref{fig:cg}). SpMV is only \stat{p5-cg-spmv-share}\% of a solve (median); vector updates, reductions
 and two host synchronisations per iteration take the rest, which caps what any SpMV selector can gain end to end.
 \stat{p5-cg-failures} solves failed the CPU residual check.
