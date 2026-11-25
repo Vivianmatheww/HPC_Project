@@ -34,12 +34,12 @@ in small and medium matrices.
 directions, as in paper~2.}\label{fig:chunk}
 \end{figure}
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering\small
 \caption{Paper~2's named matrices (fp64, GFLOP/s): cuSPARSE \texttt{ALG1}, ArgCSR at the paper's default and tuned,
 and the fastest configuration.}\label{tab:named}
 \stattable{p2-named}
-\end{table}
+\end{table*}
 
 \textbf{The chunk-size sensitivity reproduces.} On \texttt{rajat23}, ArgCSR with \texttt{desiredChunkSize} 1 runs at
 \stat{p2-rajat23-d1}\,GFLOP/s and with 32 at \stat{p2-rajat23-d32} (paper~2: 5.1 vs 0.81 on a Fermi C2070). Padding
@@ -91,12 +91,12 @@ cuSPARSE is already near-optimal on large matrices. We therefore re-scoped \G2 f
 \end{table}
 
 \subsection{G2--G4: the runtime selector on held-out matrices}\label{sec:eval-g2}
-\begin{table}[t]
+\begin{table*}[t]
 \centering\small
 \caption{Steady-state selection on \stat{p3-heldout-samples} held-out samples (\stat{p3-heldout-matrices} matrices
 $\times$ 2 precisions).}\label{tab:g2}
 \stattable{p3-g2}
-\end{table}
+\end{table*}
 
 \begin{figure}[t]
 \centering
@@ -234,11 +234,11 @@ On \texttt{ted\_B} (17 iterations) the exact hint makes break-even decline the f
 the cap's choice, CSR-vector, was slightly faster. With a hint this small the test is conservative, not wasteful, and on
 a 3\,ms solve the difference is within the noise.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering\small
 \caption{CG time-to-solution (plan + solve) against the same solver with cuSPARSE.}\label{tab:cg}
 \stattable{p5-cg}
-\end{table}
+\end{table*}
 
 \begin{figure}[t]
 \centering\rfig[0.95\linewidth]{p5_cg}
@@ -260,18 +260,18 @@ product takes 33--36\,ms even on the $8^3$ grid, and 31--35\,ms of it is the hos
 disturbance in that run, not a cost of Algorithm~4. With overlapped Algorithm~4's estimate times in its place, RASP's
 speedup at $n=256$ would be about 1.37\x. The final run re-measures it.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering\small
 \caption{AMG set-up for Laplace3D $n=192$ under a 256\,MiB budget (median of 3).}\label{tab:amg}
 \stattable{p5-amg-192}
-\end{table}
+\end{table*}
 
 \subsection{Kernel profiles}
-\begin{table}[t]
+\begin{table*}[t]
 \centering\small
 \caption{Nsight Compute metrics of representative kernels (ncu locks clocks, so these are not timings).}\label{tab:ncu}
 \resizebox{\linewidth}{!}{\stattable{p5-ncu}}
-\end{table}
+\end{table*}
 \Cref{tab:ncu} lists hardware counters for kernels behind the results above. CSR-vector on \texttt{af\_shell1}
 reaches \stat{p5-ncu-spmv-csr-vector-af-shell1-dram}\% of peak DRAM throughput; ArgCSR on \texttt{rajat23} reaches
 \stat{p5-ncu-spmv-argcsr-D32-rajat23-dram}\% with chunk size 32 and \stat{p5-ncu-spmv-argcsr-D1-rajat23-dram}\% with

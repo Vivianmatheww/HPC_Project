@@ -3,7 +3,7 @@
 Each method is summarised below; \cref{sec:eval} gives the full tables and figures.
 
 \subsection{Reproducing ArgCSR (G1)}\label{sec:res-g1}
-The chunk-size sensitivity reproduces. On \texttt{rajat23}, \texttt{desiredChunkSize} 1 runs at
+The chunk-size sensitivity reproduces. On \texttt{rajat23}, ArgCSR with chunk size~1 runs at
 \stat{p2-rajat23-d1}\,GFLOP/s and 32 at \stat{p2-rajat23-d32} (paper~2: 5.1 vs 0.81), because one long row pads its
 whole group. No global value is right: fixing the paper's choice of~1 costs \stat{p2-d1-slowdown}\x{} on average against
 the best value per matrix. The paper's headline does not hold against 2026 cuSPARSE: ArgCSR reaches

@@ -11,6 +11,7 @@
 \usepackage{enumitem}
 \usepackage[capitalise,noabbrev]{cleveref}
 \setlist{nosep,leftmargin=*}
+\setlength{\emergencystretch}{2em} % two columns and long \texttt names
 
 \input{rasp-macros}
 \InputIfFileExists{generated/platform.tex}{}{}
@@ -26,18 +27,13 @@
 \begin{document}
 
 \title{Runtime-Adaptive Sparse Matrix Optimization for GPUs}
-\subtitle{Sparse matrix representation and GPU memory-layout optimization}
+\subtitle{Sparse matrix representation and GPU memory-layout optimization\\[2pt]
+  Course project, High Performance Computing, December 2026}
 
-% TODO(team): course name and institute.
-\author{Harsh Raj}
-\affiliation{\institution{\todo{institute}}\country{India}}
-\email{S20240010084}
-\author{Karmanya}
-\affiliation{\institution{\todo{institute}}\country{India}}
-\email{S20240010108}
-\author{Vivian}
-\affiliation{\institution{\todo{institute}}\country{India}}
-\email{S20240010258}
+\author{Harsh Raj (S20240010084)}
+\author{Karmanya (S20240010108)}
+\author{Vivian (S20240010258)}
+\affiliation{\institution{Indian Institute of Information Technology Sri City}\city{Sri City}\state{Andhra Pradesh}\country{India}}
 \renewcommand{\shortauthors}{Harsh Raj, Karmanya and Vivian}
 
 \begin{abstract}
