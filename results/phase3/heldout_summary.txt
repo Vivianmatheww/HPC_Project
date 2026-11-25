@@ -1,27 +1,27 @@
 HELD-OUT: 40 matrices x 2 precisions = 80 samples (4 with >= 1M nnz); 40 configs; all plan and SpMV results correct
 
-best of all 40 configs vs cuSPARSE ALG1: 1.129x geomean, max 2.00x
+best of all 40 configs vs cuSPARSE ALG1: 1.123x geomean, max 2.00x
 
 == G2: steady-state selection vs the held-out oracle ==
-  always cuSPARSE ALG1       T/T_oracle geomean 1.1290 | within 10%:  55% | vs cuSPARSE 1.000x | >5% slower than cuSPARSE: 0 (large: 0)
-  rules (v1)                 T/T_oracle geomean 1.1283 | within 10%:  39% | vs cuSPARSE 1.001x | >5% slower than cuSPARSE: 28 (large: 0)
-  decision tree (v2)         T/T_oracle geomean 1.0742 | within 10%:  66% | vs cuSPARSE 1.051x | >5% slower than cuSPARSE: 11 (large: 0)
-  oracle within portfolio    T/T_oracle geomean 1.0162 | within 10%:  92% | vs cuSPARSE 1.111x | >5% slower than cuSPARSE: 0 (large: 0)
+  always cuSPARSE ALG1       T/T_oracle geomean 1.1229 | within 10%:  56% | vs cuSPARSE 1.000x | >5% slower than cuSPARSE: 0 (large: 0)
+  rules (v1)                 T/T_oracle geomean 1.1374 | within 10%:  39% | vs cuSPARSE 0.987x | >5% slower than cuSPARSE: 28 (large: 0)
+  decision tree (v2)         T/T_oracle geomean 1.0742 | within 10%:  68% | vs cuSPARSE 1.045x | >5% slower than cuSPARSE: 11 (large: 0)
+  oracle within portfolio    T/T_oracle geomean 1.0176 | within 10%:  92% | vs cuSPARSE 1.103x | >5% slower than cuSPARSE: 0 (large: 0)
 
   tree picks: {'csr_vector_v4': 30, 'cusparse_alg1': 28, 'csr_binned_t2': 14, 'cusparse_alg2': 8}
   held-out oracle labels within portfolio: {'cusparse_alg1': 30, 'csr_binned_t2': 18, 'csr_vector_v4': 15, 'csr_scalar': 11, 'cusparse_alg2': 6}
-  largest tree losses vs cuSPARSE: {'DRIVCAV/cavity10 fp32': 1.286, 'Oberwolfach/piston fp32': 1.2, 'DRIVCAV/cavity18 fp32': 1.176, 'DRIVCAV/cavity10 fp64': 1.172, 'Hollinger/jan99jac060 fp32': 1.15}
+  largest tree losses vs cuSPARSE: {'DRIVCAV/cavity10 fp32': 1.357, 'Oberwolfach/piston fp32': 1.26, 'Hollinger/jan99jac060 fp32': 1.243, 'DRIVCAV/cavity18 fp32': 1.176, 'DRIVCAV/cavity10 fp64': 1.167}
 
 == G3: feature extraction cost (held-out, plans that extracted features) ==
-  feature_ms median 0.0379 ms; in cuSPARSE SpMVs: median 1.97, p90 3.28; <= 2 for 55%
-  median by size: {'<100k': 2.52, '100k-1M': 0.95, '>1M': 0.28}
+  feature_ms median 0.0694 ms; in cuSPARSE SpMVs: median 3.10, p90 7.84; <= 2 for 28%
+  median by size: {'<100k': 4.4, '100k-1M': 1.77, '>1M': 0.37}
 
 == G4: total time (plan + N calls) vs always-cuSPARSE; geomean speedup [worst case] ==
  selector          N=1         N=10        N=100       N=1000
-    rules 0.988 [0.66] 0.998 [0.91] 1.004 [0.72] 0.994 [0.69]
-     tree 0.996 [0.84] 0.995 [0.87] 1.014 [0.78] 1.052 [0.78]
-tree_nobe 0.601 [0.27] 0.832 [0.51] 1.015 [0.78] 1.043 [0.78]
+    rules 0.998 [0.82] 0.992 [0.87] 0.977 [0.67] 0.986 [0.66]
+     tree 1.010 [0.81] 0.987 [0.75] 0.982 [0.74] 1.037 [0.74]
+tree_nobe 0.572 [0.23] 0.741 [0.34] 0.973 [0.75] 1.025 [0.74]
   tree: fraction of plans that extracted features by N: {1: 0.0, 10: 0.02, 100: 0.89, 1000: 1.0}
   tree: plans where break-even dropped the steady-state conversion, by N: {}
-  G4 check at N=1: tree worse than cuSPARSE by >5% on 7 of 80 samples; 80 of 80 N=1 tree plans do exactly the baseline's work (same config, no features),
-  so their spread (ratio p5-p95 0.939-1.035) is timing noise of the ~0.05 ms plan construction.
+  G4 check at N=1: tree worse than cuSPARSE by >5% on 18 of 80 samples; 80 of 80 N=1 tree plans do exactly the baseline's work (same config, no features),
+  so their spread (ratio p5-p95 0.842-1.185) is timing noise of the ~0.05 ms plan construction.

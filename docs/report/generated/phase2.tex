@@ -8,55 +8,56 @@
 \toprule
 fastest family & FP32 & FP64 \\
 \midrule
-argcsr & 0 & 2 \\
-csr\_binned & 3 & 6 \\
-csr\_scalar & 7 & 4 \\
-csr\_vector & 15 & 23 \\
-cusparse & 34 & 24 \\
-sell & 1 & 1 \\
+argcsr & 0 & 1 \\
+csr\_binned & 2 & 5 \\
+csr\_scalar & 7 & 3 \\
+csr\_vector & 22 & 27 \\
+cusparse & 28 & 23 \\
+ell & 0 & 1 \\
+sell & 1 & 0 \\
 \bottomrule
 \end{tabular}}
-\setstat{p2-oracle-fp32}{1.07}
+\setstat{p2-oracle-fp32}{1.09}
 \setstat{p2-oracle-fp32-max}{1.38}
-\setstat{p2-cusparse-wins-fp32}{34}
+\setstat{p2-cusparse-wins-fp32}{28}
 \setstat{p2-oracle-fp64}{1.11}
-\setstat{p2-oracle-fp64-max}{1.30}
-\setstat{p2-cusparse-wins-fp64}{24}
+\setstat{p2-oracle-fp64-max}{1.33}
+\setstat{p2-cusparse-wins-fp64}{23}
 \setstat{table:p2-lines}{%
 \begin{tabular}{lrrr}
 \toprule
 configuration & FP32 & FP64 & feasible \\
 \midrule
 cuSPARSE ALG1 (default) & 1.00$\times$ & 1.00$\times$ & 60 \\
-CSR-scalar & 0.49$\times$ & 0.45$\times$ & 60 \\
-CSR-vector, best v & 0.92$\times$ & 0.95$\times$ & 60 \\
-ELL & 0.63$\times$ & 0.73$\times$ & 26 \\
+CSR-scalar & 0.49$\times$ & 0.46$\times$ & 60 \\
+CSR-vector, best v & 0.94$\times$ & 0.96$\times$ & 60 \\
+ELL & 0.65$\times$ & 0.74$\times$ & 26 \\
 SELL-C-σ, best C,σ & 0.18$\times$ & 0.22$\times$ & 60 \\
-ArgCSR B=128 D=1 (paper default) & 0.53$\times$ & 0.63$\times$ & 60 \\
+ArgCSR B=128 D=1 (paper default) & 0.54$\times$ & 0.64$\times$ & 60 \\
 ArgCSR, best B,D & 0.78$\times$ & 0.86$\times$ & 60 \\
 \bottomrule
 \end{tabular}}
-\setstat{p2-csr-vector-best-fp32}{0.92}
-\setstat{p2-csr-vector-best-fp64}{0.95}
+\setstat{p2-csr-vector-best-fp32}{0.94}
+\setstat{p2-csr-vector-best-fp64}{0.96}
 \setstat{p2-sell-best-fp32}{0.18}
 \setstat{p2-sell-best-fp64}{0.22}
-\setstat{p2-argcsr-default-fp32}{0.53}
-\setstat{p2-argcsr-default-fp64}{0.63}
+\setstat{p2-argcsr-default-fp32}{0.54}
+\setstat{p2-argcsr-default-fp64}{0.64}
 \setstat{p2-argcsr-tuned-fp32}{0.78}
 \setstat{p2-argcsr-tuned-fp64}{0.86}
-\setstat{p2-oracle-size-lt100k}{1.16}
-\setstat{p2-oracle-size-100k-1M}{1.10}
+\setstat{p2-oracle-size-lt100k}{1.18}
+\setstat{p2-oracle-size-100k-1M}{1.09}
 \setstat{p2-oracle-size-gt1M}{1.02}
-\setstat{p2-d1-slowdown}{1.38}
-\setstat{p2-d1-worst}{3.62}
+\setstat{p2-d1-slowdown}{1.37}
+\setstat{p2-d1-worst}{3.63}
 \setstat{p2-d1-worst-matrix}{nemeth19}
-\setstat{p2-d1-best-count-fp64}{3}
-\setstat{p2-afshell1-d1}{12.67}
-\setstat{p2-afshell1-d32}{25.29}
+\setstat{p2-d1-best-count-fp64}{1}
+\setstat{p2-afshell1-d1}{12.70}
+\setstat{p2-afshell1-d32}{25.35}
 \setstat{p2-afshell1-stored-d1}{6.1}
 \setstat{p2-afshell1-stored-d32}{1.1}
-\setstat{p2-rajat23-d1}{8.84}
-\setstat{p2-rajat23-d32}{0.78}
+\setstat{p2-rajat23-d1}{8.99}
+\setstat{p2-rajat23-d32}{0.79}
 \setstat{p2-rajat23-stored-d1}{3.3}
 \setstat{p2-rajat23-stored-d32}{10.2}
 \setstat{table:p2-named}{%
@@ -64,41 +65,41 @@ ArgCSR, best B,D & 0.78$\times$ & 0.86$\times$ & 60 \\
 \toprule
 matrix & cuSPARSE & ArgCSR D=1 & ArgCSR best & best & best config \\
 \midrule
-ncvxqp9 & 5.9 & 7.0 & 7.0 & 7.0 & csr\_vector\_v2 \\
-ckt11752\_dc\_1 & 12.3 & 8.8 & 9.7 & 12.3 & cusparse\_alg1 \\
-torso2 & 16.1 & 12.5 & 18.4 & 18.4 & argcsr\_B128\_D16 \\
-case39 & 17.7 & 11.2 & 13.7 & 18.2 & cusparse\_alg2 \\
-rajat23 & 12.8 & 8.8 & 10.1 & 13.4 & cusparse\_alg2 \\
-ASIC\_100k & 14.2 & 3.7 & 6.2 & 14.9 & cusparse\_alg2 \\
-af\_shell1 & 28.7 & 12.7 & 26.5 & 28.7 & cusparse\_alg1 \\
-t2d\_q9 & 8.9 & 7.1 & 10.0 & 10.6 & csr\_vector\_v2 \\
-TSOPF\_FS\_b39\_c7 & 16.2 & 10.8 & 11.7 & 17.4 & cusparse\_alg2 \\
-TSOPF\_RS\_b162\_c1 & 13.4 & 5.2 & 12.2 & 14.3 & csr\_vector\_v8 \\
+ncvxqp9 & 5.3 & 6.6 & 6.6 & 7.0 & csr\_vector\_v2 \\
+ckt11752\_dc\_1 & 12.8 & 9.0 & 9.9 & 12.8 & cusparse\_alg1 \\
+torso2 & 16.6 & 12.7 & 18.5 & 18.5 & argcsr\_B64\_D16 \\
+case39 & 18.0 & 11.3 & 13.9 & 18.1 & cusparse\_alg2 \\
+rajat23 & 13.1 & 9.0 & 10.3 & 13.6 & cusparse\_alg2 \\
+ASIC\_100k & 16.5 & 3.7 & 6.3 & 16.6 & cusparse\_alg2 \\
+af\_shell1 & 26.5 & 12.7 & 26.5 & 27.3 & csr\_vector\_v16 \\
+t2d\_q9 & 8.7 & 7.1 & 10.0 & 10.6 & csr\_scalar \\
+TSOPF\_FS\_b39\_c7 & 16.4 & 11.1 & 11.8 & 17.3 & cusparse\_alg2 \\
+TSOPF\_RS\_b162\_c1 & 13.4 & 5.3 & 12.5 & 14.3 & csr\_vector\_v8 \\
 \bottomrule
 \end{tabular}}
-\setstat{p2-ncvxqp9-argcsr-vs-cusparse}{1.20}
-\setstat{p2-torso2-argcsr-vs-cusparse}{1.14}
+\setstat{p2-ncvxqp9-argcsr-vs-cusparse}{1.25}
+\setstat{p2-torso2-argcsr-vs-cusparse}{1.11}
 \setstat{p2-ext-argcsr-local-B128-R32-fp32}{0.68}
-\setstat{p2-ext-argcsr-local-B128-R32-fp64}{0.78}
+\setstat{p2-ext-argcsr-local-B128-R32-fp64}{0.77}
 \setstat{p2-ext-argcsr-local-B128-R64-fp32}{0.66}
 \setstat{p2-ext-argcsr-local-B128-R64-fp64}{0.75}
 \setstat{p2-ext-argcsr-local-B256-R32-fp32}{0.68}
-\setstat{p2-ext-argcsr-local-B256-R32-fp64}{0.78}
+\setstat{p2-ext-argcsr-local-B256-R32-fp64}{0.77}
 \setstat{p2-ext-argcsr-local-B256-R64-fp32}{0.70}
-\setstat{p2-ext-argcsr-local-B256-R64-fp64}{0.79}
-\setstat{p2-ext-csr-binned-t1-fp32}{0.78}
-\setstat{p2-ext-csr-binned-t1-fp64}{0.88}
-\setstat{p2-ext-csr-binned-t2-fp32}{0.85}
-\setstat{p2-ext-csr-binned-t2-fp64}{0.95}
-\setstat{p2-ext-csr-binned-t4-fp32}{0.88}
+\setstat{p2-ext-argcsr-local-B256-R64-fp64}{0.78}
+\setstat{p2-ext-csr-binned-t1-fp32}{0.79}
+\setstat{p2-ext-csr-binned-t1-fp64}{0.87}
+\setstat{p2-ext-csr-binned-t2-fp32}{0.86}
+\setstat{p2-ext-csr-binned-t2-fp64}{0.94}
+\setstat{p2-ext-csr-binned-t4-fp32}{0.89}
 \setstat{p2-ext-csr-binned-t4-fp64}{0.95}
-\setstat{p2-local-vs-default}{1.26}
-\setstat{p2-local-vs-tuned}{0.89}
-\setstat{p2-convert-calls-argcsr}{60}
-\setstat{p2-convert-calls-argcsr-local}{81}
-\setstat{p2-convert-calls-csr-binned}{4}
+\setstat{p2-local-vs-default}{1.24}
+\setstat{p2-local-vs-tuned}{0.88}
+\setstat{p2-convert-calls-argcsr}{106}
+\setstat{p2-convert-calls-argcsr-local}{163}
+\setstat{p2-convert-calls-csr-binned}{7}
 \setstat{p2-convert-calls-csr-scalar}{0}
 \setstat{p2-convert-calls-csr-vector}{0}
-\setstat{p2-convert-calls-cusparse}{0}
-\setstat{p2-convert-calls-ell}{40}
-\setstat{p2-convert-calls-sell}{15}
+\setstat{p2-convert-calls-cusparse}{1}
+\setstat{p2-convert-calls-ell}{78}
+\setstat{p2-convert-calls-sell}{28}

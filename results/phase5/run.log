@@ -1,341 +1,319 @@
-== Phase 5 run, 2026-10-08T22:41:08+05:30, git b62f4b4
+== Phase 5 run, 2026-11-26T00:28:59+05:30, git 13fcbe3 (dirty)
 name, driver_version, clocks.current.sm [MHz], clocks.current.memory [MHz], temperature.gpu
-NVIDIA GeForce RTX 4050 Laptop GPU, 617.14, 2130 MHz, 7001 MHz, 52
+NVIDIA GeForce RTX 4050 Laptop GPU, 621.24, 210 MHz, 810 MHz, 57.30
 ninja: no work to do.
 Test project /home/vivian/HPC_Project/build
       Start  1: test_io
  1/10 Test  #1: test_io ..........................   Passed    0.01 sec
       Start  2: test_spmv
- 2/10 Test  #2: test_spmv ........................   Passed    1.76 sec
+ 2/10 Test  #2: test_spmv ........................   Passed    1.49 sec
       Start  3: test_spgemm
- 3/10 Test  #3: test_spgemm ......................   Passed    1.75 sec
+ 3/10 Test  #3: test_spgemm ......................   Passed    1.27 sec
       Start  4: test_harness
- 4/10 Test  #4: test_harness .....................   Passed    1.86 sec
+ 4/10 Test  #4: test_harness .....................   Passed    1.25 sec
       Start  5: test_formats
- 5/10 Test  #5: test_formats .....................   Passed    4.38 sec
+ 5/10 Test  #5: test_formats .....................   Passed    3.86 sec
       Start  6: test_selector
- 6/10 Test  #6: test_selector ....................   Passed    3.75 sec
+ 6/10 Test  #6: test_selector ....................   Passed    3.18 sec
       Start  7: test_spgemm_plan
  7/10 Test  #7: test_spgemm_plan .................   Passed    0.05 sec
       Start  8: test_spgemm_ooc
- 8/10 Test  #8: test_spgemm_ooc ..................   Passed   12.93 sec
+ 8/10 Test  #8: test_spgemm_ooc ..................   Passed   14.11 sec
       Start  9: app_cg_solver
- 9/10 Test  #9: app_cg_solver ....................   Passed    1.31 sec
+ 9/10 Test  #9: app_cg_solver ....................   Passed    1.32 sec
       Start 10: app_amg_setup
-10/10 Test #10: app_amg_setup ....................   Passed    2.65 sec
+10/10 Test #10: app_amg_setup ....................   Passed    2.16 sec
 
 100% tests passed out of 10
 
-Total Test time (real) =  30.45 sec
+Total Test time (real) =  28.73 sec
 == SPD matrices for CG: every SPD matrix of the earlier sets, plus 20 fetched for Phase 5
-pool 126 matrices -> selected 20 (21.9 M nnz total)
-[1/20] FlowIPM22/Spielman_k100 (1025404 nnz) 29.1 MB
-[2/20] Um/2cubes_sphere (1647264 nnz) 11.8 MB
-[3/20] Williams/cant (4007383 nnz) 8.0 MB
-[4/20] TKK/smt (3749582 nnz) 19.7 MB
-[5/20] HB/bcsstk17 (428650 nnz) 1.9 MB
-[6/20] HB/bcsstk24 (159910 nnz) 0.8 MB
-[7/20] HB/bcsstk23 (45178 nnz) 0.2 MB
-[8/20] Rothberg/cfd1 (1825580 nnz) 9.3 MB
-[9/20] McRae/ecology2 (4995991 nnz) 9.7 MB
-[10/20] Boeing/bcsstk38 (355460 nnz) 1.5 MB
-[11/20] Cylshell/s1rmq4m1 (262411 nnz) 1.1 MB
-[12/20] UTEP/Dubcova2 (1030225 nnz) 4.1 MB
-[13/20] Bindel/ted_B (144579 nnz) 0.4 MB
-[14/20] TKK/cbuckle (676515 nnz) 4.7 MB
-[15/20] Mulvey/finan512 (596992 nnz) 3.6 MB
-[16/20] FIDAP/ex10 (54840 nnz) 0.3 MB
-[17/20] GHS_psdef/jnlbrng1 (199200 nnz) 0.5 MB
-[18/20] Boeing/msc00726 (34518 nnz) 0.1 MB
-[19/20] HB/bcsstk14 (63454 nnz) 0.3 MB
-[20/20] GHS_psdef/wathen120 (565761 nnz) 2.8 MB
-done: 20 matrices in data/spd/manifest.csv, 0 failed
 30 SPD matrices
 [1/32] ACUSIM/Pres_Poisson  14822 x 14822  nnz 715804
-  fp64 always_cusparse  cusparse_alg1            683 it conv  total  117.877 ms (plan 0.218)  true res 9.8e-09
-  fp64 tree             csr_vector_v4            683 it conv  total   91.225 ms (plan 0.167)  true res 9.4e-09
-  fp64 tree_exact       csr_vector_v4            683 it conv  total  100.168 ms (plan 0.136)  true res 9.7e-09
-  fp64 tree_nobe        csr_vector_v4            686 it conv  total   91.605 ms (plan 0.251)  true res 9.9e-09
+  fp64 always_cusparse  cusparse_alg1            683 it conv  total  142.154 ms (plan 0.367)  true res 9.7e-09
+  fp64 tree             csr_vector_v4            683 it conv  total  106.013 ms (plan 0.280)  true res 9.6e-09
+  fp64 tree_exact       csr_vector_v4            688 it conv  total  101.188 ms (plan 0.152)  true res 8.4e-09
+  fp64 tree_nobe        csr_vector_v4            683 it conv  total  109.861 ms (plan 0.203)  true res 9.8e-09
 [2/32] Boeing/msc10848  10848 x 10848  nnz 1229778
-  fp64 always_cusparse  cusparse_alg1           3008 it conv  total  774.432 ms (plan 0.249)  true res 8.9e-09
-  fp64 tree             cusparse_alg1           3021 it conv  total  653.568 ms (plan 0.600)  true res 8.4e-09
-  fp64 tree_exact       cusparse_alg1           3036 it conv  total  731.617 ms (plan 0.211)  true res 9.5e-09
-  fp64 tree_nobe        cusparse_alg1           3038 it conv  total  698.994 ms (plan 0.481)  true res 9.9e-09
+  fp64 always_cusparse  cusparse_alg1           3020 it conv  total  722.209 ms (plan 0.482)  true res 9.7e-09
+  fp64 tree             cusparse_alg1           3021 it conv  total  656.704 ms (plan 0.548)  true res 8.3e-09
+  fp64 tree_exact       cusparse_alg1           3028 it conv  total  696.560 ms (plan 0.266)  true res 9.9e-09
+  fp64 tree_nobe        cusparse_alg1           3016 it conv  total  669.424 ms (plan 0.402)  true res 9.3e-09
 [3/32] Cylshell/s1rmt3m1  5489 x 5489  nnz 219521
-  fp64 always_cusparse  cusparse_alg1            746 it conv  total  105.263 ms (plan 0.165)  true res 9.8e-09
-  fp64 tree             csr_vector_v4            745 it conv  total  112.444 ms (plan 0.164)  true res 9.2e-09
-  fp64 tree_exact       csr_vector_v4            745 it conv  total  113.799 ms (plan 0.280)  true res 9.8e-09
-  fp64 tree_nobe        csr_vector_v4            745 it conv  total   99.074 ms (plan 0.192)  true res 9.4e-09
+  fp64 always_cusparse  cusparse_alg1            746 it conv  total  118.592 ms (plan 0.165)  true res 9.7e-09
+  fp64 tree             csr_vector_v4            746 it conv  total  103.865 ms (plan 0.135)  true res 9.7e-09
+  fp64 tree_exact       csr_vector_v4            745 it conv  total  105.284 ms (plan 0.208)  true res 9.8e-09
+  fp64 tree_nobe        csr_vector_v4            746 it conv  total  110.533 ms (plan 0.166)  true res 9.7e-09
 [4/32] HB/bcsstk10  1086 x 1086  nnz 22070
-  fp64 always_cusparse  cusparse_alg1            559 it conv  total   87.171 ms (plan 0.193)  true res 9.7e-09
-  fp64 tree             csr_binned_t2            558 it conv  total   88.231 ms (plan 0.385)  true res 9.8e-09
-  fp64 tree_exact       csr_binned_t2            560 it conv  total   84.625 ms (plan 0.393)  true res 9.6e-09
-  fp64 tree_nobe        csr_binned_t2            560 it conv  total   83.112 ms (plan 0.400)  true res 9.5e-09
+  fp64 always_cusparse  cusparse_alg1            559 it conv  total   93.670 ms (plan 0.300)  true res 1.0e-08
+  fp64 tree             csr_binned_t2            559 it conv  total   79.732 ms (plan 0.675)  true res 9.6e-09
+  fp64 tree_exact       csr_binned_t2            558 it conv  total   82.442 ms (plan 0.503)  true res 1.0e-08
+  fp64 tree_nobe        csr_binned_t2            560 it conv  total   83.646 ms (plan 0.589)  true res 9.9e-09
 [5/32] Oberwolfach/LF10000  19998 x 19998  nnz 99982
-  fp64 always_cusparse  cusparse_alg1           5000 it CAP   total  736.722 ms (plan 0.175)  true res 8.7e-08
-  fp64 tree             csr_vector_v4           5000 it CAP   total  727.707 ms (plan 0.154)  true res 8.7e-08
-  fp64 tree_exact       csr_vector_v4           5000 it CAP   total  713.191 ms (plan 0.205)  true res 8.7e-08
-  fp64 tree_nobe        csr_vector_v4           5000 it CAP   total  697.945 ms (plan 0.160)  true res 8.7e-08
+  fp64 always_cusparse  cusparse_alg1           5000 it CAP   total  781.537 ms (plan 0.450)  true res 8.7e-08
+  fp64 tree             csr_vector_v4           5000 it CAP   total  737.552 ms (plan 0.319)  true res 8.7e-08
+  fp64 tree_exact       csr_vector_v4           5000 it CAP   total  756.596 ms (plan 0.159)  true res 8.7e-08
+  fp64 tree_nobe        csr_vector_v4           5000 it CAP   total  730.043 ms (plan 0.178)  true res 8.7e-08
 [6/32] Um/offshore  259789 x 259789  nnz 4242673
-  fp64 always_cusparse  cusparse_alg1            151 it conv  total   72.633 ms (plan 0.493)  true res 9.9e-09
-  fp64 tree             cusparse_alg1            151 it conv  total   76.263 ms (plan 0.659)  true res 9.9e-09
-  fp64 tree_exact       cusparse_alg1            151 it conv  total   78.673 ms (plan 0.283)  true res 9.9e-09
-  fp64 tree_nobe        cusparse_alg1            151 it conv  total   75.527 ms (plan 0.743)  true res 9.9e-09
+  fp64 always_cusparse  cusparse_alg1            151 it conv  total   79.162 ms (plan 0.390)  true res 9.9e-09
+  fp64 tree             cusparse_alg1            151 it conv  total   79.618 ms (plan 0.691)  true res 9.9e-09
+  fp64 tree_exact       cusparse_alg1            151 it conv  total   78.272 ms (plan 0.366)  true res 9.9e-09
+  fp64 tree_nobe        cusparse_alg1            151 it conv  total   79.755 ms (plan 0.710)  true res 9.9e-09
 [7/32] HB/bcsstk11  1473 x 1473  nnz 34241
-  fp64 always_cusparse  cusparse_alg1           2598 it conv  total  392.874 ms (plan 0.159)  true res 9.8e-09
-  fp64 tree             csr_binned_t2           2603 it conv  total  369.955 ms (plan 0.437)  true res 8.4e-09
-  fp64 tree_exact       csr_binned_t2           2607 it conv  total  374.379 ms (plan 0.428)  true res 9.6e-09
-  fp64 tree_nobe        csr_binned_t2           2599 it conv  total  366.027 ms (plan 0.543)  true res 9.7e-09
+  fp64 always_cusparse  cusparse_alg1           2602 it conv  total  402.152 ms (plan 0.198)  true res 9.4e-09
+  fp64 tree             csr_binned_t2           2610 it conv  total  385.062 ms (plan 0.465)  true res 6.0e-09
+  fp64 tree_exact       csr_binned_t2           2598 it conv  total  390.260 ms (plan 0.525)  true res 1.0e-08
+  fp64 tree_nobe        csr_binned_t2           2612 it conv  total  375.281 ms (plan 0.576)  true res 7.9e-09
 [8/32] HB/nos3  960 x 960  nnz 15844
-  fp64 always_cusparse  cusparse_alg1            211 it conv  total   31.743 ms (plan 0.287)  true res 8.9e-09
-  fp64 tree             csr_binned_t2            211 it conv  total   29.882 ms (plan 0.519)  true res 8.8e-09
-  fp64 tree_exact       csr_binned_t2            211 it conv  total   30.956 ms (plan 0.431)  true res 8.4e-09
-  fp64 tree_nobe        csr_binned_t2            211 it conv  total   31.396 ms (plan 0.355)  true res 8.9e-09
+  fp64 always_cusparse  cusparse_alg1            211 it conv  total   37.909 ms (plan 0.263)  true res 8.8e-09
+  fp64 tree             csr_binned_t2            211 it conv  total   34.753 ms (plan 0.448)  true res 8.9e-09
+  fp64 tree_exact       csr_binned_t2            210 it conv  total   34.851 ms (plan 0.779)  true res 1.0e-08
+  fp64 tree_nobe        csr_binned_t2            211 it conv  total   36.592 ms (plan 0.619)  true res 8.7e-09
 [9/32] Pothen/bodyy4  17546 x 17546  nnz 121938
-  fp64 always_cusparse  cusparse_alg1            145 it conv  total   26.003 ms (plan 0.325)  true res 9.6e-09
-  fp64 tree             csr_vector_v4            145 it conv  total   23.077 ms (plan 0.199)  true res 9.6e-09
-  fp64 tree_exact       csr_vector_v4            145 it conv  total   22.212 ms (plan 0.187)  true res 9.6e-09
-  fp64 tree_nobe        csr_vector_v4            145 it conv  total   22.771 ms (plan 0.184)  true res 9.6e-09
+  fp64 always_cusparse  cusparse_alg1            145 it conv  total   32.877 ms (plan 0.389)  true res 9.6e-09
+  fp64 tree             csr_vector_v4            145 it conv  total   30.501 ms (plan 0.209)  true res 9.6e-09
+  fp64 tree_exact       csr_vector_v4            145 it conv  total   27.336 ms (plan 0.176)  true res 9.6e-09
+  fp64 tree_nobe        csr_vector_v4            145 it conv  total   28.787 ms (plan 0.169)  true res 9.6e-09
 [10/32] TKK/plbuckle  1282 x 1282  nnz 30644
-  fp64 always_cusparse  cusparse_alg1            253 it conv  total   48.664 ms (plan 0.199)  true res 8.4e-09
-  fp64 tree             csr_binned_t2            254 it conv  total   39.937 ms (plan 0.557)  true res 8.6e-09
-  fp64 tree_exact       csr_binned_t2            253 it conv  total   50.118 ms (plan 0.438)  true res 8.3e-09
-  fp64 tree_nobe        csr_binned_t2            253 it conv  total   41.504 ms (plan 0.486)  true res 8.4e-09
+  fp64 always_cusparse  cusparse_alg1            253 it conv  total   44.322 ms (plan 0.222)  true res 9.8e-09
+  fp64 tree             csr_binned_t2            253 it conv  total   43.241 ms (plan 0.704)  true res 8.4e-09
+  fp64 tree_exact       csr_binned_t2            254 it conv  total   46.673 ms (plan 0.488)  true res 9.0e-09
+  fp64 tree_nobe        csr_binned_t2            253 it conv  total   43.619 ms (plan 0.452)  true res 8.4e-09
 [11/32] Bindel/ted_B  10605 x 10605  nnz 144579
-  fp64 always_cusparse  cusparse_alg1             17 it conv  total    2.995 ms (plan 0.120)  true res 5.8e-09
-  fp64 tree             csr_vector_v4             17 it conv  total    2.439 ms (plan 0.132)  true res 5.8e-09
-  fp64 tree_exact       cusparse_alg1             17 it conv  total    2.618 ms (plan 0.135)  true res 5.8e-09
-  fp64 tree_nobe        csr_vector_v4             17 it conv  total    2.541 ms (plan 0.141)  true res 5.8e-09
+  fp64 always_cusparse  cusparse_alg1             17 it conv  total    3.315 ms (plan 0.446)  true res 5.8e-09
+  fp64 tree             csr_vector_v4             17 it conv  total    2.877 ms (plan 0.266)  true res 5.8e-09
+  fp64 tree_exact       cusparse_alg1             17 it conv  total    3.527 ms (plan 0.238)  true res 5.8e-09
+  fp64 tree_nobe        csr_vector_v4             17 it conv  total    3.217 ms (plan 0.160)  true res 5.8e-09
 [12/32] Boeing/bcsstk38  8032 x 8032  nnz 355460
-  fp64 always_cusparse  cusparse_alg1           1260 it conv  total  200.809 ms (plan 0.168)  true res 9.6e-09
-  fp64 tree             cusparse_alg2           1257 it conv  total  216.054 ms (plan 0.285)  true res 9.5e-09
-  fp64 tree_exact       cusparse_alg2           1266 it conv  total  222.045 ms (plan 0.325)  true res 9.6e-09
-  fp64 tree_nobe        cusparse_alg2           1270 it conv  total  203.131 ms (plan 0.259)  true res 9.2e-09
+  fp64 always_cusparse  cusparse_alg1           1266 it conv  total  248.454 ms (plan 0.207)  true res 1.0e-08
+  fp64 tree             cusparse_alg2           1260 it conv  total  247.631 ms (plan 0.272)  true res 9.4e-09
+  fp64 tree_exact       cusparse_alg2           1260 it conv  total  238.672 ms (plan 0.326)  true res 9.8e-09
+  fp64 tree_nobe        cusparse_alg2           1257 it conv  total  252.721 ms (plan 0.461)  true res 9.4e-09
 [13/32] Boeing/msc00726  726 x 726  nnz 34518
-  fp64 always_cusparse  cusparse_alg1             97 it conv  total   14.186 ms (plan 0.115)  true res 6.5e-09
-  fp64 tree             cusparse_alg1             97 it conv  total   14.481 ms (plan 0.271)  true res 6.8e-09
-  fp64 tree_exact       cusparse_alg1             97 it conv  total   14.536 ms (plan 0.216)  true res 6.7e-09
-  fp64 tree_nobe        cusparse_alg1             97 it conv  total   16.480 ms (plan 0.225)  true res 7.8e-09
+  fp64 always_cusparse  cusparse_alg1             97 it conv  total   15.422 ms (plan 0.194)  true res 6.6e-09
+  fp64 tree             cusparse_alg1             97 it conv  total   14.480 ms (plan 0.302)  true res 7.2e-09
+  fp64 tree_exact       cusparse_alg1             97 it conv  total   13.808 ms (plan 0.254)  true res 7.7e-09
+  fp64 tree_nobe        cusparse_alg1             96 it conv  total   15.107 ms (plan 0.348)  true res 9.7e-09
 [14/32] Cylshell/s1rmq4m1  5489 x 5489  nnz 281111
-  fp64 always_cusparse  cusparse_alg1            665 it conv  total  104.966 ms (plan 0.216)  true res 9.4e-09
-  fp64 tree             csr_vector_v4            664 it conv  total   90.016 ms (plan 0.189)  true res 9.4e-09
-  fp64 tree_exact       csr_vector_v4            664 it conv  total   93.904 ms (plan 0.210)  true res 9.8e-09
-  fp64 tree_nobe        csr_vector_v4            664 it conv  total   90.289 ms (plan 0.218)  true res 9.6e-09
+  fp64 always_cusparse  cusparse_alg1            664 it conv  total  127.691 ms (plan 0.287)  true res 9.7e-09
+  fp64 tree             csr_vector_v4            665 it conv  total  107.606 ms (plan 0.194)  true res 9.5e-09
+  fp64 tree_exact       csr_vector_v4            664 it conv  total  110.813 ms (plan 0.235)  true res 9.9e-09
+  fp64 tree_nobe        csr_vector_v4            664 it conv  total  102.949 ms (plan 0.198)  true res 9.5e-09
 [15/32] FIDAP/ex10  2410 x 2410  nnz 54840
-  fp64 always_cusparse  cusparse_alg1           2458 it conv  total  451.480 ms (plan 0.227)  true res 9.6e-09
-  fp64 tree             csr_vector_v4           2721 it conv  total  394.376 ms (plan 0.171)  true res 9.3e-09
-  fp64 tree_exact       csr_vector_v4           2462 it conv  total  396.255 ms (plan 0.162)  true res 8.4e-09
-  fp64 tree_nobe        csr_vector_v4           2576 it conv  total  380.184 ms (plan 0.242)  true res 9.7e-09
+  fp64 always_cusparse  cusparse_alg1           2428 it conv  total  457.002 ms (plan 0.993)  true res 9.0e-09
+  fp64 tree             csr_vector_v4           2447 it conv  total  461.852 ms (plan 0.339)  true res 9.2e-09
+  fp64 tree_exact       csr_vector_v4           2355 it conv  total  440.442 ms (plan 0.163)  true res 9.6e-09
+  fp64 tree_nobe        csr_vector_v4           2446 it conv  total  415.352 ms (plan 0.176)  true res 9.2e-09
 [16/32] FlowIPM22/Spielman_k100  338402 x 338402  nnz 1025404
-  fp64 always_cusparse  cusparse_alg1           2982 it conv  total  890.707 ms (plan 0.390)  true res 9.9e-09
-  fp64 tree             cusparse_alg1           2982 it conv  total  845.872 ms (plan 0.491)  true res 9.9e-09
-  fp64 tree_exact       cusparse_alg1           2982 it conv  total  902.210 ms (plan 0.298)  true res 9.9e-09
-  fp64 tree_nobe        cusparse_alg1           2982 it conv  total  853.122 ms (plan 0.421)  true res 9.9e-09
+  fp64 always_cusparse  cusparse_alg1           2982 it conv  total  867.327 ms (plan 0.290)  true res 9.9e-09
+  fp64 tree             cusparse_alg1           2982 it conv  total  870.526 ms (plan 0.710)  true res 9.9e-09
+  fp64 tree_exact       cusparse_alg1           2982 it conv  total  879.916 ms (plan 0.334)  true res 9.9e-09
+  fp64 tree_nobe        cusparse_alg1           2982 it conv  total  881.948 ms (plan 0.405)  true res 9.9e-09
 [17/32] GHS_psdef/jnlbrng1  40000 x 40000  nnz 199200
-  fp64 always_cusparse  cusparse_alg1             95 it conv  total   13.182 ms (plan 0.202)  true res 9.5e-09
-  fp64 tree             csr_vector_v4             95 it conv  total   13.005 ms (plan 0.163)  true res 9.5e-09
-  fp64 tree_exact       csr_vector_v4             95 it conv  total   12.308 ms (plan 0.130)  true res 9.5e-09
-  fp64 tree_nobe        csr_vector_v4             95 it conv  total   15.349 ms (plan 0.148)  true res 9.5e-09
+  fp64 always_cusparse  cusparse_alg1             95 it conv  total   24.603 ms (plan 0.343)  true res 9.5e-09
+  fp64 tree             csr_vector_v4             95 it conv  total   20.235 ms (plan 0.311)  true res 9.5e-09
+  fp64 tree_exact       csr_vector_v4             95 it conv  total   19.811 ms (plan 0.595)  true res 9.5e-09
+  fp64 tree_nobe        csr_vector_v4             95 it conv  total   18.560 ms (plan 0.192)  true res 9.5e-09
 [18/32] GHS_psdef/wathen120  36441 x 36441  nnz 565761
-  fp64 always_cusparse  cusparse_alg1             38 it conv  total    6.448 ms (plan 0.423)  true res 7.6e-09
-  fp64 tree             csr_vector_v4             38 it conv  total    6.101 ms (plan 0.245)  true res 7.6e-09
-  fp64 tree_exact       csr_vector_v4             38 it conv  total    5.913 ms (plan 0.240)  true res 7.6e-09
-  fp64 tree_nobe        csr_vector_v4             38 it conv  total    6.266 ms (plan 0.218)  true res 7.6e-09
+  fp64 always_cusparse  cusparse_alg1             38 it conv  total    8.433 ms (plan 0.361)  true res 7.6e-09
+  fp64 tree             csr_vector_v4             38 it conv  total    7.500 ms (plan 0.377)  true res 7.6e-09
+  fp64 tree_exact       csr_vector_v4             38 it conv  total    7.246 ms (plan 0.194)  true res 7.6e-09
+  fp64 tree_nobe        csr_vector_v4             38 it conv  total    9.265 ms (plan 0.219)  true res 7.6e-09
 [19/32] HB/bcsstk14  1806 x 1806  nnz 63454
-  fp64 always_cusparse  cusparse_alg1            363 it conv  total   55.190 ms (plan 0.220)  true res 9.6e-09
-  fp64 tree             csr_vector_v4            363 it conv  total   49.678 ms (plan 0.170)  true res 9.8e-09
-  fp64 tree_exact       csr_vector_v4            363 it conv  total   47.196 ms (plan 0.177)  true res 9.1e-09
-  fp64 tree_nobe        csr_vector_v4            363 it conv  total   50.495 ms (plan 0.138)  true res 9.2e-09
+  fp64 always_cusparse  cusparse_alg1            363 it conv  total   61.341 ms (plan 0.256)  true res 9.3e-09
+  fp64 tree             csr_vector_v4            363 it conv  total   60.815 ms (plan 0.298)  true res 9.2e-09
+  fp64 tree_exact       csr_vector_v4            363 it conv  total   55.399 ms (plan 0.127)  true res 9.5e-09
+  fp64 tree_nobe        csr_vector_v4            363 it conv  total   54.542 ms (plan 0.186)  true res 9.5e-09
 [20/32] HB/bcsstk17  10974 x 10974  nnz 428650
-  fp64 always_cusparse  cusparse_alg1           2463 it conv  total  393.156 ms (plan 0.251)  true res 9.7e-09
-  fp64 tree             cusparse_alg2           2463 it conv  total  425.319 ms (plan 0.332)  true res 9.2e-09
-  fp64 tree_exact       cusparse_alg2           2471 it conv  total  425.969 ms (plan 0.269)  true res 8.1e-09
-  fp64 tree_nobe        cusparse_alg2           2466 it conv  total  422.998 ms (plan 0.255)  true res 9.0e-09
+  fp64 always_cusparse  cusparse_alg1           2472 it conv  total  447.579 ms (plan 0.179)  true res 1.0e-08
+  fp64 tree             cusparse_alg2           2475 it conv  total  456.061 ms (plan 0.328)  true res 8.4e-09
+  fp64 tree_exact       cusparse_alg2           2465 it conv  total  456.713 ms (plan 0.235)  true res 9.6e-09
+  fp64 tree_nobe        cusparse_alg2           2468 it conv  total  589.036 ms (plan 0.481)  true res 9.3e-09
 [21/32] HB/bcsstk23  3134 x 3134  nnz 45178
-  fp64 always_cusparse  cusparse_alg1           2132 it conv  total  318.358 ms (plan 0.206)  true res 9.0e-09
-  fp64 tree             csr_binned_t2           2392 it conv  total  316.725 ms (plan 0.572)  true res 9.3e-09
-  fp64 tree_exact       csr_binned_t2           2132 it conv  total  327.252 ms (plan 0.465)  true res 9.8e-09
-  fp64 tree_nobe        csr_binned_t2           2131 it conv  total  297.355 ms (plan 0.629)  true res 9.3e-09
+  fp64 always_cusparse  cusparse_alg1           2131 it conv  total  385.041 ms (plan 0.210)  true res 9.9e-09
+  fp64 tree             csr_binned_t2           2131 it conv  total  319.307 ms (plan 0.472)  true res 9.5e-09
+  fp64 tree_exact       csr_binned_t2           2133 it conv  total  344.208 ms (plan 0.412)  true res 8.7e-09
+  fp64 tree_nobe        csr_binned_t2           2131 it conv  total  330.334 ms (plan 0.473)  true res 9.0e-09
 [22/32] HB/bcsstk24  3562 x 3562  nnz 159910
-  fp64 always_cusparse  cusparse_alg1           3134 it conv  total  570.374 ms (plan 0.188)  true res 8.3e-09
-  fp64 tree             csr_vector_v4           3403 it conv  total  471.222 ms (plan 0.148)  true res 9.3e-09
-  fp64 tree_exact       csr_vector_v4           3123 it conv  total  499.811 ms (plan 0.179)  true res 9.7e-09
-  fp64 tree_nobe        csr_vector_v4           3143 it conv  total  488.730 ms (plan 0.390)  true res 9.0e-09
+  fp64 always_cusparse  cusparse_alg1           3145 it conv  total  542.211 ms (plan 0.240)  true res 9.9e-09
+  fp64 tree             csr_vector_v4           3084 it conv  total  491.603 ms (plan 0.190)  true res 9.8e-09
+  fp64 tree_exact       csr_vector_v4           3132 it conv  total  500.028 ms (plan 0.139)  true res 8.3e-09
+  fp64 tree_nobe        csr_vector_v4           3380 it conv  total  491.093 ms (plan 0.241)  true res 9.9e-09
 [23/32] McRae/ecology2  999999 x 999999  nnz 4995991
-  fp64 always_cusparse  cusparse_alg1           2014 it conv  total 2046.007 ms (plan 0.496)  true res 1.0e-08
-  fp64 tree             cusparse_alg1           2014 it conv  total 2041.023 ms (plan 0.914)  true res 1.0e-08
-  fp64 tree_exact       cusparse_alg1           2014 it conv  total 2060.004 ms (plan 0.451)  true res 1.0e-08
-  fp64 tree_nobe        cusparse_alg1           2014 it conv  total 2037.537 ms (plan 1.300)  true res 1.0e-08
+  fp64 always_cusparse  cusparse_alg1           2014 it conv  total 2060.443 ms (plan 0.467)  true res 1.0e-08
+  fp64 tree             cusparse_alg1           2014 it conv  total 2051.398 ms (plan 1.138)  true res 1.0e-08
+  fp64 tree_exact       cusparse_alg1           2014 it conv  total 2094.961 ms (plan 0.490)  true res 1.0e-08
+  fp64 tree_nobe        cusparse_alg1           2014 it conv  total 2057.874 ms (plan 1.095)  true res 1.0e-08
 [24/32] Mulvey/finan512  74752 x 74752  nnz 596992
-  fp64 always_cusparse  cusparse_alg1             20 it conv  total    3.949 ms (plan 0.161)  true res 4.3e-09
-  fp64 tree             csr_vector_v4             20 it conv  total    3.656 ms (plan 0.248)  true res 4.3e-09
-  fp64 tree_exact       csr_vector_v4             20 it conv  total    3.495 ms (plan 0.175)  true res 4.3e-09
-  fp64 tree_nobe        csr_vector_v4             20 it conv  total    3.583 ms (plan 0.161)  true res 4.3e-09
+  fp64 always_cusparse  cusparse_alg1             20 it conv  total    4.259 ms (plan 0.410)  true res 4.3e-09
+  fp64 tree             csr_vector_v4             20 it conv  total    3.672 ms (plan 0.394)  true res 4.3e-09
+  fp64 tree_exact       csr_vector_v4             20 it conv  total    3.898 ms (plan 0.192)  true res 4.3e-09
+  fp64 tree_nobe        csr_vector_v4             20 it conv  total    3.564 ms (plan 0.726)  true res 4.3e-09
 [25/32] Rothberg/cfd1  70656 x 70656  nnz 1828364
-  fp64 always_cusparse  cusparse_alg1           1435 it conv  total  389.917 ms (plan 0.427)  true res 1.0e-08
-  fp64 tree             cusparse_alg1           1441 it conv  total  406.809 ms (plan 0.440)  true res 9.8e-09
-  fp64 tree_exact       cusparse_alg1           1443 it conv  total  414.299 ms (plan 0.289)  true res 9.6e-09
-  fp64 tree_nobe        cusparse_alg1           1436 it conv  total  400.554 ms (plan 0.639)  true res 9.9e-09
+  fp64 always_cusparse  cusparse_alg1           1436 it conv  total  418.326 ms (plan 0.463)  true res 1.0e-08
+  fp64 tree             cusparse_alg1           1444 it conv  total  423.713 ms (plan 0.601)  true res 9.8e-09
+  fp64 tree_exact       cusparse_alg1           1436 it conv  total  412.496 ms (plan 0.405)  true res 1.0e-08
+  fp64 tree_nobe        cusparse_alg1           1437 it conv  total  422.192 ms (plan 0.578)  true res 9.9e-09
 [26/32] TKK/cbuckle  13681 x 13681  nnz 676515
-  fp64 always_cusparse  cusparse_alg1            667 it conv  total  111.764 ms (plan 0.168)  true res 9.6e-09
-  fp64 tree             cusparse_alg2            667 it conv  total  115.834 ms (plan 0.427)  true res 9.6e-09
-  fp64 tree_exact       cusparse_alg2            667 it conv  total  120.767 ms (plan 0.215)  true res 9.6e-09
-  fp64 tree_nobe        cusparse_alg2            667 it conv  total  119.779 ms (plan 0.238)  true res 9.6e-09
+  fp64 always_cusparse  cusparse_alg1            667 it conv  total  121.179 ms (plan 0.281)  true res 9.6e-09
+  fp64 tree             cusparse_alg2            667 it conv  total  123.317 ms (plan 0.332)  true res 9.6e-09
+  fp64 tree_exact       cusparse_alg2            667 it conv  total  118.397 ms (plan 0.418)  true res 9.6e-09
+  fp64 tree_nobe        cusparse_alg2            667 it conv  total  117.730 ms (plan 0.408)  true res 9.6e-09
 [27/32] TKK/smt  25710 x 25710  nnz 3753184
-  fp64 always_cusparse  cusparse_alg1           2342 it conv  total  962.738 ms (plan 0.640)  true res 9.5e-09
-  fp64 tree             cusparse_alg1           2337 it conv  total  979.996 ms (plan 0.629)  true res 9.9e-09
-  fp64 tree_exact       cusparse_alg1           2343 it conv  total  971.058 ms (plan 0.301)  true res 9.3e-09
-  fp64 tree_nobe        cusparse_alg1           2345 it conv  total  964.033 ms (plan 0.471)  true res 9.8e-09
+  fp64 always_cusparse  cusparse_alg1           2330 it conv  total  970.129 ms (plan 0.394)  true res 9.9e-09
+  fp64 tree             cusparse_alg1           2355 it conv  total  978.045 ms (plan 0.642)  true res 9.7e-09
+  fp64 tree_exact       cusparse_alg1           2344 it conv  total  999.044 ms (plan 0.813)  true res 1.0e-08
+  fp64 tree_nobe        cusparse_alg1           2351 it conv  total 1001.719 ms (plan 0.630)  true res 9.9e-09
 [28/32] UTEP/Dubcova2  65025 x 65025  nnz 1030225
-  fp64 always_cusparse  cusparse_alg1            259 it conv  total   48.952 ms (plan 0.381)  true res 9.7e-09
-  fp64 tree             cusparse_alg1            259 it conv  total   49.873 ms (plan 0.463)  true res 9.7e-09
-  fp64 tree_exact       cusparse_alg1            259 it conv  total   49.621 ms (plan 0.226)  true res 9.7e-09
-  fp64 tree_nobe        cusparse_alg1            259 it conv  total   51.956 ms (plan 0.307)  true res 9.7e-09
+  fp64 always_cusparse  cusparse_alg1            259 it conv  total   50.752 ms (plan 0.280)  true res 9.7e-09
+  fp64 tree             cusparse_alg1            259 it conv  total   51.840 ms (plan 0.376)  true res 9.7e-09
+  fp64 tree_exact       cusparse_alg1            259 it conv  total   50.596 ms (plan 0.234)  true res 9.7e-09
+  fp64 tree_nobe        cusparse_alg1            259 it conv  total   50.426 ms (plan 0.461)  true res 9.7e-09
 [29/32] Um/2cubes_sphere  101492 x 101492  nnz 1647264
-  fp64 always_cusparse  cusparse_alg1             19 it conv  total    5.426 ms (plan 0.314)  true res 6.0e-09
-  fp64 tree             cusparse_alg1             19 it conv  total    5.037 ms (plan 0.457)  true res 6.0e-09
-  fp64 tree_exact       cusparse_alg1             19 it conv  total    5.348 ms (plan 0.215)  true res 6.0e-09
-  fp64 tree_nobe        cusparse_alg1             19 it conv  total    5.297 ms (plan 0.457)  true res 6.0e-09
+  fp64 always_cusparse  cusparse_alg1             19 it conv  total    4.781 ms (plan 0.326)  true res 6.0e-09
+  fp64 tree             cusparse_alg1             19 it conv  total    4.949 ms (plan 0.405)  true res 6.0e-09
+  fp64 tree_exact       cusparse_alg1             19 it conv  total    4.974 ms (plan 0.295)  true res 6.0e-09
+  fp64 tree_nobe        cusparse_alg1             19 it conv  total    5.066 ms (plan 0.661)  true res 6.0e-09
 [30/32] Williams/cant  62451 x 62451  nnz 4007383
-  fp64 always_cusparse  cusparse_alg1           2174 it conv  total  946.165 ms (plan 0.417)  true res 9.3e-09
-  fp64 tree             cusparse_alg1           2172 it conv  total  955.949 ms (plan 0.883)  true res 9.8e-09
-  fp64 tree_exact       cusparse_alg1           2174 it conv  total  940.359 ms (plan 0.267)  true res 8.8e-09
-  fp64 tree_nobe        cusparse_alg1           2174 it conv  total  959.666 ms (plan 0.733)  true res 8.7e-09
+  fp64 always_cusparse  cusparse_alg1           2174 it conv  total  970.472 ms (plan 0.493)  true res 9.1e-09
+  fp64 tree             cusparse_alg1           2174 it conv  total  954.244 ms (plan 0.399)  true res 9.2e-09
+  fp64 tree_exact       cusparse_alg1           2174 it conv  total  952.810 ms (plan 0.387)  true res 8.8e-09
+  fp64 tree_nobe        cusparse_alg1           2173 it conv  total  959.357 ms (plan 0.410)  true res 9.8e-09
 [31/32] gallery/laplace3d_n64  262144 x 262144  nnz 1810432
-  fp64 always_cusparse  cusparse_alg1            183 it conv  total   64.336 ms (plan 0.298)  true res 9.5e-09
-  fp64 tree             cusparse_alg1            183 it conv  total   64.096 ms (plan 0.631)  true res 9.5e-09
-  fp64 tree_exact       cusparse_alg1            183 it conv  total   63.208 ms (plan 0.399)  true res 9.5e-09
-  fp64 tree_nobe        cusparse_alg1            183 it conv  total   58.195 ms (plan 0.423)  true res 9.5e-09
+  fp64 always_cusparse  cusparse_alg1            183 it conv  total   60.516 ms (plan 0.274)  true res 9.5e-09
+  fp64 tree             cusparse_alg1            183 it conv  total   59.766 ms (plan 0.687)  true res 9.5e-09
+  fp64 tree_exact       cusparse_alg1            183 it conv  total   60.507 ms (plan 0.251)  true res 9.5e-09
+  fp64 tree_nobe        cusparse_alg1            183 it conv  total   59.691 ms (plan 0.493)  true res 9.5e-09
 [32/32] gallery/laplace3d_n128  2097152 x 2097152  nnz 14581760
-  fp64 always_cusparse  cusparse_alg1            317 it conv  total  827.789 ms (plan 0.553)  true res 1.0e-08
-  fp64 tree             cusparse_alg1            317 it conv  total  832.903 ms (plan 1.305)  true res 1.0e-08
-  fp64 tree_exact       cusparse_alg1            317 it conv  total  826.920 ms (plan 0.772)  true res 1.0e-08
-  fp64 tree_nobe        cusparse_alg1            317 it conv  total  825.646 ms (plan 1.134)  true res 1.0e-08
+  fp64 always_cusparse  cusparse_alg1            317 it conv  total  826.399 ms (plan 0.805)  true res 1.0e-08
+  fp64 tree             cusparse_alg1            317 it conv  total  825.068 ms (plan 1.276)  true res 1.0e-08
+  fp64 tree_exact       cusparse_alg1            317 it conv  total  831.741 ms (plan 0.784)  true res 1.0e-08
+  fp64 tree_nobe        cusparse_alg1            317 it conv  total  826.079 ms (plan 1.045)  true res 1.0e-08
 
 0 failures -> results/phase5/cg.csv
 == AMG setup (Galerkin triple products) under a fast-memory budget
 AMG setup: Laplace3D n=192 (7077888 rows, nnz 49324032), 5 levels, budget 256 MiB
 == alg4 (context 256 MiB)
-  level 0 (grid 192) A*P       164.82 ms  chunk_b P_AC=38 P_B=1 depth=1 | predicted 162.44 ms, copies 1.35 GB, peak 170 MiB | alg4: copy volume chunk1 2.71 GB, chunk2 0.733 GB
-  level 0 (grid 192) R*(AP)    170.63 ms  chunk_b P_AC=23 P_B=3 depth=1 | predicted 237.73 ms, copies 2.33 GB, peak 248 MiB | alg4: copy volume chunk1 2.62 GB, chunk2 1.31 GB
-  level 1 (grid  96) A*P        34.69 ms  chunk_b P_AC=5 P_B=1 depth=1 | predicted 20.30 ms, copies 0.169 GB, peak 76 MiB | alg4: copy volume chunk1 0.183 GB, chunk2 0.0913 GB
-  level 1 (grid  96) R*(AP)     13.45 ms  incore P_AC=1 P_B=1 depth=1 | predicted 11.19 ms, copies 0.0986 GB, peak 175 MiB | alg4: everything fits the budget
-  level 2 (grid  48) A*P         5.37 ms  incore P_AC=1 P_B=1 depth=1 | predicted 2.63 ms, copies 0.0209 GB, peak 38 MiB | alg4: everything fits the budget
-  level 2 (grid  48) R*(AP)      3.29 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.64 ms, copies 0.0122 GB, peak 22 MiB | alg4: everything fits the budget
-  level 3 (grid  24) A*P         3.21 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.59 ms, copies 0.00257 GB, peak 6 MiB | alg4: everything fits the budget
-  level 3 (grid  24) R*(AP)      3.68 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.46 ms, copies 0.00148 GB, peak 4 MiB | alg4: everything fits the budget
-  level 4 (grid  12) A*P         2.15 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.33 ms, copies 0.000311 GB, peak 2 MiB | alg4: everything fits the budget
-  level 4 (grid  12) R*(AP)      3.03 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 0.000175 GB, peak 1 MiB | alg4: everything fits the budget
-  setup total 409.57 ms (median of 3)
+  level 0 (grid 192) A*P       175.76 ms  chunk_b P_AC=38 P_B=1 depth=1 | predicted 163.10 ms, copies 1.35 GB, peak 170 MiB | alg4: copy volume chunk1 2.71 GB, chunk2 0.733 GB
+  level 0 (grid 192) R*(AP)    170.57 ms  chunk_b P_AC=23 P_B=3 depth=1 | predicted 238.89 ms, copies 2.33 GB, peak 248 MiB | alg4: copy volume chunk1 2.62 GB, chunk2 1.31 GB
+  level 1 (grid  96) A*P        35.01 ms  chunk_b P_AC=5 P_B=1 depth=1 | predicted 20.38 ms, copies 0.169 GB, peak 76 MiB | alg4: copy volume chunk1 0.183 GB, chunk2 0.0913 GB
+  level 1 (grid  96) R*(AP)     10.32 ms  incore P_AC=1 P_B=1 depth=1 | predicted 11.24 ms, copies 0.0986 GB, peak 175 MiB | alg4: everything fits the budget
+  level 2 (grid  48) A*P         5.02 ms  incore P_AC=1 P_B=1 depth=1 | predicted 2.64 ms, copies 0.0209 GB, peak 38 MiB | alg4: everything fits the budget
+  level 2 (grid  48) R*(AP)      3.58 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.65 ms, copies 0.0122 GB, peak 22 MiB | alg4: everything fits the budget
+  level 3 (grid  24) A*P         3.10 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.59 ms, copies 0.00257 GB, peak 6 MiB | alg4: everything fits the budget
+  level 3 (grid  24) R*(AP)      4.48 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.46 ms, copies 0.00148 GB, peak 4 MiB | alg4: everything fits the budget
+  level 4 (grid  12) A*P         2.40 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.33 ms, copies 0.000311 GB, peak 2 MiB | alg4: everything fits the budget
+  level 4 (grid  12) R*(AP)      3.65 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 0.000175 GB, peak 1 MiB | alg4: everything fits the budget
+  setup total 431.43 ms (median of 3)
 == alg4_overlap (context 256 MiB)
-  level 0 (grid 192) A*P       116.32 ms  chunk_b P_AC=58 P_B=1 depth=2 | predicted 102.14 ms, copies 1.35 GB, peak 170 MiB | alg4: copy volume chunk1 3.51 GB, chunk2 0.733 GB
-  level 0 (grid 192) R*(AP)    154.35 ms  chunk_b P_AC=35 P_B=3 depth=2 | predicted 175.63 ms, copies 2.33 GB, peak 248 MiB | alg4: copy volume chunk1 3.35 GB, chunk2 1.31 GB
-  level 1 (grid  96) A*P        33.92 ms  chunk_b P_AC=8 P_B=1 depth=2 | predicted 13.25 ms, copies 0.169 GB, peak 76 MiB | alg4: copy volume chunk1 0.197 GB, chunk2 0.0913 GB
-  level 1 (grid  96) R*(AP)     11.86 ms  incore P_AC=1 P_B=1 depth=1 | predicted 11.19 ms, copies 0.0986 GB, peak 175 MiB | alg4: everything fits the budget
-  level 2 (grid  48) A*P         4.06 ms  incore P_AC=1 P_B=1 depth=1 | predicted 2.63 ms, copies 0.0209 GB, peak 38 MiB | alg4: everything fits the budget
-  level 2 (grid  48) R*(AP)      3.03 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.64 ms, copies 0.0122 GB, peak 22 MiB | alg4: everything fits the budget
-  level 3 (grid  24) A*P         2.38 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.59 ms, copies 0.00257 GB, peak 6 MiB | alg4: everything fits the budget
-  level 3 (grid  24) R*(AP)      2.14 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.46 ms, copies 0.00148 GB, peak 4 MiB | alg4: everything fits the budget
-  level 4 (grid  12) A*P         1.55 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.33 ms, copies 0.000311 GB, peak 2 MiB | alg4: everything fits the budget
-  level 4 (grid  12) R*(AP)      1.92 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 0.000175 GB, peak 1 MiB | alg4: everything fits the budget
-  setup total 347.62 ms (median of 3)
+  level 0 (grid 192) A*P       122.78 ms  chunk_b P_AC=58 P_B=1 depth=2 | predicted 103.31 ms, copies 1.35 GB, peak 170 MiB | alg4: copy volume chunk1 3.51 GB, chunk2 0.733 GB
+  level 0 (grid 192) R*(AP)    147.12 ms  chunk_b P_AC=35 P_B=3 depth=2 | predicted 177.64 ms, copies 2.33 GB, peak 248 MiB | alg4: copy volume chunk1 3.35 GB, chunk2 1.31 GB
+  level 1 (grid  96) A*P        22.12 ms  chunk_b P_AC=8 P_B=1 depth=2 | predicted 13.38 ms, copies 0.169 GB, peak 76 MiB | alg4: copy volume chunk1 0.197 GB, chunk2 0.0913 GB
+  level 1 (grid  96) R*(AP)      9.94 ms  incore P_AC=1 P_B=1 depth=1 | predicted 11.27 ms, copies 0.0986 GB, peak 175 MiB | alg4: everything fits the budget
+  level 2 (grid  48) A*P         4.70 ms  incore P_AC=1 P_B=1 depth=1 | predicted 2.65 ms, copies 0.0209 GB, peak 38 MiB | alg4: everything fits the budget
+  level 2 (grid  48) R*(AP)      2.55 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.65 ms, copies 0.0122 GB, peak 22 MiB | alg4: everything fits the budget
+  level 3 (grid  24) A*P         2.56 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.59 ms, copies 0.00257 GB, peak 6 MiB | alg4: everything fits the budget
+  level 3 (grid  24) R*(AP)      3.58 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.46 ms, copies 0.00148 GB, peak 4 MiB | alg4: everything fits the budget
+  level 4 (grid  12) A*P         2.96 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.33 ms, copies 0.000311 GB, peak 2 MiB | alg4: everything fits the budget
+  level 4 (grid  12) R*(AP)      3.49 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 0.000175 GB, peak 1 MiB | alg4: everything fits the budget
+  setup total 324.35 ms (median of 3)
 == rasp_static (context 256 MiB)
-  level 0 (grid 192) A*P       138.98 ms  chunk_b P_AC=34 P_B=1 depth=3 | predicted 104.05 ms, copies 1.35 GB, peak 248 MiB | rasp: fastest simulated candidate (0.948 GFLOP/s predicted)
-  level 0 (grid 192) R*(AP)    172.08 ms  chunk_b P_AC=47 P_B=3 depth=3 | predicted 179.77 ms, copies 2.33 GB, peak 248 MiB | rasp: fastest simulated candidate (0.313 GFLOP/s predicted)
-  level 1 (grid  96) A*P        25.85 ms  chunk_b P_AC=3 P_B=1 depth=3 | predicted 12.96 ms, copies 0.169 GB, peak 248 MiB | rasp: fastest simulated candidate (0.948 GFLOP/s predicted)
-  level 1 (grid  96) R*(AP)     12.37 ms  chunk_b P_AC=4 P_B=1 depth=2 | predicted 8.99 ms, copies 0.0986 GB, peak 95 MiB | rasp: fastest simulated candidate (0.775 GFLOP/s predicted)
-  level 2 (grid  48) A*P         4.46 ms  incore P_AC=1 P_B=1 depth=1 | predicted 2.67 ms, copies 0.0209 GB, peak 38 MiB | rasp: fastest simulated candidate (0.57 GFLOP/s predicted)
-  level 2 (grid  48) R*(AP)      3.23 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.66 ms, copies 0.0122 GB, peak 22 MiB | rasp: fastest simulated candidate (0.515 GFLOP/s predicted)
-  level 3 (grid  24) A*P         3.35 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.59 ms, copies 0.00257 GB, peak 6 MiB | rasp: fastest simulated candidate (0.316 GFLOP/s predicted)
-  level 3 (grid  24) R*(AP)      2.15 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.47 ms, copies 0.00148 GB, peak 4 MiB | rasp: fastest simulated candidate (0.223 GFLOP/s predicted)
-  level 4 (grid  12) A*P         3.21 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.34 ms, copies 0.000311 GB, peak 2 MiB | rasp: fastest simulated candidate (0.067 GFLOP/s predicted)
-  level 4 (grid  12) R*(AP)      2.55 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 0.000175 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0379 GFLOP/s predicted)
-  setup total 370.34 ms (median of 3)
+  level 0 (grid 192) A*P       125.82 ms  chunk_b P_AC=34 P_B=1 depth=3 | predicted 102.88 ms, copies 1.35 GB, peak 248 MiB | rasp: fastest simulated candidate (0.959 GFLOP/s predicted)
+  level 0 (grid 192) R*(AP)    167.91 ms  chunk_b P_AC=47 P_B=3 depth=3 | predicted 177.62 ms, copies 2.33 GB, peak 248 MiB | rasp: fastest simulated candidate (0.316 GFLOP/s predicted)
+  level 1 (grid  96) A*P        18.14 ms  chunk_b P_AC=3 P_B=1 depth=3 | predicted 12.81 ms, copies 0.169 GB, peak 248 MiB | rasp: fastest simulated candidate (0.958 GFLOP/s predicted)
+  level 1 (grid  96) R*(AP)     14.18 ms  chunk_b P_AC=4 P_B=1 depth=2 | predicted 8.90 ms, copies 0.0986 GB, peak 95 MiB | rasp: fastest simulated candidate (0.783 GFLOP/s predicted)
+  level 2 (grid  48) A*P         3.97 ms  incore P_AC=1 P_B=1 depth=1 | predicted 2.65 ms, copies 0.0209 GB, peak 38 MiB | rasp: fastest simulated candidate (0.574 GFLOP/s predicted)
+  level 2 (grid  48) R*(AP)      2.87 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.65 ms, copies 0.0122 GB, peak 22 MiB | rasp: fastest simulated candidate (0.519 GFLOP/s predicted)
+  level 3 (grid  24) A*P         2.17 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.59 ms, copies 0.00257 GB, peak 6 MiB | rasp: fastest simulated candidate (0.317 GFLOP/s predicted)
+  level 3 (grid  24) R*(AP)      1.88 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.46 ms, copies 0.00148 GB, peak 4 MiB | rasp: fastest simulated candidate (0.223 GFLOP/s predicted)
+  level 4 (grid  12) A*P         1.92 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.33 ms, copies 0.000311 GB, peak 2 MiB | rasp: fastest simulated candidate (0.0671 GFLOP/s predicted)
+  level 4 (grid  12) R*(AP)      2.39 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 0.000175 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0379 GFLOP/s predicted)
+  setup total 342.26 ms (median of 3)
 == rasp (context 256 MiB)
-  level 0 (grid 192) A*P       119.24 ms  chunk_b P_AC=35 P_B=1 depth=3 +probe | predicted 101.96 ms, copies 1.35 GB, peak 248 MiB | rasp: fastest simulated candidate (0.968 GFLOP/s predicted)
-  level 0 (grid 192) R*(AP)    164.82 ms  chunk_b P_AC=47 P_B=3 depth=3 | predicted 176.00 ms, copies 2.33 GB, peak 248 MiB | rasp: fastest simulated candidate (0.319 GFLOP/s predicted)
-  level 1 (grid  96) A*P        21.38 ms  chunk_b P_AC=4 P_B=1 depth=2 +probe | predicted 12.69 ms, copies 0.169 GB, peak 170 MiB | rasp: fastest simulated candidate (0.967 GFLOP/s predicted)
-  level 1 (grid  96) R*(AP)     10.84 ms  chunk_b P_AC=4 P_B=1 depth=2 +probe | predicted 8.93 ms, copies 0.0986 GB, peak 112 MiB | rasp: fastest simulated candidate (0.78 GFLOP/s predicted)
-  level 2 (grid  48) A*P         4.45 ms  chunk_b P_AC=2 P_B=1 depth=2 +probe | predicted 2.45 ms, copies 0.0209 GB, peak 50 MiB | rasp: fastest simulated candidate (0.621 GFLOP/s predicted)
-  level 2 (grid  48) R*(AP)      3.29 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.64 ms, copies 0.0122 GB, peak 22 MiB | rasp: fastest simulated candidate (0.521 GFLOP/s predicted)
-  level 3 (grid  24) A*P         2.37 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.59 ms, copies 0.00257 GB, peak 6 MiB | rasp: fastest simulated candidate (0.318 GFLOP/s predicted)
-  level 3 (grid  24) R*(AP)      2.72 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.46 ms, copies 0.00148 GB, peak 4 MiB | rasp: fastest simulated candidate (0.224 GFLOP/s predicted)
-  level 4 (grid  12) A*P         2.89 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.33 ms, copies 0.000311 GB, peak 2 MiB | rasp: fastest simulated candidate (0.0671 GFLOP/s predicted)
-  level 4 (grid  12) R*(AP)      3.12 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 0.000175 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0379 GFLOP/s predicted)
-  setup total 335.38 ms (median of 3)
+  level 0 (grid 192) A*P       123.99 ms  chunk_b P_AC=35 P_B=1 depth=3 +probe | predicted 105.16 ms, copies 1.35 GB, peak 248 MiB | rasp: fastest simulated candidate (0.938 GFLOP/s predicted)
+  level 0 (grid 192) R*(AP)    181.35 ms  chunk_b P_AC=47 P_B=3 depth=3 | predicted 181.38 ms, copies 2.33 GB, peak 248 MiB | rasp: fastest simulated candidate (0.31 GFLOP/s predicted)
+  level 1 (grid  96) A*P        23.10 ms  chunk_b P_AC=4 P_B=1 depth=2 +probe | predicted 13.09 ms, copies 0.169 GB, peak 170 MiB | rasp: fastest simulated candidate (0.938 GFLOP/s predicted)
+  level 1 (grid  96) R*(AP)     11.93 ms  chunk_b P_AC=5 P_B=1 depth=2 +probe | predicted 9.06 ms, copies 0.0986 GB, peak 95 MiB | rasp: fastest simulated candidate (0.769 GFLOP/s predicted)
+  level 2 (grid  48) A*P         6.07 ms  chunk_b P_AC=2 P_B=1 depth=2 +probe | predicted 2.49 ms, copies 0.0209 GB, peak 50 MiB | rasp: fastest simulated candidate (0.61 GFLOP/s predicted)
+  level 2 (grid  48) R*(AP)      4.67 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.67 ms, copies 0.0122 GB, peak 22 MiB | rasp: fastest simulated candidate (0.513 GFLOP/s predicted)
+  level 3 (grid  24) A*P         2.55 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.59 ms, copies 0.00257 GB, peak 6 MiB | rasp: fastest simulated candidate (0.315 GFLOP/s predicted)
+  level 3 (grid  24) R*(AP)      2.12 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.47 ms, copies 0.00148 GB, peak 4 MiB | rasp: fastest simulated candidate (0.222 GFLOP/s predicted)
+  level 4 (grid  12) A*P         2.28 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.34 ms, copies 0.000311 GB, peak 2 MiB | rasp: fastest simulated candidate (0.067 GFLOP/s predicted)
+  level 4 (grid  12) R*(AP)      1.75 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 0.000175 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0379 GFLOP/s predicted)
+  setup total 371.27 ms (median of 3)
 == zerocopy (context 256 MiB)
   infeasible: rasp: no SpGEMM plan fits a budget of 260.382392 MB
 == incore (context 4310 MiB)
-  level 0 (grid 192) A*P       138.77 ms  incore P_AC=1 P_B=1 depth=1 | predicted 151.26 ms, copies 1.35 GB, peak 2421 MiB | rasp: fastest simulated candidate (0.652 GFLOP/s predicted)
-  level 0 (grid 192) R*(AP)     66.16 ms  incore P_AC=1 P_B=1 depth=1 | predicted 88.01 ms, copies 0.794 GB, peak 1402 MiB | rasp: fastest simulated candidate (0.638 GFLOP/s predicted)
-  level 1 (grid  96) A*P        22.63 ms  incore P_AC=1 P_B=1 depth=1 | predicted 19.09 ms, copies 0.169 GB, peak 302 MiB | rasp: fastest simulated candidate (0.643 GFLOP/s predicted)
-  level 1 (grid  96) R*(AP)     12.41 ms  incore P_AC=1 P_B=1 depth=1 | predicted 11.19 ms, copies 0.0986 GB, peak 175 MiB | rasp: fastest simulated candidate (0.623 GFLOP/s predicted)
-  level 2 (grid  48) A*P         4.75 ms  incore P_AC=1 P_B=1 depth=1 | predicted 2.63 ms, copies 0.0209 GB, peak 38 MiB | rasp: fastest simulated candidate (0.578 GFLOP/s predicted)
-  level 2 (grid  48) R*(AP)      3.81 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.64 ms, copies 0.0122 GB, peak 22 MiB | rasp: fastest simulated candidate (0.522 GFLOP/s predicted)
-  level 3 (grid  24) A*P         2.79 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.59 ms, copies 0.00257 GB, peak 6 MiB | rasp: fastest simulated candidate (0.318 GFLOP/s predicted)
-  level 3 (grid  24) R*(AP)      2.27 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.46 ms, copies 0.00148 GB, peak 4 MiB | rasp: fastest simulated candidate (0.224 GFLOP/s predicted)
-  level 4 (grid  12) A*P         1.60 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.33 ms, copies 0.000311 GB, peak 2 MiB | rasp: fastest simulated candidate (0.0671 GFLOP/s predicted)
-  level 4 (grid  12) R*(AP)      1.53 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 0.000175 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0379 GFLOP/s predicted)
-  setup total 282.07 ms (median of 3)
+  level 0 (grid 192) A*P       138.87 ms  incore P_AC=1 P_B=1 depth=1 | predicted 155.70 ms, copies 1.35 GB, peak 2421 MiB | rasp: fastest simulated candidate (0.634 GFLOP/s predicted)
+  level 0 (grid 192) R*(AP)     53.57 ms  incore P_AC=1 P_B=1 depth=1 | predicted 90.60 ms, copies 0.794 GB, peak 1402 MiB | rasp: fastest simulated candidate (0.62 GFLOP/s predicted)
+  level 1 (grid  96) A*P        25.02 ms  incore P_AC=1 P_B=1 depth=1 | predicted 19.65 ms, copies 0.169 GB, peak 302 MiB | rasp: fastest simulated candidate (0.625 GFLOP/s predicted)
+  level 1 (grid  96) R*(AP)      9.29 ms  incore P_AC=1 P_B=1 depth=1 | predicted 11.51 ms, copies 0.0986 GB, peak 175 MiB | rasp: fastest simulated candidate (0.605 GFLOP/s predicted)
+  level 2 (grid  48) A*P         3.80 ms  incore P_AC=1 P_B=1 depth=1 | predicted 2.70 ms, copies 0.0209 GB, peak 38 MiB | rasp: fastest simulated candidate (0.564 GFLOP/s predicted)
+  level 2 (grid  48) R*(AP)      3.69 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.68 ms, copies 0.0122 GB, peak 22 MiB | rasp: fastest simulated candidate (0.51 GFLOP/s predicted)
+  level 3 (grid  24) A*P         2.68 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.59 ms, copies 0.00257 GB, peak 6 MiB | rasp: fastest simulated candidate (0.314 GFLOP/s predicted)
+  level 3 (grid  24) R*(AP)      2.36 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.47 ms, copies 0.00148 GB, peak 4 MiB | rasp: fastest simulated candidate (0.222 GFLOP/s predicted)
+  level 4 (grid  12) A*P         2.25 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.34 ms, copies 0.000311 GB, peak 2 MiB | rasp: fastest simulated candidate (0.0669 GFLOP/s predicted)
+  level 4 (grid  12) R*(AP)      2.45 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 0.000175 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0378 GFLOP/s predicted)
+  setup total 239.88 ms (median of 3)
 
 0 failures -> results/phase5/amg.csv
 AMG setup: Laplace3D n=256 (16777216 rows, nnz 117047296), 6 levels, budget 512 MiB
 == alg4 (context 512 MiB)
-  level 0 (grid 256) A*P       395.95 ms  chunk_b P_AC=45 P_B=1 depth=1 | predicted 389.03 ms, copies 3.21 GB, peak 380 MiB | alg4: copy volume chunk1 7.24 GB, chunk2 1.74 GB
-  level 0 (grid 256) R*(AP)    370.26 ms  chunk_b P_AC=26 P_B=3 depth=1 | predicted 569.44 ms, copies 5.54 GB, peak 497 MiB | alg4: copy volume chunk1 7.09 GB, chunk2 3.11 GB
-  level 1 (grid 128) A*P        74.67 ms  chunk_b P_AC=6 P_B=1 depth=1 | predicted 48.60 ms, copies 0.4 GB, peak 156 MiB | alg4: copy volume chunk1 0.434 GB, chunk2 0.217 GB
-  level 1 (grid 128) R*(AP)     45.68 ms  incore P_AC=1 P_B=1 depth=1 | predicted 27.53 ms, copies 0.235 GB, peak 415 MiB | alg4: everything fits the budget
-  level 2 (grid  64) A*P        33.35 ms  incore P_AC=1 P_B=1 depth=1 | predicted 6.11 ms, copies 0.0497 GB, peak 90 MiB | alg4: everything fits the budget
-  level 2 (grid  64) R*(AP)     34.96 ms  incore P_AC=1 P_B=1 depth=1 | predicted 3.67 ms, copies 0.029 GB, peak 52 MiB | alg4: everything fits the budget
-  level 3 (grid  32) A*P        32.51 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.02 ms, copies 0.00614 GB, peak 12 MiB | alg4: everything fits the budget
-  level 3 (grid  32) R*(AP)     35.31 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.71 ms, copies 0.00356 GB, peak 7 MiB | alg4: everything fits the budget
-  level 4 (grid  16) A*P        34.94 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.39 ms, copies 0.00075 GB, peak 2 MiB | alg4: everything fits the budget
-  level 4 (grid  16) R*(AP)     33.88 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.35 ms, copies 0.000426 GB, peak 2 MiB | alg4: everything fits the budget
-  level 5 (grid   8) A*P        35.52 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.31 ms, copies 8.91e-05 GB, peak 1 MiB | alg4: everything fits the budget
-  level 5 (grid   8) R*(AP)     35.56 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.31 ms, copies 4.87e-05 GB, peak 1 MiB | alg4: everything fits the budget
-  setup total 1178.97 ms (median of 3)
+  level 0 (grid 256) A*P       509.62 ms  chunk_b P_AC=45 P_B=1 depth=1 | predicted 374.69 ms, copies 3.21 GB, peak 380 MiB | alg4: copy volume chunk1 7.24 GB, chunk2 1.74 GB
+  level 0 (grid 256) R*(AP)    362.05 ms  chunk_b P_AC=26 P_B=3 depth=1 | predicted 543.59 ms, copies 5.54 GB, peak 497 MiB | alg4: copy volume chunk1 7.09 GB, chunk2 3.11 GB
+  level 1 (grid 128) A*P        54.24 ms  chunk_b P_AC=6 P_B=1 depth=1 | predicted 46.81 ms, copies 0.4 GB, peak 156 MiB | alg4: copy volume chunk1 0.434 GB, chunk2 0.217 GB
+  level 1 (grid 128) R*(AP)     19.15 ms  incore P_AC=1 P_B=1 depth=1 | predicted 26.42 ms, copies 0.235 GB, peak 415 MiB | alg4: everything fits the budget
+  level 2 (grid  64) A*P         7.87 ms  incore P_AC=1 P_B=1 depth=1 | predicted 5.89 ms, copies 0.0497 GB, peak 90 MiB | alg4: everything fits the budget
+  level 2 (grid  64) R*(AP)      4.71 ms  incore P_AC=1 P_B=1 depth=1 | predicted 3.53 ms, copies 0.029 GB, peak 52 MiB | alg4: everything fits the budget
+  level 3 (grid  32) A*P         2.55 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.99 ms, copies 0.00614 GB, peak 12 MiB | alg4: everything fits the budget
+  level 3 (grid  32) R*(AP)      3.54 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.70 ms, copies 0.00356 GB, peak 7 MiB | alg4: everything fits the budget
+  level 4 (grid  16) A*P         1.83 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.38 ms, copies 0.00075 GB, peak 2 MiB | alg4: everything fits the budget
+  level 4 (grid  16) R*(AP)      2.21 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.35 ms, copies 0.000426 GB, peak 2 MiB | alg4: everything fits the budget
+  level 5 (grid   8) A*P         2.35 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.31 ms, copies 8.91e-05 GB, peak 1 MiB | alg4: everything fits the budget
+  level 5 (grid   8) R*(AP)      2.22 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.31 ms, copies 4.87e-05 GB, peak 1 MiB | alg4: everything fits the budget
+  setup total 984.29 ms (median of 3)
 == alg4_overlap (context 512 MiB)
-  level 0 (grid 256) A*P       269.06 ms  chunk_b P_AC=68 P_B=1 depth=2 | predicted 1130.97 ms, copies 3.21 GB, peak 380 MiB | alg4: copy volume chunk1 inf GB, chunk2 1.74 GB
-  level 0 (grid 256) R*(AP)    306.08 ms  chunk_b P_AC=40 P_B=3 depth=2 | predicted 2008.70 ms, copies 5.54 GB, peak 497 MiB | alg4: copy volume chunk1 inf GB, chunk2 3.11 GB
-  level 1 (grid 128) A*P        50.28 ms  chunk_b P_AC=9 P_B=1 depth=2 | predicted 140.98 ms, copies 0.4 GB, peak 156 MiB | alg4: copy volume chunk1 0.467 GB, chunk2 0.217 GB
-  level 1 (grid 128) R*(AP)     19.97 ms  incore P_AC=1 P_B=1 depth=1 | predicted 94.76 ms, copies 0.235 GB, peak 415 MiB | alg4: everything fits the budget
-  level 2 (grid  64) A*P        10.23 ms  incore P_AC=1 P_B=1 depth=1 | predicted 19.64 ms, copies 0.0497 GB, peak 90 MiB | alg4: everything fits the budget
-  level 2 (grid  64) R*(AP)      3.99 ms  incore P_AC=1 P_B=1 depth=1 | predicted 12.00 ms, copies 0.029 GB, peak 52 MiB | alg4: everything fits the budget
-  level 3 (grid  32) A*P         3.18 ms  incore P_AC=1 P_B=1 depth=1 | predicted 2.69 ms, copies 0.00614 GB, peak 12 MiB | alg4: everything fits the budget
-  level 3 (grid  32) R*(AP)      2.17 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.73 ms, copies 0.00356 GB, peak 7 MiB | alg4: everything fits the budget
-  level 4 (grid  16) A*P         2.41 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.59 ms, copies 0.00075 GB, peak 2 MiB | alg4: everything fits the budget
-  level 4 (grid  16) R*(AP)      2.14 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.47 ms, copies 0.000426 GB, peak 2 MiB | alg4: everything fits the budget
-  level 5 (grid   8) A*P         2.08 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.33 ms, copies 8.91e-05 GB, peak 1 MiB | alg4: everything fits the budget
-  level 5 (grid   8) R*(AP)      1.62 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 4.87e-05 GB, peak 1 MiB | alg4: everything fits the budget
-  setup total 664.60 ms (median of 3)
+  level 0 (grid 256) A*P       273.67 ms  chunk_b P_AC=68 P_B=1 depth=2 | predicted 1145.77 ms, copies 3.21 GB, peak 380 MiB | alg4: copy volume chunk1 inf GB, chunk2 1.74 GB
+  level 0 (grid 256) R*(AP)    303.61 ms  chunk_b P_AC=40 P_B=3 depth=2 | predicted 2033.10 ms, copies 5.54 GB, peak 497 MiB | alg4: copy volume chunk1 inf GB, chunk2 3.11 GB
+  level 1 (grid 128) A*P        52.79 ms  chunk_b P_AC=9 P_B=1 depth=2 | predicted 142.83 ms, copies 0.4 GB, peak 156 MiB | alg4: copy volume chunk1 0.467 GB, chunk2 0.217 GB
+  level 1 (grid 128) R*(AP)     22.68 ms  incore P_AC=1 P_B=1 depth=1 | predicted 95.77 ms, copies 0.235 GB, peak 415 MiB | alg4: everything fits the budget
+  level 2 (grid  64) A*P         9.90 ms  incore P_AC=1 P_B=1 depth=1 | predicted 19.86 ms, copies 0.0497 GB, peak 90 MiB | alg4: everything fits the budget
+  level 2 (grid  64) R*(AP)      6.47 ms  incore P_AC=1 P_B=1 depth=1 | predicted 12.12 ms, copies 0.029 GB, peak 52 MiB | alg4: everything fits the budget
+  level 3 (grid  32) A*P         3.77 ms  incore P_AC=1 P_B=1 depth=1 | predicted 2.72 ms, copies 0.00614 GB, peak 12 MiB | alg4: everything fits the budget
+  level 3 (grid  32) R*(AP)      2.91 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.75 ms, copies 0.00356 GB, peak 7 MiB | alg4: everything fits the budget
+  level 4 (grid  16) A*P         3.32 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.60 ms, copies 0.00075 GB, peak 2 MiB | alg4: everything fits the budget
+  level 4 (grid  16) R*(AP)      2.46 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.47 ms, copies 0.000426 GB, peak 2 MiB | alg4: everything fits the budget
+  level 5 (grid   8) A*P         2.19 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.34 ms, copies 8.91e-05 GB, peak 1 MiB | alg4: everything fits the budget
+  level 5 (grid   8) R*(AP)      2.85 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 4.87e-05 GB, peak 1 MiB | alg4: everything fits the budget
+  setup total 679.86 ms (median of 3)
 == rasp_static (context 512 MiB)
-  level 0 (grid 256) A*P       288.02 ms  chunk_b P_AC=35 P_B=1 depth=2 | predicted 1133.63 ms, copies 3.21 GB, peak 497 MiB | rasp: fastest simulated candidate (0.206 GFLOP/s predicted)
-  level 0 (grid 256) R*(AP)    301.25 ms  chunk_b P_AC=40 P_B=3 depth=2 | predicted 2013.19 ms, copies 5.54 GB, peak 497 MiB | rasp: fastest simulated candidate (0.0663 GFLOP/s predicted)
-  level 1 (grid 128) A*P        44.18 ms  chunk_b P_AC=3 P_B=1 depth=2 | predicted 141.31 ms, copies 0.4 GB, peak 497 MiB | rasp: fastest simulated candidate (0.206 GFLOP/s predicted)
-  level 1 (grid 128) R*(AP)     18.42 ms  chunk_b P_AC=2 P_B=1 depth=2 | predicted 86.36 ms, copies 0.235 GB, peak 365 MiB | rasp: fastest simulated candidate (0.192 GFLOP/s predicted)
-  level 2 (grid  64) A*P         6.95 ms  incore P_AC=1 P_B=1 depth=1 | predicted 19.68 ms, copies 0.0497 GB, peak 90 MiB | rasp: fastest simulated candidate (0.184 GFLOP/s predicted)
-  level 2 (grid  64) R*(AP)      8.69 ms  chunk_ac P_AC=1 P_B=2 depth=3 | predicted 11.52 ms, copies 0.029 GB, peak 103 MiB | rasp: fastest simulated candidate (0.178 GFLOP/s predicted)
-  level 3 (grid  32) A*P         4.13 ms  incore P_AC=1 P_B=1 depth=1 | predicted 2.69 ms, copies 0.00614 GB, peak 12 MiB | rasp: fastest simulated candidate (0.166 GFLOP/s predicted)
-  level 3 (grid  32) R*(AP)      2.89 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.74 ms, copies 0.00356 GB, peak 7 MiB | rasp: fastest simulated candidate (0.144 GFLOP/s predicted)
-  level 4 (grid  16) A*P         2.82 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.59 ms, copies 0.00075 GB, peak 2 MiB | rasp: fastest simulated candidate (0.0916 GFLOP/s predicted)
-  level 4 (grid  16) R*(AP)      1.66 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.47 ms, copies 0.000426 GB, peak 2 MiB | rasp: fastest simulated candidate (0.0628 GFLOP/s predicted)
-  level 5 (grid   8) A*P         2.04 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.33 ms, copies 8.91e-05 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0191 GFLOP/s predicted)
-  level 5 (grid   8) R*(AP)      1.65 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 4.87e-05 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0104 GFLOP/s predicted)
-  setup total 692.27 ms (median of 3)
+  level 0 (grid 256) A*P       304.38 ms  chunk_b P_AC=35 P_B=1 depth=2 | predicted 1196.43 ms, copies 3.21 GB, peak 497 MiB | rasp: fastest simulated candidate (0.196 GFLOP/s predicted)
+  level 0 (grid 256) R*(AP)    360.66 ms  chunk_b P_AC=40 P_B=3 depth=2 | predicted 2122.95 ms, copies 5.54 GB, peak 497 MiB | rasp: fastest simulated candidate (0.0629 GFLOP/s predicted)
+  level 1 (grid 128) A*P        54.71 ms  chunk_b P_AC=3 P_B=1 depth=2 | predicted 149.14 ms, copies 0.4 GB, peak 497 MiB | rasp: fastest simulated candidate (0.196 GFLOP/s predicted)
+  level 1 (grid 128) R*(AP)     21.59 ms  chunk_b P_AC=2 P_B=1 depth=2 | predicted 91.03 ms, copies 0.235 GB, peak 365 MiB | rasp: fastest simulated candidate (0.182 GFLOP/s predicted)
+  level 2 (grid  64) A*P        14.93 ms  incore P_AC=1 P_B=1 depth=1 | predicted 20.65 ms, copies 0.0497 GB, peak 90 MiB | rasp: fastest simulated candidate (0.175 GFLOP/s predicted)
+  level 2 (grid  64) R*(AP)     13.85 ms  chunk_ac P_AC=1 P_B=2 depth=3 | predicted 12.10 ms, copies 0.029 GB, peak 103 MiB | rasp: fastest simulated candidate (0.169 GFLOP/s predicted)
+  level 3 (grid  32) A*P         4.43 ms  incore P_AC=1 P_B=1 depth=1 | predicted 2.81 ms, copies 0.00614 GB, peak 12 MiB | rasp: fastest simulated candidate (0.159 GFLOP/s predicted)
+  level 3 (grid  32) R*(AP)      3.68 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.81 ms, copies 0.00356 GB, peak 7 MiB | rasp: fastest simulated candidate (0.138 GFLOP/s predicted)
+  level 4 (grid  16) A*P         3.12 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.61 ms, copies 0.00075 GB, peak 2 MiB | rasp: fastest simulated candidate (0.0894 GFLOP/s predicted)
+  level 4 (grid  16) R*(AP)      2.33 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.48 ms, copies 0.000426 GB, peak 2 MiB | rasp: fastest simulated candidate (0.0617 GFLOP/s predicted)
+  level 5 (grid   8) A*P         2.61 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.34 ms, copies 8.91e-05 GB, peak 1 MiB | rasp: fastest simulated candidate (0.019 GFLOP/s predicted)
+  level 5 (grid   8) R*(AP)      2.65 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 4.87e-05 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0104 GFLOP/s predicted)
+  setup total 799.48 ms (median of 3)
 == rasp (context 512 MiB)
-  level 0 (grid 256) A*P       260.70 ms  chunk_b P_AC=36 P_B=1 depth=2 +probe | predicted 724.92 ms, copies 3.21 GB, peak 497 MiB | rasp: fastest simulated candidate (0.323 GFLOP/s predicted)
-  level 0 (grid 256) R*(AP)    270.07 ms  chunk_b P_AC=40 P_B=3 depth=2 | predicted 1267.41 ms, copies 5.54 GB, peak 497 MiB | rasp: fastest simulated candidate (0.105 GFLOP/s predicted)
-  level 1 (grid 128) A*P        42.16 ms  chunk_b P_AC=4 P_B=1 depth=2 +probe | predicted 90.36 ms, copies 0.4 GB, peak 497 MiB | rasp: fastest simulated candidate (0.323 GFLOP/s predicted)
-  level 1 (grid 128) R*(AP)     16.86 ms  chunk_b P_AC=4 P_B=1 depth=2 +probe | predicted 53.99 ms, copies 0.235 GB, peak 300 MiB | rasp: fastest simulated candidate (0.307 GFLOP/s predicted)
-  level 2 (grid  64) A*P         7.42 ms  chunk_b P_AC=2 P_B=1 depth=2 +probe | predicted 12.70 ms, copies 0.0497 GB, peak 117 MiB | rasp: fastest simulated candidate (0.285 GFLOP/s predicted)
-  level 2 (grid  64) R*(AP)      9.03 ms  chunk_ac P_AC=1 P_B=2 depth=3 | predicted 7.52 ms, copies 0.029 GB, peak 103 MiB | rasp: fastest simulated candidate (0.272 GFLOP/s predicted)
-  level 3 (grid  32) A*P         3.71 ms  chunk_b P_AC=2 P_B=1 depth=2 +probe | predicted 1.83 ms, copies 0.00614 GB, peak 15 MiB | rasp: fastest simulated candidate (0.244 GFLOP/s predicted)
-  level 3 (grid  32) R*(AP)      2.33 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.24 ms, copies 0.00356 GB, peak 7 MiB | rasp: fastest simulated candidate (0.201 GFLOP/s predicted)
-  level 4 (grid  16) A*P         1.68 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.50 ms, copies 0.00075 GB, peak 2 MiB | rasp: fastest simulated candidate (0.109 GFLOP/s predicted)
-  level 4 (grid  16) R*(AP)      1.96 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.41 ms, copies 0.000426 GB, peak 2 MiB | rasp: fastest simulated candidate (0.0719 GFLOP/s predicted)
-  level 5 (grid   8) A*P         1.76 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 8.91e-05 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0198 GFLOP/s predicted)
-  level 5 (grid   8) R*(AP)      1.92 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.31 ms, copies 4.87e-05 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0106 GFLOP/s predicted)
-  setup total 620.15 ms (median of 3)
+  level 0 (grid 256) A*P       311.13 ms  chunk_b P_AC=36 P_B=1 depth=2 +probe | predicted 1233.67 ms, copies 3.21 GB, peak 497 MiB | rasp: fastest simulated candidate (0.19 GFLOP/s predicted)
+  level 0 (grid 256) R*(AP)    313.27 ms  chunk_b P_AC=40 P_B=3 depth=2 | predicted 2184.79 ms, copies 5.54 GB, peak 497 MiB | rasp: fastest simulated candidate (0.0611 GFLOP/s predicted)
+  level 1 (grid 128) A*P        60.08 ms  chunk_b P_AC=4 P_B=1 depth=2 +probe | predicted 153.78 ms, copies 0.4 GB, peak 497 MiB | rasp: fastest simulated candidate (0.19 GFLOP/s predicted)
+  level 1 (grid 128) R*(AP)     26.98 ms  chunk_b P_AC=3 P_B=1 depth=2 +probe | predicted 93.61 ms, copies 0.235 GB, peak 333 MiB | rasp: fastest simulated candidate (0.177 GFLOP/s predicted)
+  level 2 (grid  64) A*P         8.22 ms  chunk_b P_AC=2 P_B=1 depth=2 +probe | predicted 20.68 ms, copies 0.0497 GB, peak 117 MiB | rasp: fastest simulated candidate (0.175 GFLOP/s predicted)
+  level 2 (grid  64) R*(AP)     13.68 ms  chunk_ac P_AC=1 P_B=2 depth=3 | predicted 12.41 ms, copies 0.029 GB, peak 103 MiB | rasp: fastest simulated candidate (0.165 GFLOP/s predicted)
+  level 3 (grid  32) A*P         4.98 ms  chunk_b P_AC=2 P_B=1 depth=2 +probe | predicted 2.82 ms, copies 0.00614 GB, peak 15 MiB | rasp: fastest simulated candidate (0.158 GFLOP/s predicted)
+  level 3 (grid  32) R*(AP)      4.19 ms  incore P_AC=1 P_B=1 depth=1 | predicted 1.85 ms, copies 0.00356 GB, peak 7 MiB | rasp: fastest simulated candidate (0.135 GFLOP/s predicted)
+  level 4 (grid  16) A*P         2.95 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.62 ms, copies 0.00075 GB, peak 2 MiB | rasp: fastest simulated candidate (0.0881 GFLOP/s predicted)
+  level 4 (grid  16) R*(AP)      2.87 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.49 ms, copies 0.000426 GB, peak 2 MiB | rasp: fastest simulated candidate (0.0611 GFLOP/s predicted)
+  level 5 (grid   8) A*P         2.80 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.34 ms, copies 8.91e-05 GB, peak 1 MiB | rasp: fastest simulated candidate (0.019 GFLOP/s predicted)
+  level 5 (grid   8) R*(AP)      2.67 ms  incore P_AC=1 P_B=1 depth=1 | predicted 0.32 ms, copies 4.87e-05 GB, peak 1 MiB | rasp: fastest simulated candidate (0.0104 GFLOP/s predicted)
+  setup total 744.69 ms (median of 3)
 == zerocopy (context 512 MiB)
   infeasible: rasp: no SpGEMM plan fits a budget of 520.764785 MB
 == incore (context 4310 MiB)
@@ -346,52 +324,52 @@ AMG setup: Laplace3D n=256 (16777216 rows, nnz 117047296), 6 levels, budget 512 
 
 === SpMV: data/suitesparse/Rajat/rajat23.mtx  (110355 x 110355, nnz 556938, fp64)
 features: mean row 5.0, max row 3401, CV 3.84, empty 0.0%, ELL fill 673.9x, SELL-32 fill 4.50x, nnz in rows > 4096: 0.0%
-cuSPARSE ALG1: 0.0860 ms per call
+cuSPARSE ALG1: 0.0881 ms per call
 
   expected_calls = 1
-    config cusparse_alg1 (steady state cusparse_alg1) | predicted 1.00x vs cuSPARSE | features no 0.000 ms | convert 0.025 ms | plan 2.662 ms | too few calls to repay feature extraction
-    per call 0.0860 ms; plan + 1 calls = 2.748 ms vs cuSPARSE 0.086 ms -> 0.03x
+    config cusparse_alg1 (steady state cusparse_alg1) | predicted 1.00x vs cuSPARSE | features no 0.000 ms | convert 0.006 ms | plan 5.864 ms | too few calls to repay feature extraction
+    per call 0.0881 ms; plan + 1 calls = 5.952 ms vs cuSPARSE 0.088 ms -> 0.01x
 
   expected_calls = 100
-    config cusparse_alg2 (steady state cusparse_alg2) | predicted 1.01x vs cuSPARSE | features yes 0.125 ms | convert 0.085 ms | plan 0.453 ms | decision tree
-    per call 0.0850 ms; plan + 100 calls = 8.952 ms vs cuSPARSE 8.602 ms -> 0.96x
+    config cusparse_alg2 (steady state cusparse_alg2) | predicted 1.01x vs cuSPARSE | features yes 0.260 ms | convert 0.067 ms | plan 0.597 ms | decision tree
+    per call 0.0860 ms; plan + 100 calls = 9.199 ms vs cuSPARSE 8.806 ms -> 0.96x
 
   expected_calls = 10000
-    config cusparse_alg2 (steady state cusparse_alg2) | predicted 1.01x vs cuSPARSE | features yes 0.093 ms | convert 0.015 ms | plan 0.253 ms | decision tree
-    per call 0.0840 ms; plan + 10000 calls = 839.933 ms vs cuSPARSE 860.160 ms -> 1.02x
+    config cusparse_alg2 (steady state cusparse_alg2) | predicted 1.01x vs cuSPARSE | features yes 0.106 ms | convert 0.013 ms | plan 0.387 ms | decision tree
+    per call 0.0860 ms; plan + 10000 calls = 860.547 ms vs cuSPARSE 880.640 ms -> 1.02x
 
 === SpMV: data/suitesparse/Schenk_AFE/af_shell1.mtx  (504855 x 504855, nnz 17588875, fp64)
 features: mean row 34.8, max row 40, CV 0.04, empty 0.0%, ELL fill 1.1x, SELL-32 fill 1.01x, nnz in rows > 4096: 0.0%
-cuSPARSE ALG1: 1.2237 ms per call
+cuSPARSE ALG1: 1.2257 ms per call
 
   expected_calls = 1
-    config cusparse_alg1 (steady state cusparse_alg1) | predicted 1.00x vs cuSPARSE | features no 0.000 ms | convert 0.019 ms | plan 0.311 ms | too few calls to repay feature extraction
-    per call 1.2237 ms; plan + 1 calls = 1.535 ms vs cuSPARSE 1.224 ms -> 0.80x
+    config cusparse_alg1 (steady state cusparse_alg1) | predicted 1.00x vs cuSPARSE | features no 0.000 ms | convert 0.018 ms | plan 0.984 ms | too few calls to repay feature extraction
+    per call 1.2268 ms; plan + 1 calls = 2.211 ms vs cuSPARSE 1.226 ms -> 0.55x
 
   expected_calls = 100
-    config cusparse_alg1 (steady state cusparse_alg1) | predicted 1.00x vs cuSPARSE | features yes 0.309 ms | convert 0.048 ms | plan 0.562 ms | large matrix: cuSPARSE ALG1 (never-lose gate)
-    per call 1.2237 ms; plan + 100 calls = 122.930 ms vs cuSPARSE 122.368 ms -> 1.00x
+    config cusparse_alg1 (steady state cusparse_alg1) | predicted 1.00x vs cuSPARSE | features yes 0.311 ms | convert 0.022 ms | plan 0.587 ms | large matrix: cuSPARSE ALG1 (never-lose gate)
+    per call 1.2273 ms; plan + 100 calls = 123.314 ms vs cuSPARSE 122.573 ms -> 0.99x
 
   expected_calls = 10000
-    config cusparse_alg1 (steady state cusparse_alg1) | predicted 1.00x vs cuSPARSE | features yes 0.298 ms | convert 0.017 ms | plan 0.560 ms | large matrix: cuSPARSE ALG1 (never-lose gate)
-    per call 1.2237 ms; plan + 10000 calls = 12237.360 ms vs cuSPARSE 12236.800 ms -> 1.00x
+    config cusparse_alg1 (steady state cusparse_alg1) | predicted 1.00x vs cuSPARSE | features yes 0.329 ms | convert 0.019 ms | plan 0.601 ms | large matrix: cuSPARSE ALG1 (never-lose gate)
+    per call 1.2257 ms; plan + 10000 calls = 12257.881 ms vs cuSPARSE 12257.280 ms -> 1.00x
 
 === SpGEMM: Laplace3D A*P, n = 160 (A: 4096000 rows, nnz 28518400), fast-memory budget 256 MiB
-PCIe measured at start-up: H2D 13.4 GB/s, D2H 13.2 GB/s
+PCIe measured at start-up: H2D 6.7 GB/s, D2H 6.6 GB/s
 
-  alg4: chunk_b P_AC=22 P_B=1 depth=1 | predicted 94.01 ms, copies 0.783 GB, peak 125 MiB | alg4: copy volume chunk1 1.24 GB, chunk2 0.424 GB | 132.77 ms (estimate 43.58, plan 0.16, exec 89.03) = 0.430 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 143.5 / 256.0 MiB | 23 tiles, 0 replans, 0 splits
+  alg4: chunk_b P_AC=22 P_B=1 depth=1 | predicted 153.07 ms, copies 0.783 GB, peak 125 MiB | alg4: copy volume chunk1 1.24 GB, chunk2 0.424 GB | 133.25 ms (estimate 29.69, plan 0.28, exec 103.28) = 0.428 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 143.5 / 256.0 MiB | 23 tiles, 0 replans, 0 splits
 
-  rasp: chunk_b P_AC=16 P_B=1 depth=3 +probe | predicted 58.89 ms, copies 0.783 GB, peak 248 MiB | rasp: fastest simulated candidate (0.969 GFLOP/s predicted) | 66.47 ms (estimate 13.33, plan 2.08, exec 51.06) = 0.858 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 240.4 / 256.0 MiB | 18 tiles, 4 replans, 4 splits
+  rasp: chunk_b P_AC=12 P_B=1 depth=2 +probe | predicted 117.95 ms, copies 0.783 GB, peak 248 MiB | rasp: fastest simulated candidate (0.484 GFLOP/s predicted) | 78.36 ms (estimate 13.75, plan 2.86, exec 61.76) = 0.728 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 245.3 / 256.0 MiB | 16 tiles, 5 replans, 5 splits
   first tiles (ms since start: upload | compute | download):
-    rows        0-38580        6.26-6.50    |    6.61-7.70    |    9.97-10.11    (re-planned after this)
-    rows    38580-282971       6.51-8.13    |    8.19-9.62    |   11.95-12.91    (re-planned after this)
-    rows   282971-562339       8.13-9.97    |   10.01-14.35   |   14.66-15.77    (re-planned after this)
-    rows   562339-841751      10.11-11.95   |   14.52-15.93   |   17.43-18.54    (re-planned after this)
-    rows   841751-1105578     12.92-14.65   |   16.05-20.69   |   20.19-21.24  
-    rows  1105578-1356320     15.77-17.43   |   20.78-23.28   |   22.90-23.91  
-  measured: 0.84 G multiply-adds/s, nnz(C)/upper bound 0.57, workspace 44.6 B/flop
+    rows        0-50383        7.23-7.55    |    7.69-8.63    |    9.70-9.89     (re-planned after this)
+    rows    50383-377528       7.55-9.70    |    9.74-11.39   |   12.48-13.92    (re-planned after this)
+    rows   377528-751528       9.90-12.48   |   12.53-16.79   |   16.80-18.48    (re-planned after this)
+    rows   751528-1071906     13.92-16.79   |   17.00-21.19   |   20.78-22.24  
+    rows  1071906-1379230     18.48-20.78   |   21.30-26.10   |   25.63-26.89    (re-planned after this)
+    rows  1379230-1686366     22.24-25.63   |   26.40-28.05   |   28.93-30.17  
+  measured: 0.80 G multiply-adds/s, nnz(C)/upper bound 0.57, workspace 44.7 B/flop
 
-  RASP vs Alg. 4: 2.00x
+  RASP vs Alg. 4: 1.70x
 == ncu spmv_csr_vector_af_shell1
 == ncu spmv_argcsr_D1_rajat23
 == ncu spmv_argcsr_D32_rajat23
@@ -405,58 +383,60 @@ Open results/phase5/nsys/ooc_axp.nsys-rep in Nsight Systems and save a screensho
 == Analysis
 == CG (G7, SpMV side): 32 matrices, 128 rows
   solves: 128; converged 124, hit the cap 4, FAILED residual checks 0
-  SpMV share of the solve with cuSPARSE: median 28% (the rest: vector updates, reductions, two host synchronisations per iteration)
+  SpMV share of the solve with cuSPARSE: median 26% (the rest: vector updates, reductions, two host synchronisations per iteration)
   iterations: median 666, max 5000
-  tree, hint = iteration cap       speedup vs cuSPARSE: geomean 1.049 [0.92, 1.29]; features used 100%, kernel other than cuSPARSE 62%; >5% slower on 3 of 32
-  tree, hint = exact iterations    speedup vs cuSPARSE: geomean 1.028 [0.90, 1.18]; features used 97%, kernel other than cuSPARSE 59%; >5% slower on 6 of 32
-  tree without break-even          speedup vs cuSPARSE: geomean 1.044 [0.86, 1.29]; features used 100%, kernel other than cuSPARSE 62%; >5% slower on 5 of 32
+  tree, hint = iteration cap       speedup vs cuSPARSE: geomean 1.065 [0.97, 1.34]; features used 100%, kernel other than cuSPARSE 62%; >5% slower on 0 of 32
+  tree, hint = exact iterations    speedup vs cuSPARSE: geomean 1.060 [0.94, 1.40]; features used 97%, kernel other than cuSPARSE 59%; >5% slower on 2 of 32
+  tree without break-even          speedup vs cuSPARSE: geomean 1.051 [0.76, 1.33]; features used 100%, kernel other than cuSPARSE 62%; >5% slower on 3 of 32
+  cap vs exact hint: same kernel on 31 of 32; on those, exact/cap speedup median 0.995 [0.93, 1.12]; cap overstates the iterations up to 294x; plan + conversion with the cap: median 0.24% of the solve, max 10.7%
+  different kernel: ted_B (cap csr_vector_v4, exact cusparse_alg1: too few calls to repay feature extraction)
   wrote results/phase5/cg_speedup.png
 
 == AMG setup (G7, SpGEMM side): 110 rows
   failed checks (coarse operators differ between methods, or Galerkin row sums off): 0
   n = 192, budget 256 MiB:
-    alg4              409.6 ms    1.00x vs Alg. 4
-    alg4_overlap      347.6 ms    1.18x vs Alg. 4
-    rasp_static       370.3 ms    1.11x vs Alg. 4
-    rasp              335.4 ms    1.22x vs Alg. 4
+    alg4              431.4 ms    1.00x vs Alg. 4
+    alg4_overlap      324.3 ms    1.33x vs Alg. 4
+    rasp_static       342.3 ms    1.26x vs Alg. 4
+    rasp              371.3 ms    1.16x vs Alg. 4
     zerocopy      infeasible: rasp: no SpGEMM plan fits a budget of 260.382392 MB
-    incore            282.1 ms    1.45x vs Alg. 4
+    incore            239.9 ms    1.80x vs Alg. 4
     per product (ms):
-      level 0 grid  192 A*P     alg4   164.82  rasp   119.24
-      level 0 grid  192 R*(AP)  alg4   170.63  rasp   164.82
-      level 1 grid   96 A*P     alg4    34.69  rasp    21.38
-      level 1 grid   96 R*(AP)  alg4    13.45  rasp    10.84
-      level 2 grid   48 A*P     alg4     5.37  rasp     4.45
-      level 2 grid   48 R*(AP)  alg4     3.29  rasp     3.29
-      level 3 grid   24 A*P     alg4     3.21  rasp     2.37
-      level 3 grid   24 R*(AP)  alg4     3.68  rasp     2.72
-      level 4 grid   12 A*P     alg4     2.15  rasp     2.89
-      level 4 grid   12 R*(AP)  alg4     3.03  rasp     3.12
+      level 0 grid  192 A*P     alg4   175.76  rasp   123.99
+      level 0 grid  192 R*(AP)  alg4   170.57  rasp   181.35
+      level 1 grid   96 A*P     alg4    35.01  rasp    23.10
+      level 1 grid   96 R*(AP)  alg4    10.32  rasp    11.93
+      level 2 grid   48 A*P     alg4     5.02  rasp     6.07
+      level 2 grid   48 R*(AP)  alg4     3.58  rasp     4.67
+      level 3 grid   24 A*P     alg4     3.10  rasp     2.55
+      level 3 grid   24 R*(AP)  alg4     4.48  rasp     2.12
+      level 4 grid   12 A*P     alg4     2.40  rasp     2.28
+      level 4 grid   12 R*(AP)  alg4     3.65  rasp     1.75
   n = 256, budget 512 MiB:
-    alg4             1179.0 ms    1.00x vs Alg. 4
-    alg4_overlap      664.6 ms    1.77x vs Alg. 4
-    rasp_static       692.3 ms    1.70x vs Alg. 4
-    rasp              620.2 ms    1.90x vs Alg. 4
+    alg4              984.3 ms    1.00x vs Alg. 4
+    alg4_overlap      679.9 ms    1.45x vs Alg. 4
+    rasp_static       799.5 ms    1.23x vs Alg. 4
+    rasp              744.7 ms    1.32x vs Alg. 4
     zerocopy      infeasible: rasp: no SpGEMM plan fits a budget of 520.764785 MB
     incore        infeasible: rasp: no SpGEMM plan fits a budget of 4383.273124 MB
     per product (ms):
-      level 0 grid  256 A*P     alg4   395.95  rasp   260.70
-      level 0 grid  256 R*(AP)  alg4   370.26  rasp   270.07
-      level 1 grid  128 A*P     alg4    74.67  rasp    42.16
-      level 1 grid  128 R*(AP)  alg4    45.68  rasp    16.86
-      level 2 grid   64 A*P     alg4    33.35  rasp     7.42
-      level 2 grid   64 R*(AP)  alg4    34.96  rasp     9.03
-      level 3 grid   32 A*P     alg4    32.51  rasp     3.71
-      level 3 grid   32 R*(AP)  alg4    35.31  rasp     2.33
-      level 4 grid   16 A*P     alg4    34.94  rasp     1.68
-      level 4 grid   16 R*(AP)  alg4    33.88  rasp     1.96
-      level 5 grid    8 A*P     alg4    35.52  rasp     1.76
-      level 5 grid    8 R*(AP)  alg4    35.56  rasp     1.92
+      level 0 grid  256 A*P     alg4   509.62  rasp   311.13
+      level 0 grid  256 R*(AP)  alg4   362.05  rasp   313.27
+      level 1 grid  128 A*P     alg4    54.24  rasp    60.08
+      level 1 grid  128 R*(AP)  alg4    19.15  rasp    26.98
+      level 2 grid   64 A*P     alg4     7.87  rasp     8.22
+      level 2 grid   64 R*(AP)  alg4     4.71  rasp    13.68
+      level 3 grid   32 A*P     alg4     2.55  rasp     4.98
+      level 3 grid   32 R*(AP)  alg4     3.54  rasp     4.19
+      level 4 grid   16 A*P     alg4     1.83  rasp     2.95
+      level 4 grid   16 R*(AP)  alg4     2.21  rasp     2.87
+      level 5 grid    8 A*P     alg4     2.35  rasp     2.80
+      level 5 grid    8 R*(AP)  alg4     2.22  rasp     2.67
 
 == Nsight Compute (metrics only; ncu runs at base clocks)
-  spgemm_csr_add_rxa           add_fill_kernel                      0.1 us  DRAM  11.5%  mem  80.5%  occupancy  25.7% (theoretical 100.0%)  read    nan GB/s  stalls: long_scoreboard 88.6, lg_throttle 12.2, wait 2.7
-  spmv_argcsr_D1_rajat23       argcsr_kernel                        0.1 us  DRAM  33.0%  mem  33.0%  occupancy  84.1% (theoretical 100.0%)  read    nan GB/s  stalls: barrier 41.9, long_scoreboard 37.2, wait 3.1
-  spmv_argcsr_D32_rajat23      argcsr_kernel                        0.0 us  DRAM   2.6%  mem   2.6%  occupancy  28.9% (theoretical 100.0%)  read    nan GB/s  stalls: barrier 87.8, long_scoreboard 79.9, wait 3.5
-  spmv_csr_vector_af_shell1    csr_vector_kernel                    0.0 us  DRAM  48.1%  mem  48.1%  occupancy  90.7% (theoretical 100.0%)  read    nan GB/s  stalls: long_scoreboard 195.5, lg_throttle 8.5, short_scoreboard 5.4
-  spmv_cusparse_af_shell1      void csrmv_v3_kernel                 0.0 us  DRAM  48.6%  mem  48.6%  occupancy  72.9% (theoretical  75.0%)  read    nan GB/s  stalls: long_scoreboard 25.8, short_scoreboard 12.2, tex_throttle 3.5
-== Done 2026-10-08T22:52:34+05:30. Commit results/phase5/.
+  spgemm_csr_add_rxa           add_fill_kernel                     68.0 us  DRAM  26.1%  mem  80.4%  occupancy  25.7% (theoretical 100.0%)  DRAM   46.2 GB/s from L2 misses (ncu dram__bytes  16.7), L2 hit 88.6%  stalls: long_scoreboard 89.0, lg_throttle 11.9, wait 2.7
+  spmv_argcsr_D1_rajat23       argcsr_kernel                       94.0 us  DRAM  66.2%  mem  66.2%  occupancy  84.9% (theoretical 100.0%)  DRAM  113.6 GB/s from L2 misses (ncu dram__bytes  42.4), L2 hit 27.1%  stalls: barrier 41.8, long_scoreboard 37.1, wait 3.1
+  spmv_argcsr_D32_rajat23      argcsr_kernel                     1478.3 us  DRAM   5.9%  mem   5.9%  occupancy  32.1% (theoretical 100.0%)  DRAM    9.4 GB/s from L2 misses (ncu dram__bytes   3.8), L2 hit 19.4%  stalls: barrier 87.8, long_scoreboard 80.5, wait 3.4
+  spmv_csr_vector_af_shell1    csr_vector_kernel                 1226.6 us  DRAM  95.9%  mem  95.9%  occupancy  90.8% (theoretical 100.0%)  DRAM  177.0 GB/s from L2 misses (ncu dram__bytes  61.3), L2 hit 20.3%  stalls: long_scoreboard 194.0, lg_throttle 9.1, short_scoreboard 5.2
+  spmv_cusparse_af_shell1      void csrmv_v3_kernel              1184.7 us  DRAM  96.9%  mem  96.9%  occupancy  72.9% (theoretical  75.0%)  DRAM  185.2 GB/s from L2 misses (ncu dram__bytes  61.9), L2 hit 29.4%  stalls: long_scoreboard 27.1, short_scoreboard 12.3, tex_throttle 3.6
+== Done 2026-11-26T00:39:06+05:30. Commit results/phase5/.

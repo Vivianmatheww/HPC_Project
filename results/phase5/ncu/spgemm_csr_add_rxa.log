@@ -1,10 +1,10 @@
-==PROF== Connected to process 12110 (/home/vivian/HPC_Project/build/bench_spgemm)
+==PROF== Connected to process 24450 (/home/vivian/HPC_Project/build/bench_spgemm)
 ==PROF== Profiling "add_fill_kernel": 0%....50%....100% - 15 passes
-NVIDIA GeForce RTX 4050 Laptop GPU | cuSPARSE 12.8.2 | git b62f4b4 | study ooc
+NVIDIA GeForce RTX 4050 Laptop GPU | cuSPARSE 12.8.2 | git 13fcbe3 | study ooc
 == RxA n=160: 512000 x 4096000 (nnz 4096000) * 4096000 x 4096000 (nnz 28518400)
   fp64 budget 160 MiB (problem 579 MiB, ratio 3.62)
-    rasp          4408.87 ms  rasp: chunk_b P_AC=70 P_B=4 depth=3 | predicted 221.58 ms, copies 2.97 GB, peak 155 MiB | rasp: fastest simulated candidate (0.257 GFLOP/s predicted) | 4408.87 ms (estimate 26.32, plan 9.98, exec 4372.57) = 0.013 GFLOP/s | nnz(C) 16230400 | H2D 0.915 GB, D2H 0.548 GB | peak 134.5 / 160.0 MiB | 284 tiles, 0 replans, 0 splits
+    rasp          4820.72 ms  rasp: chunk_b P_AC=70 P_B=4 depth=3 | predicted 225.71 ms, copies 2.97 GB, peak 155 MiB | rasp: fastest simulated candidate (0.253 GFLOP/s predicted) | 4820.72 ms (estimate 35.62, plan 11.15, exec 4773.95) = 0.012 GFLOP/s | nnz(C) 16230400 | H2D 0.915 GB, D2H 0.548 GB | peak 134.5 / 160.0 MiB | 284 tiles, 0 replans, 0 splits
 
 0 failures -> /tmp/rasp_profile_ooc.csv
-==PROF== Disconnected from process 12110
+==PROF== Disconnected from process 24450
 ==PROF== Report: /home/vivian/HPC_Project/results/phase5/ncu/spgemm_csr_add_rxa.ncu-rep

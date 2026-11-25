@@ -1,11 +1,11 @@
-==PROF== Connected to process 12276 (/home/vivian/HPC_Project/build/bench_spgemm)
-NVIDIA GeForce RTX 4050 Laptop GPU | cuSPARSE 12.8.2 | git b62f4b4 | study ooc
+==PROF== Connected to process 24569 (/home/vivian/HPC_Project/build/bench_spgemm)
+NVIDIA GeForce RTX 4050 Laptop GPU | cuSPARSE 12.8.2 | git 13fcbe3 | study ooc
 == RxA n=160: 512000 x 4096000 (nnz 4096000) * 4096000 x 4096000 (nnz 28518400)
   fp64 budget 160 MiB (problem 579 MiB, ratio 3.62)
-    rasp          1012.87 ms  rasp: chunk_b P_AC=70 P_B=4 depth=3 | predicted 226.02 ms, copies 2.97 GB, peak 155 MiB | rasp: fastest simulated candidate (0.252 GFLOP/s predicted) | 1012.87 ms (estimate 28.29, plan 4.03, exec 980.56) = 0.056 GFLOP/s | nnz(C) 16230400 | H2D 0.915 GB, D2H 0.548 GB | peak 134.5 / 160.0 MiB | 284 tiles, 0 replans, 0 splits
+    rasp          1090.77 ms  rasp: chunk_b P_AC=70 P_B=4 depth=3 | predicted 227.10 ms, copies 2.97 GB, peak 155 MiB | rasp: fastest simulated candidate (0.251 GFLOP/s predicted) | 1090.77 ms (estimate 43.18, plan 6.02, exec 1041.57) = 0.052 GFLOP/s | nnz(C) 16230400 | H2D 0.915 GB, D2H 0.548 GB | peak 150.7 / 160.0 MiB | 284 tiles, 0 replans, 0 splits
 
 0 failures -> /tmp/rasp_profile_ooc.csv
-==PROF== Disconnected from process 12276
+==PROF== Disconnected from process 24569
 ==WARNING== No kernels were profiled.
 Available Kernels:
 1. DeviceCompactInitKernel

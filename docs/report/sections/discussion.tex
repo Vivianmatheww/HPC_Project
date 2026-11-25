@@ -8,10 +8,12 @@
   cannot be reproduced, and host-side latencies of tens of microseconds weigh on small SpMVs and on G3.
 \item \textbf{Few large held-out matrices.} Only \stat{p3-heldout-large} held-out samples have at least $10^6$
   nonzeros, so the ``never lose on large matrices'' half of G2 rests mostly on cross-validation.
-\item \textbf{G3 is borderline} (\stat{p3-g3-median} SpMVs median): cheap for large matrices, expensive for small
-  ones, where the feature gate simply skips selection.
-\item \textbf{G6 is not met for $R\cdot A$.} The cost model over-partitions $A$ and $C$ once $B$ must be split, and
-  re-planning cannot repair the split. On this machine, overlapped Algorithm~4 is the better schedule for both
+\item \textbf{G3 is not met} (\stat{p3-g3-median} SpMVs median in the final run, 1.97 in September): cheap for large
+  matrices, expensive for small ones, where the feature gate simply skips selection. The increase came with a driver
+  update, as a fixed host-side cost per call.
+\item \textbf{G6 is not met.} On $A\cdot P$ RASP reaches \stat{p4-g6-AxP}\x, just short of 1.3\x, because
+  estimation and planning take \stat{p4-overhead-pct}\% of the time. On $R\cdot A$ (\stat{p4-g6-RxA}\x) the cost model
+  over-partitions $A$ and $C$ once $B$ must be split, and re-planning cannot repair the split. On this machine, overlapped Algorithm~4 is the better schedule for both
   products.
 \item \textbf{SpGEMM engine.} cuSPARSE's SpGEMM does not report its workspace in advance and blocks the host in its
   size queries; we learn the workspace size and plan around the stalls. Our partial-product sum uses one thread per

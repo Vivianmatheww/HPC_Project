@@ -52,9 +52,9 @@ On \stat{p3-heldout-matrices} unseen SuiteSparse matrices the SpMV selector runs
 per-matrix best, and on the same machine the GPU is 5.0\x{} (SpMV), 9.1\x{} (conjugate gradients) and 5.0\x{} (AMG
 set-up) faster than one CPU core, and still 1.5--4.7\x{} faster than OpenMP on all eight cores, whose memory bandwidth
 saturates.
-Out of core, overlapping PCIe copies with computation makes SpGEMM \stat{p4-g6-AxP}\x{} faster than the baseline on
-$A\cdot P$ but only \stat{p4-g6-RxA}\x{} on $R\cdot A$, and the data transfers still hold it to
-\stat{p4-frac-of-device} of the in-memory kernel's throughput.
+Out of core, overlapping PCIe copies with computation makes SpGEMM \stat{p4-g6-AxP}\x{} ($A\cdot P$) and
+\stat{p4-g6-RxA}\x{} ($R\cdot A$) faster than the baseline, short of our 1.3\x{} goal, and the data transfers still hold
+it to \stat{p4-frac-of-device} of the in-memory kernel's throughput.
 The code, the raw results and the scripts that regenerate every number in this report are openly available at
 \url{https://github.com/Vivianmatheww/HPC_Project}.
 \end{abstract}

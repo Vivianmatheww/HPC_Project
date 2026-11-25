@@ -124,7 +124,7 @@
 \item \textbf{G2 met:} tree at \stat{p3-g2-tree}\x{} of the oracle (target $\le$1.10), \stat{p3-g2-tree-vs-cusparse}\x{}
   vs cuSPARSE, \stat{p3-g2-tree-slower-large} losses on large matrices.
 \item Hand-written rules: \stat{p3-g2-rules}\x{} -- no better than cuSPARSE (\stat{p3-g2-cusparse}\x).
-\item \textbf{G3 borderline:} features cost \stat{p3-g3-median} SpMVs (median), \stat{p3-g3-size-gt1M} for large
+\item \textbf{G3 not met:} features cost \stat{p3-g3-median} SpMVs (median), \stat{p3-g3-size-gt1M} for large
   matrices.
 \item \textbf{G4 met:} at $N=1$ \stat{p3-g4-tree-1}\x{} of cuSPARSE (without break-even:
   \stat{p3-g4-tree-nobe-1}\x); at $N=1000$ \stat{p3-g4-tree-1000}\x.
@@ -166,7 +166,9 @@
 \column{0.38\textwidth}
 \begin{itemize}
 \item Problem $>$ budget: \stat{p4-g6-AxP}\x{} ($A\cdot P$), \stat{p4-g6-RxA}\x{} ($R\cdot A$) over Alg.~4
-  (target 1.3).
+  (target 1.3: not met).
+\item Overlap does most of it: Alg.~4 + double buffering alone gives \stat{p4-speedup-alg4-overlap-AxP}\x{} /
+  \stat{p4-speedup-alg4-overlap-RxA}\x.
 \item Cost model: predicted / measured \stat{p4-model-accuracy}; estimate + plan \stat{p4-overhead-pct}\% of the time.
 \end{itemize}
 \vspace{2mm}
@@ -248,9 +250,9 @@ Same algorithms and output as the sequential version; only the loops changed.
 \item SpMV: \stat{p3-g2-tree}\x{} of the oracle on unseen matrices, never costlier than cuSPARSE for one call --
   break-even is what makes a selector safe.
 \item SpGEMM: measured, simulated and re-planned schedules with overlap: \stat{p4-g6-AxP}\x{} / \stat{p4-g6-RxA}\x{}
-  over Alg.~4 out of core.
+  over Alg.~4 out of core, short of 1.3\x; copy/compute overlap is what pays.
 \item Re-evaluation: ArgCSR's chunk-size sensitivity holds; its lead over the vendor library does not.
-\item Limits: one laptop GPU under WSL2 (no real UVM), \stat{p3-heldout-large} large held-out matrices, G3 borderline,
+\item Limits: one laptop GPU under WSL2 (no real UVM), \stat{p3-heldout-large} large held-out matrices, G3 not met,
   cuSPARSE as SpGEMM engine.
 \end{itemize}
 \end{frame}

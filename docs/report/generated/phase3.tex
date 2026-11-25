@@ -2,25 +2,25 @@
 \setstat{p3-heldout-matrices}{40}
 \setstat{p3-heldout-samples}{80}
 \setstat{p3-heldout-large}{4}
-\setstat{p3-heldout-oracle-vs-cusparse}{1.129}
-\setstat{p3-g2-cusparse}{1.129}
-\setstat{p3-g2-cusparse-within10}{55}
+\setstat{p3-heldout-oracle-vs-cusparse}{1.123}
+\setstat{p3-g2-cusparse}{1.123}
+\setstat{p3-g2-cusparse-within10}{56}
 \setstat{p3-g2-cusparse-vs-cusparse}{1.000}
 \setstat{p3-g2-cusparse-slower}{0}
 \setstat{p3-g2-cusparse-slower-large}{0}
-\setstat{p3-g2-rules}{1.128}
+\setstat{p3-g2-rules}{1.137}
 \setstat{p3-g2-rules-within10}{39}
-\setstat{p3-g2-rules-vs-cusparse}{1.001}
+\setstat{p3-g2-rules-vs-cusparse}{0.987}
 \setstat{p3-g2-rules-slower}{28}
 \setstat{p3-g2-rules-slower-large}{0}
 \setstat{p3-g2-tree}{1.074}
-\setstat{p3-g2-tree-within10}{66}
-\setstat{p3-g2-tree-vs-cusparse}{1.051}
+\setstat{p3-g2-tree-within10}{68}
+\setstat{p3-g2-tree-vs-cusparse}{1.045}
 \setstat{p3-g2-tree-slower}{11}
 \setstat{p3-g2-tree-slower-large}{0}
-\setstat{p3-g2-portfolio}{1.016}
+\setstat{p3-g2-portfolio}{1.018}
 \setstat{p3-g2-portfolio-within10}{92}
-\setstat{p3-g2-portfolio-vs-cusparse}{1.111}
+\setstat{p3-g2-portfolio-vs-cusparse}{1.103}
 \setstat{p3-g2-portfolio-slower}{0}
 \setstat{p3-g2-portfolio-slower-large}{0}
 \setstat{table:p3-g2}{%
@@ -28,50 +28,50 @@
 \toprule
 selector & $T/T_{\text{oracle}}$ & within 10\% & vs.\ cuSPARSE & $>$5\% slower \\
 \midrule
-always cuSPARSE ALG1 & 1.129 & 55\% & 1.000$\times$ & 0 \\
-rules (v1) & 1.128 & 39\% & 1.001$\times$ & 28 \\
-decision tree (v2) & 1.074 & 66\% & 1.051$\times$ & 11 \\
-oracle within portfolio & 1.016 & 92\% & 1.111$\times$ & 0 \\
+always cuSPARSE ALG1 & 1.123 & 56\% & 1.000$\times$ & 0 \\
+rules (v1) & 1.137 & 39\% & 0.987$\times$ & 28 \\
+decision tree (v2) & 1.074 & 68\% & 1.045$\times$ & 11 \\
+oracle within portfolio & 1.018 & 92\% & 1.103$\times$ & 0 \\
 \bottomrule
 \end{tabular}}
-\setstat{p3-g3-feature-us}{38}
-\setstat{p3-g3-median}{1.97}
-\setstat{p3-g3-p90}{3.28}
-\setstat{p3-g3-size-lt100k}{2.52}
-\setstat{p3-g3-size-100k-1M}{0.95}
-\setstat{p3-g3-size-gt1M}{0.28}
-\setstat{p3-g4-rules-1}{0.988}
-\setstat{p3-g4-rules-1-worst}{0.66}
-\setstat{p3-g4-rules-10}{0.998}
-\setstat{p3-g4-rules-10-worst}{0.91}
-\setstat{p3-g4-rules-100}{1.004}
-\setstat{p3-g4-rules-100-worst}{0.72}
-\setstat{p3-g4-rules-1000}{0.994}
-\setstat{p3-g4-rules-1000-worst}{0.69}
-\setstat{p3-g4-tree-1}{0.996}
-\setstat{p3-g4-tree-1-worst}{0.84}
-\setstat{p3-g4-tree-10}{0.995}
-\setstat{p3-g4-tree-10-worst}{0.87}
-\setstat{p3-g4-tree-100}{1.014}
-\setstat{p3-g4-tree-100-worst}{0.78}
-\setstat{p3-g4-tree-1000}{1.052}
-\setstat{p3-g4-tree-1000-worst}{0.78}
-\setstat{p3-g4-tree-nobe-1}{0.601}
-\setstat{p3-g4-tree-nobe-1-worst}{0.27}
-\setstat{p3-g4-tree-nobe-10}{0.832}
-\setstat{p3-g4-tree-nobe-10-worst}{0.51}
-\setstat{p3-g4-tree-nobe-100}{1.015}
-\setstat{p3-g4-tree-nobe-100-worst}{0.78}
-\setstat{p3-g4-tree-nobe-1000}{1.043}
-\setstat{p3-g4-tree-nobe-1000-worst}{0.78}
+\setstat{p3-g3-feature-us}{69}
+\setstat{p3-g3-median}{3.10}
+\setstat{p3-g3-p90}{7.84}
+\setstat{p3-g3-size-lt100k}{4.40}
+\setstat{p3-g3-size-100k-1M}{1.77}
+\setstat{p3-g3-size-gt1M}{0.37}
+\setstat{p3-g4-rules-1}{0.998}
+\setstat{p3-g4-rules-1-worst}{0.82}
+\setstat{p3-g4-rules-10}{0.992}
+\setstat{p3-g4-rules-10-worst}{0.87}
+\setstat{p3-g4-rules-100}{0.977}
+\setstat{p3-g4-rules-100-worst}{0.67}
+\setstat{p3-g4-rules-1000}{0.986}
+\setstat{p3-g4-rules-1000-worst}{0.66}
+\setstat{p3-g4-tree-1}{1.010}
+\setstat{p3-g4-tree-1-worst}{0.81}
+\setstat{p3-g4-tree-10}{0.987}
+\setstat{p3-g4-tree-10-worst}{0.75}
+\setstat{p3-g4-tree-100}{0.982}
+\setstat{p3-g4-tree-100-worst}{0.74}
+\setstat{p3-g4-tree-1000}{1.037}
+\setstat{p3-g4-tree-1000-worst}{0.74}
+\setstat{p3-g4-tree-nobe-1}{0.572}
+\setstat{p3-g4-tree-nobe-1-worst}{0.23}
+\setstat{p3-g4-tree-nobe-10}{0.741}
+\setstat{p3-g4-tree-nobe-10-worst}{0.34}
+\setstat{p3-g4-tree-nobe-100}{0.973}
+\setstat{p3-g4-tree-nobe-100-worst}{0.75}
+\setstat{p3-g4-tree-nobe-1000}{1.025}
+\setstat{p3-g4-tree-nobe-1000-worst}{0.74}
 \setstat{table:p3-g4}{%
 \begin{tabular}{lrrrr}
 \toprule
 selector & $N=1$ & $N=10$ & $N=100$ & $N=1000$ \\
 \midrule
-rules & 0.988~[0.66] & 0.998~[0.91] & 1.004~[0.72] & 0.994~[0.69] \\
-tree & 0.996~[0.84] & 0.995~[0.87] & 1.014~[0.78] & 1.052~[0.78] \\
-tree\_nobe & 0.601~[0.27] & 0.832~[0.51] & 1.015~[0.78] & 1.043~[0.78] \\
+rules & 0.998~[0.82] & 0.992~[0.87] & 0.977~[0.67] & 0.986~[0.66] \\
+tree & 1.010~[0.81] & 0.987~[0.75] & 0.982~[0.74] & 1.037~[0.74] \\
+tree\_nobe & 0.572~[0.23] & 0.741~[0.34] & 0.973~[0.75] & 1.025~[0.74] \\
 \bottomrule
 \end{tabular}}
 \setstat{p3-features-at-1}{0}

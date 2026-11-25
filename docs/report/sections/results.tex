@@ -22,8 +22,8 @@ On \stat{p3-heldout-matrices} unseen matrices the decision tree runs at \stat{p3
 1.10: met), \stat{p3-g2-tree-vs-cusparse}\x{} faster than always using cuSPARSE, which sits at \stat{p3-g2-cusparse}\x;
 hand-written rules reach only \stat{p3-g2-rules}\x. It is never more than 5\% slower than cuSPARSE on matrices with at
 least $10^6$ nonzeros, though only \stat{p3-heldout-large} held-out samples are that large. Deciding costs a median of
-\stat{p3-g3-median} SpMVs, so G3 is met only narrowly: \stat{p3-g3-size-gt1M} on large matrices but
-\stat{p3-g3-size-lt100k} on small ones.
+\stat{p3-g3-median} SpMVs, so G3 (at most 2) is not met in the final run: \stat{p3-g3-size-gt1M} on large
+matrices but \stat{p3-g3-size-lt100k} on small ones, after a driver update added a fixed host-side cost per call.
 
 \subsection{Conversion-aware break-even (G4)}\label{sec:res-g4}
 With break-even, planning plus a single call costs \stat{p3-g4-tree-1}\x{} the time of always using cuSPARSE, and
@@ -41,8 +41,8 @@ kernel is slower, so there is less speed to lose, but the conclusion is the same
 and $C$ are streamed.
 
 \subsection{Overlapped out-of-core SpGEMM (G6)}\label{sec:res-g6}
-When the problem exceeds the budget, RASP is \stat{p4-g6-AxP}\x{} faster than Algorithm~4 on $A\cdot P$ (G6
-\stat{p4-g6-AxP-verdict}) but only \stat{p4-g6-RxA}\x{} on $R\cdot A$ (\stat{p4-g6-RxA-verdict}). Most of the gain is
+When the problem exceeds the budget, RASP is \stat{p4-g6-AxP}\x{} faster than Algorithm~4 on $A\cdot P$ and
+\stat{p4-g6-RxA}\x{} on $R\cdot A$, so the 1.3\x{} goal is \stat{p4-g6-AxP-verdict} and \stat{p4-g6-RxA-verdict}. Most of the gain is
 copy/compute overlap, not the cost model: double buffering with Algorithm~4's own partitions already gives
 \stat{p4-speedup-alg4-overlap-AxP}\x{} and \stat{p4-speedup-alg4-overlap-RxA}\x. On $R\cdot A$, RASP cuts $A$ and $C$
 into too many tiles once $B$ is split, and re-planning never fires in those plans. Even overlapped, PCIe holds
@@ -58,10 +58,10 @@ solve.
 
 \subsection{AMG set-up (G7)}\label{sec:res-amg}
 Building a Laplace3D ($n=192$) hierarchy under a 256\,MiB budget, RASP is \stat{p5-amg-192-rasp-speedup}\x{} faster than
-Algorithm~4 and about as fast as overlapped Algorithm~4 (\stat{p5-amg-192-alg4-overlap-speedup}\x). Only the finest
-levels are tiled, and level~0 takes 82--85\% of the set-up time. Every method produces identical coarse operators that
-satisfy the Galerkin row-sum identity. The \stat{p5-amg-256-rasp-speedup}\x{} measured at $n=256$ is inflated by an
-anomalous host-side estimate in that Algorithm~4 run (\cref{sec:eval-g7}).
+Algorithm~4 but behind overlapped Algorithm~4 (\stat{p5-amg-192-alg4-overlap-speedup}\x), because its $R\cdot(AP)$
+products are slower. Only the finest levels are tiled, and level~0 takes about 80\% of the set-up time. Every method
+produces identical coarse operators that satisfy the Galerkin row-sum identity. At $n=256$ RASP reaches
+\stat{p5-amg-256-rasp-speedup}\x, overlapped Algorithm~4 \stat{p5-amg-256-alg4-overlap-speedup}\x.
 
 \subsection{GPU and OpenMP against one CPU core}\label{sec:res-seq}
 \Cref{tab:same-machine} compares all three versions on the same machines. On the RTX~4050 laptop the GPU is
@@ -101,5 +101,5 @@ it causes (Amdahl's law). The GPU's advantage on these kernels is bandwidth, whi
 Nsight Compute confirms the bandwidth explanation. CSR-vector on \texttt{af\_shell1} keeps DRAM busy
 \stat{p5-ncu-spmv-csr-vector-af-shell1-dram}\% of the time at \stat{p5-ncu-spmv-csr-vector-af-shell1-gbs}\,GB/s, and
 cuSPARSE sits at the same limit, so no format can gain much there. ArgCSR with chunk size 32 on \texttt{rajat23} moves
-only 1.3\x{} the DRAM bytes of chunk size 1 but takes 17\x{} as long: its warps stall on barriers at
+only 1.3\x{} the DRAM bytes of chunk size 1 but takes 16\x{} as long: its warps stall on barriers at
 \stat{p5-ncu-spmv-argcsr-D32-rajat23-occ}\% occupancy, so its cost is synchronisation, not padding traffic.

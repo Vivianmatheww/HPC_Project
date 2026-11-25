@@ -14,9 +14,9 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 | 1 — Infrastructure | 1–2 | Sep 28 – Oct 9 | ✅ | Done Sep 23 (early). 28 unit tests; cuSPARSE baseline on 60 matrices |
 | 2 — SpMV kernels + paper-2 reproduction | 3–4 | Oct 12 – Oct 23 | ✅ | Done Sep 23 (early). 33 configs × 60 matrices; oracle table |
 | 3 — Runtime SpMV selector | 5–6 | Oct 26 – Nov 6 | ✅ | Done Sep 24: GPU converters + features, trained tree selector, SpmvPlan; held-out evaluation |
-| 4 — Out-of-core adaptive SpGEMM | 7–9 | Nov 9 – Nov 27 | 🟨 | Code complete Oct 8 (branch `phases-4-6`); GPU run pending: `scripts/run_phase4.sh` |
-| 5 — Integration + apps | 10 | Nov 30 – Dec 4 | 🟨 | CG, AMG set-up, demo, profiling scripts written; GPU run pending: `scripts/run_phase5.sh` |
-| 6 — Evaluation + report | 11–12 | Dec 7 – Dec 18 | 🟨 | `run_all.sh`, report (Phases 1–3 complete) and slides drafted; Phase 4–5 numbers and interpretation pending |
+| 4 — Out-of-core adaptive SpGEMM | 7–9 | Nov 9 – Nov 27 | ✅ | GPU runs Oct–Nov; final numbers from the v1.0-freeze run (Nov 26) |
+| 5 — Integration + apps | 10 | Nov 30 – Dec 4 | ✅ | CG, AMG set-up, demo, Nsight profiles; final numbers from the v1.0-freeze run |
+| 6 — Evaluation + report | 11–12 | Dec 7 – Dec 18 | 🟨 | Code frozen (`v1.0-freeze`), `run_all.sh` done Nov 26; report in the course's ACM format; final read-through and submission left |
 
 ## Goal tracker
 
@@ -24,11 +24,11 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 |------|--------|---------|--------|
 | G1 ArgCSR reproduction | same qualitative trends | chunk-size sensitivity reproduced (rajat23 D=32: 0.78 vs paper 0.81 GFLOPS); "ArgCSR ≫ cuSPARSE" does **not** hold against modern cuSPARSE | ✅ |
 | G2 Selector vs oracle | geomean slowdown ≤ 1.10; no large-matrix loss > 5% | held-out: **1.074**; 1.051× over cuSPARSE; 0 large-matrix losses (only 4 large samples) | ✅ |
-| G3 Selection overhead | ≤ 2 SpMV | held-out median **1.97** SpMVs (0.28 for > 1M nnz, 2.5 for < 100k); skipped entirely when N is small | 🟨 borderline |
-| G4 Break-even aware | ≤ 5% loss at N = 1 | N=1: identical work to cuSPARSE in 80/80 plans (0.996×, timing noise); N=1000: **1.052×** | ✅ |
-| G5 Placement study (Table 3) | table | Memory-level probe done (host-side reads 14–28× slower); SpGEMM-level study implemented (`bench_spgemm --study placement`), not yet run | 🟨 |
-| G6 Overlapped SpGEMM | ≥ 1.3× over Alg. 4 | implemented (executor, Alg. 4 baseline, simulated planner, re-planning); not yet run | 🟨 |
-| G7 CG + AMG demos | working | `apps/cg_solver`, `apps/amg_setup` written with self-checks; not yet run | 🟨 |
+| G3 Selection overhead | ≤ 2 SpMV | freeze run: median **3.10** SpMVs (0.37 for > 1M nnz, 4.4 for < 100k; was 1.97 in Sep, before driver 621.24); skipped when N is small | ❌ |
+| G4 Break-even aware | ≤ 5% loss at N = 1 | N=1: identical work to cuSPARSE in 80/80 plans (1.010×, timing noise); N=1000: **1.037×** | ✅ |
+| G5 Placement study (Table 3) | table | B in pinned memory: 4.2× (R·A), 2.4× (A·P); managed ≡ pinned under WSL2 | ✅ |
+| G6 Overlapped SpGEMM | ≥ 1.3× over Alg. 4 | freeze run: RASP 1.27× (A·P), 1.05× (R·A); Alg. 4 + double buffering alone 1.32× / 1.27× | ❌ |
+| G7 CG + AMG demos | working | CG 1.065× over cuSPARSE on 32 SPD matrices, 0 failed checks; AMG set-up 1.16× (n=192), 1.32× (n=256) over Alg. 4 | ✅ |
 
 ## Measured platform numbers (fill in during Phase 0)
 
@@ -55,6 +55,17 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done · ⛔ blocked
 ---
 
 ## Log
+
+### 2026-11-26 (Thu) — Code freeze and final run
+- Tagged `v1.0-freeze` (13fcbe3) and ran `scripts/run_all.sh` on the RTX 4050 laptop: clean build, 100% of tests,
+  Phases 1–5, 0 correctness failures; report and slides rebuilt with 0 missing values
+  (log: `results/run_all-20261126-000938.log`, kept locally, git-ignored).
+- Changed verdicts: **G6 not met** (A·P 1.37× → 1.27×; overlapped Alg. 4 alone 1.32×) and **G3 not met** (median 1.97 →
+  3.10 SpMVs). The feature code path on sm_89 is unchanged; the Windows driver went 617.14 → 621.24 and the increase is a
+  fixed host-side cost per call (large matrices 0.28 → 0.37 SpMVs). The n=256 AMG anomaly is gone: 1.32× (estimated 1.37×).
+- Report text updated to the frozen numbers; hand-typed values checked against the new CSVs.
+- Before the freeze: report converted to the course's ACM format, Harsh's report items done, OpenMP column added to
+  the same-machine comparison (`compare_seq_gpu.py --omp`).
 
 ### 2026-10-08 (Thu) — Course checkpoint: sequential implementation, hotspots, platform
 For the Friday evaluation (sequential implementation, hotspots, choice of platform; five slides + source code).

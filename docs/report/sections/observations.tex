@@ -4,8 +4,9 @@ The study asked whether the choices the two papers fixed statically can be made 
 It was designed so that each answer is measured against a fair baseline: an exhaustive oracle, held-out matrices,
 the papers' own algorithms, and CPU versions on the same machine. For SpMV the answer is yes: a GPU feature pass, a
 small tree and a break-even test reach \stat{p3-g2-tree}\x{} of the oracle on unseen matrices and never cost more
-than cuSPARSE for a single call. For out-of-core SpGEMM the answer is only partly yes: overlapping copies with
-computation is what pays, and a cost model is worth having only if it does not over-partition. End to end, a faster
+than cuSPARSE for a single call. For out-of-core SpGEMM the answer is mostly no: overlapping copies with
+computation is what pays (\stat{p4-speedup-alg4-overlap-AxP}\x{} with paper~1's own partitions), while our cost model adds
+planning overhead and over-partitions $R\cdot A$. End to end, a faster
 kernel helps only as much as its share of the application, which is why CG gains \stat{p5-cg-tree-geomean}\x{} while
 the GPU itself is 9\x{} faster than a CPU core. Two questions remain open: whether the selector transfers to other
 GPUs without retraining, and how out-of-core SpGEMM behaves with unified-memory oversubscription on native Linux.

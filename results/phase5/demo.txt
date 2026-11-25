@@ -1,49 +1,49 @@
 
 === SpMV: data/suitesparse/Rajat/rajat23.mtx  (110355 x 110355, nnz 556938, fp64)
 features: mean row 5.0, max row 3401, CV 3.84, empty 0.0%, ELL fill 673.9x, SELL-32 fill 4.50x, nnz in rows > 4096: 0.0%
-cuSPARSE ALG1: 0.0860 ms per call
+cuSPARSE ALG1: 0.0881 ms per call
 
   expected_calls = 1
-    config cusparse_alg1 (steady state cusparse_alg1) | predicted 1.00x vs cuSPARSE | features no 0.000 ms | convert 0.025 ms | plan 2.662 ms | too few calls to repay feature extraction
-    per call 0.0860 ms; plan + 1 calls = 2.748 ms vs cuSPARSE 0.086 ms -> 0.03x
+    config cusparse_alg1 (steady state cusparse_alg1) | predicted 1.00x vs cuSPARSE | features no 0.000 ms | convert 0.006 ms | plan 5.864 ms | too few calls to repay feature extraction
+    per call 0.0881 ms; plan + 1 calls = 5.952 ms vs cuSPARSE 0.088 ms -> 0.01x
 
   expected_calls = 100
-    config cusparse_alg2 (steady state cusparse_alg2) | predicted 1.01x vs cuSPARSE | features yes 0.125 ms | convert 0.085 ms | plan 0.453 ms | decision tree
-    per call 0.0850 ms; plan + 100 calls = 8.952 ms vs cuSPARSE 8.602 ms -> 0.96x
+    config cusparse_alg2 (steady state cusparse_alg2) | predicted 1.01x vs cuSPARSE | features yes 0.260 ms | convert 0.067 ms | plan 0.597 ms | decision tree
+    per call 0.0860 ms; plan + 100 calls = 9.199 ms vs cuSPARSE 8.806 ms -> 0.96x
 
   expected_calls = 10000
-    config cusparse_alg2 (steady state cusparse_alg2) | predicted 1.01x vs cuSPARSE | features yes 0.093 ms | convert 0.015 ms | plan 0.253 ms | decision tree
-    per call 0.0840 ms; plan + 10000 calls = 839.933 ms vs cuSPARSE 860.160 ms -> 1.02x
+    config cusparse_alg2 (steady state cusparse_alg2) | predicted 1.01x vs cuSPARSE | features yes 0.106 ms | convert 0.013 ms | plan 0.387 ms | decision tree
+    per call 0.0860 ms; plan + 10000 calls = 860.547 ms vs cuSPARSE 880.640 ms -> 1.02x
 
 === SpMV: data/suitesparse/Schenk_AFE/af_shell1.mtx  (504855 x 504855, nnz 17588875, fp64)
 features: mean row 34.8, max row 40, CV 0.04, empty 0.0%, ELL fill 1.1x, SELL-32 fill 1.01x, nnz in rows > 4096: 0.0%
-cuSPARSE ALG1: 1.2237 ms per call
+cuSPARSE ALG1: 1.2257 ms per call
 
   expected_calls = 1
-    config cusparse_alg1 (steady state cusparse_alg1) | predicted 1.00x vs cuSPARSE | features no 0.000 ms | convert 0.019 ms | plan 0.311 ms | too few calls to repay feature extraction
-    per call 1.2237 ms; plan + 1 calls = 1.535 ms vs cuSPARSE 1.224 ms -> 0.80x
+    config cusparse_alg1 (steady state cusparse_alg1) | predicted 1.00x vs cuSPARSE | features no 0.000 ms | convert 0.018 ms | plan 0.984 ms | too few calls to repay feature extraction
+    per call 1.2268 ms; plan + 1 calls = 2.211 ms vs cuSPARSE 1.226 ms -> 0.55x
 
   expected_calls = 100
-    config cusparse_alg1 (steady state cusparse_alg1) | predicted 1.00x vs cuSPARSE | features yes 0.309 ms | convert 0.048 ms | plan 0.562 ms | large matrix: cuSPARSE ALG1 (never-lose gate)
-    per call 1.2237 ms; plan + 100 calls = 122.930 ms vs cuSPARSE 122.368 ms -> 1.00x
+    config cusparse_alg1 (steady state cusparse_alg1) | predicted 1.00x vs cuSPARSE | features yes 0.311 ms | convert 0.022 ms | plan 0.587 ms | large matrix: cuSPARSE ALG1 (never-lose gate)
+    per call 1.2273 ms; plan + 100 calls = 123.314 ms vs cuSPARSE 122.573 ms -> 0.99x
 
   expected_calls = 10000
-    config cusparse_alg1 (steady state cusparse_alg1) | predicted 1.00x vs cuSPARSE | features yes 0.298 ms | convert 0.017 ms | plan 0.560 ms | large matrix: cuSPARSE ALG1 (never-lose gate)
-    per call 1.2237 ms; plan + 10000 calls = 12237.360 ms vs cuSPARSE 12236.800 ms -> 1.00x
+    config cusparse_alg1 (steady state cusparse_alg1) | predicted 1.00x vs cuSPARSE | features yes 0.329 ms | convert 0.019 ms | plan 0.601 ms | large matrix: cuSPARSE ALG1 (never-lose gate)
+    per call 1.2257 ms; plan + 10000 calls = 12257.881 ms vs cuSPARSE 12257.280 ms -> 1.00x
 
 === SpGEMM: Laplace3D A*P, n = 160 (A: 4096000 rows, nnz 28518400), fast-memory budget 256 MiB
-PCIe measured at start-up: H2D 13.4 GB/s, D2H 13.2 GB/s
+PCIe measured at start-up: H2D 6.7 GB/s, D2H 6.6 GB/s
 
-  alg4: chunk_b P_AC=22 P_B=1 depth=1 | predicted 94.01 ms, copies 0.783 GB, peak 125 MiB | alg4: copy volume chunk1 1.24 GB, chunk2 0.424 GB | 132.77 ms (estimate 43.58, plan 0.16, exec 89.03) = 0.430 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 143.5 / 256.0 MiB | 23 tiles, 0 replans, 0 splits
+  alg4: chunk_b P_AC=22 P_B=1 depth=1 | predicted 153.07 ms, copies 0.783 GB, peak 125 MiB | alg4: copy volume chunk1 1.24 GB, chunk2 0.424 GB | 133.25 ms (estimate 29.69, plan 0.28, exec 103.28) = 0.428 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 143.5 / 256.0 MiB | 23 tiles, 0 replans, 0 splits
 
-  rasp: chunk_b P_AC=16 P_B=1 depth=3 +probe | predicted 58.89 ms, copies 0.783 GB, peak 248 MiB | rasp: fastest simulated candidate (0.969 GFLOP/s predicted) | 66.47 ms (estimate 13.33, plan 2.08, exec 51.06) = 0.858 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 240.4 / 256.0 MiB | 18 tiles, 4 replans, 4 splits
+  rasp: chunk_b P_AC=12 P_B=1 depth=2 +probe | predicted 117.95 ms, copies 0.783 GB, peak 248 MiB | rasp: fastest simulated candidate (0.484 GFLOP/s predicted) | 78.36 ms (estimate 13.75, plan 2.86, exec 61.76) = 0.728 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 245.3 / 256.0 MiB | 16 tiles, 5 replans, 5 splits
   first tiles (ms since start: upload | compute | download):
-    rows        0-38580        6.26-6.50    |    6.61-7.70    |    9.97-10.11    (re-planned after this)
-    rows    38580-282971       6.51-8.13    |    8.19-9.62    |   11.95-12.91    (re-planned after this)
-    rows   282971-562339       8.13-9.97    |   10.01-14.35   |   14.66-15.77    (re-planned after this)
-    rows   562339-841751      10.11-11.95   |   14.52-15.93   |   17.43-18.54    (re-planned after this)
-    rows   841751-1105578     12.92-14.65   |   16.05-20.69   |   20.19-21.24  
-    rows  1105578-1356320     15.77-17.43   |   20.78-23.28   |   22.90-23.91  
-  measured: 0.84 G multiply-adds/s, nnz(C)/upper bound 0.57, workspace 44.6 B/flop
+    rows        0-50383        7.23-7.55    |    7.69-8.63    |    9.70-9.89     (re-planned after this)
+    rows    50383-377528       7.55-9.70    |    9.74-11.39   |   12.48-13.92    (re-planned after this)
+    rows   377528-751528       9.90-12.48   |   12.53-16.79   |   16.80-18.48    (re-planned after this)
+    rows   751528-1071906     13.92-16.79   |   17.00-21.19   |   20.78-22.24  
+    rows  1071906-1379230     18.48-20.78   |   21.30-26.10   |   25.63-26.89    (re-planned after this)
+    rows  1379230-1686366     22.24-25.63   |   26.40-28.05   |   28.93-30.17  
+  measured: 0.80 G multiply-adds/s, nnz(C)/upper bound 0.57, workspace 44.7 B/flop
 
-  RASP vs Alg. 4: 2.00x
+  RASP vs Alg. 4: 1.70x

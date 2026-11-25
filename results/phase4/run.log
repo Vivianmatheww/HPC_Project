@@ -1,32 +1,32 @@
-== Phase 4 run, 2026-10-08T22:31:22+05:30, git b62f4b4
+== Phase 4 run, 2026-11-26T00:19:28+05:30, git 13fcbe3 (dirty)
 name, driver_version, clocks.current.sm [MHz], clocks.current.memory [MHz], temperature.gpu, power.draw [W]
-NVIDIA GeForce RTX 4050 Laptop GPU, 617.14, 2130 MHz, 7001 MHz, 45, 11.45 W
+NVIDIA GeForce RTX 4050 Laptop GPU, 621.24, 420 MHz, 6001 MHz, 50.60, 8.30 W
 ninja: no work to do.
 Test project /home/vivian/HPC_Project/build
       Start  1: test_io
  1/10 Test  #1: test_io ..........................   Passed    0.01 sec
       Start  2: test_spmv
- 2/10 Test  #2: test_spmv ........................   Passed    2.34 sec
+ 2/10 Test  #2: test_spmv ........................   Passed    1.28 sec
       Start  3: test_spgemm
- 3/10 Test  #3: test_spgemm ......................   Passed    1.67 sec
+ 3/10 Test  #3: test_spgemm ......................   Passed    1.20 sec
       Start  4: test_harness
- 4/10 Test  #4: test_harness .....................   Passed    1.72 sec
+ 4/10 Test  #4: test_harness .....................   Passed    1.22 sec
       Start  5: test_formats
- 5/10 Test  #5: test_formats .....................   Passed    4.21 sec
+ 5/10 Test  #5: test_formats .....................   Passed    3.89 sec
       Start  6: test_selector
- 6/10 Test  #6: test_selector ....................   Passed    3.61 sec
+ 6/10 Test  #6: test_selector ....................   Passed    3.16 sec
       Start  7: test_spgemm_plan
- 7/10 Test  #7: test_spgemm_plan .................   Passed    0.05 sec
+ 7/10 Test  #7: test_spgemm_plan .................   Passed    0.04 sec
       Start  8: test_spgemm_ooc
- 8/10 Test  #8: test_spgemm_ooc ..................   Passed   12.45 sec
+ 8/10 Test  #8: test_spgemm_ooc ..................   Passed   14.18 sec
       Start  9: app_cg_solver
- 9/10 Test  #9: app_cg_solver ....................   Passed    1.86 sec
+ 9/10 Test  #9: app_cg_solver ....................   Passed    1.33 sec
       Start 10: app_amg_setup
-10/10 Test #10: app_amg_setup ....................   Passed    2.77 sec
+10/10 Test #10: app_amg_setup ....................   Passed    2.28 sec
 
 100% tests passed out of 10
 
-Total Test time (real) =  30.71 sec
+Total Test time (real) =  28.59 sec
 == Plans the planners would make (prior parameters)
 == AxP n=128: 2097152 x 2097152 (nnz 14581760) * 2097152 x 262144 (nnz 2097152)
 AxP n=128: |A| 183 MB, |B| 34 MB, |C| <= 183 MB, total <= 400 MB, 1.46e+07 multiply-adds
@@ -79,347 +79,333 @@ RxA n=256: |A| 210 MB, |B| 1472 MB, |C| <= 1413 MB, total <= 3094 MB, 1.17e+08 m
     rasp  chunk_b P_AC=87 P_B=5 depth=3 | predicted 1145.30 ms, copies 15.2 GB, peak 497 MiB | rasp: fastest simulated candidate (0.204 GFLOP/s predicted)
     alg4  chunk_b P_AC=40 P_B=5 depth=1 | predicted 1435.15 ms, copies 15.2 GB, peak 497 MiB | alg4: copy volume chunk1 19.3 GB, chunk2 8.17 GB
 == Placement study (paper 1, Table 3)
-NVIDIA GeForce RTX 4050 Laptop GPU | cuSPARSE 12.8.2 | git b62f4b4 | study placement
+NVIDIA GeForce RTX 4050 Laptop GPU | cuSPARSE 12.8.2 | git 13fcbe3 | study placement
 == AxP n=64: 262144 x 262144 (nnz 1810432) * 262144 x 32768 (nnz 262144)
-  fp64 A=device B=device C=device                    1.559 ms    2.323 GFLOP/s 
-  fp64 A=device B=device C=pinned                    3.087 ms    1.173 GFLOP/s 
-  fp64 A=device B=pinned C=device                    3.127 ms    1.158 GFLOP/s 
-  fp64 A=device B=pinned C=pinned                    4.725 ms    0.766 GFLOP/s 
-  fp64 A=pinned B=device C=device                    3.436 ms    1.054 GFLOP/s 
-  fp64 A=pinned B=device C=pinned                    5.146 ms    0.704 GFLOP/s 
-  fp64 A=pinned B=pinned C=device                    5.823 ms    0.622 GFLOP/s 
-  fp64 A=pinned B=pinned C=pinned                    7.533 ms    0.481 GFLOP/s 
-  fp64 A=managed B=device C=device                   3.582 ms    1.011 GFLOP/s 
-  fp64 A=device B=managed C=device                   3.403 ms    1.064 GFLOP/s 
-  fp64 A=device B=device C=managed                   3.321 ms    1.090 GFLOP/s 
-  fp64 A=managed B=managed C=managed                 7.649 ms    0.473 GFLOP/s 
+  fp64 A=device B=device C=device                    1.377 ms    2.629 GFLOP/s 
+  fp64 A=device B=device C=pinned                    2.881 ms    1.257 GFLOP/s 
+  fp64 A=device B=pinned C=device                    3.403 ms    1.064 GFLOP/s 
+  fp64 A=device B=pinned C=pinned                    4.536 ms    0.798 GFLOP/s 
+  fp64 A=pinned B=device C=device                    3.807 ms    0.951 GFLOP/s 
+  fp64 A=pinned B=device C=pinned                    5.474 ms    0.661 GFLOP/s 
+  fp64 A=pinned B=pinned C=device                    5.580 ms    0.649 GFLOP/s 
+  fp64 A=pinned B=pinned C=pinned                    7.481 ms    0.484 GFLOP/s 
+  fp64 A=managed B=device C=device                   3.718 ms    0.974 GFLOP/s 
+  fp64 A=device B=managed C=device                   3.125 ms    1.159 GFLOP/s 
+  fp64 A=device B=device C=managed                   2.998 ms    1.208 GFLOP/s 
+  fp64 A=managed B=managed C=managed                 7.973 ms    0.454 GFLOP/s 
 == AxP n=96: 884736 x 884736 (nnz 6137856) * 884736 x 110592 (nnz 884736)
-  fp64 A=device B=device C=device                    3.413 ms    3.597 GFLOP/s 
-  fp64 A=device B=device C=pinned                    8.835 ms    1.389 GFLOP/s 
-  fp64 A=device B=pinned C=device                   10.477 ms    1.172 GFLOP/s 
-  fp64 A=device B=pinned C=pinned                   15.044 ms    0.816 GFLOP/s 
-  fp64 A=pinned B=device C=device                   10.349 ms    1.186 GFLOP/s 
-  fp64 A=pinned B=device C=pinned                   14.536 ms    0.844 GFLOP/s 
-  fp64 A=pinned B=pinned C=device                   18.321 ms    0.670 GFLOP/s 
-  fp64 A=pinned B=pinned C=pinned                   22.579 ms    0.544 GFLOP/s 
-  fp64 A=managed B=device C=device                  10.628 ms    1.155 GFLOP/s 
-  fp64 A=device B=managed C=device                  10.393 ms    1.181 GFLOP/s 
-  fp64 A=device B=device C=managed                   8.505 ms    1.443 GFLOP/s 
-  fp64 A=managed B=managed C=managed                23.025 ms    0.533 GFLOP/s 
+  fp64 A=device B=device C=device                    3.574 ms    3.435 GFLOP/s 
+  fp64 A=device B=device C=pinned                    8.098 ms    1.516 GFLOP/s 
+  fp64 A=device B=pinned C=device                   10.819 ms    1.135 GFLOP/s 
+  fp64 A=device B=pinned C=pinned                   16.328 ms    0.752 GFLOP/s 
+  fp64 A=pinned B=device C=device                   10.030 ms    1.224 GFLOP/s 
+  fp64 A=pinned B=device C=pinned                   15.959 ms    0.769 GFLOP/s 
+  fp64 A=pinned B=pinned C=device                   19.534 ms    0.628 GFLOP/s 
+  fp64 A=pinned B=pinned C=pinned                   24.963 ms    0.492 GFLOP/s 
+  fp64 A=managed B=device C=device                  10.647 ms    1.153 GFLOP/s 
+  fp64 A=device B=managed C=device                  10.347 ms    1.186 GFLOP/s 
+  fp64 A=device B=device C=managed                   8.957 ms    1.371 GFLOP/s 
+  fp64 A=managed B=managed C=managed                25.637 ms    0.479 GFLOP/s 
 == AxP n=128: 2097152 x 2097152 (nnz 14581760) * 2097152 x 262144 (nnz 2097152)
-  fp64 A=device B=device C=device                    7.975 ms    3.657 GFLOP/s 
-  fp64 A=device B=device C=pinned                   19.533 ms    1.493 GFLOP/s 
-  fp64 A=device B=pinned C=device                   24.805 ms    1.176 GFLOP/s 
-  fp64 A=device B=pinned C=pinned                   37.381 ms    0.780 GFLOP/s 
-  fp64 A=pinned B=device C=device                   23.583 ms    1.237 GFLOP/s 
-  fp64 A=pinned B=device C=pinned                   36.626 ms    0.796 GFLOP/s 
-  fp64 A=pinned B=pinned C=device                   43.246 ms    0.674 GFLOP/s 
-  fp64 A=pinned B=pinned C=pinned                   52.723 ms    0.553 GFLOP/s 
-  fp64 A=managed B=device C=device                  23.890 ms    1.221 GFLOP/s 
-  fp64 A=device B=managed C=device                  24.575 ms    1.187 GFLOP/s 
-  fp64 A=device B=device C=managed                  19.879 ms    1.467 GFLOP/s 
-  fp64 A=managed B=managed C=managed                54.487 ms    0.535 GFLOP/s 
+  fp64 A=device B=device C=device                    7.857 ms    3.712 GFLOP/s 
+  fp64 A=device B=device C=pinned                   20.635 ms    1.413 GFLOP/s 
+  fp64 A=device B=pinned C=device                   25.973 ms    1.123 GFLOP/s 
+  fp64 A=device B=pinned C=pinned                   40.277 ms    0.724 GFLOP/s 
+  fp64 A=pinned B=device C=device                   24.677 ms    1.182 GFLOP/s 
+  fp64 A=pinned B=device C=pinned                   37.351 ms    0.781 GFLOP/s 
+  fp64 A=pinned B=pinned C=device                   46.439 ms    0.628 GFLOP/s 
+  fp64 A=pinned B=pinned C=pinned                   59.111 ms    0.493 GFLOP/s 
+  fp64 A=managed B=device C=device                  25.936 ms    1.124 GFLOP/s 
+  fp64 A=device B=managed C=device                  27.233 ms    1.071 GFLOP/s 
+  fp64 A=device B=device C=managed                  23.934 ms    1.218 GFLOP/s 
+  fp64 A=managed B=managed C=managed                60.913 ms    0.479 GFLOP/s 
 == AxP n=160: 4096000 x 4096000 (nnz 28518400) * 4096000 x 512000 (nnz 4096000)
-  fp64 A=device B=device C=device                   16.842 ms    3.387 GFLOP/s 
-  fp64 A=device B=device C=pinned                   43.043 ms    1.325 GFLOP/s 
-  fp64 A=device B=pinned C=device                   50.263 ms    1.135 GFLOP/s 
-  fp64 A=device B=pinned C=pinned                   75.180 ms    0.759 GFLOP/s 
-  fp64 A=pinned B=device C=device                   44.977 ms    1.268 GFLOP/s 
-  fp64 A=pinned B=device C=pinned                   70.094 ms    0.814 GFLOP/s 
-  fp64 A=pinned B=pinned C=device                   85.709 ms    0.665 GFLOP/s 
-  fp64 A=pinned B=pinned C=pinned                  110.750 ms    0.515 GFLOP/s 
-  fp64 A=managed B=device C=device                  46.245 ms    1.233 GFLOP/s 
-  fp64 A=device B=managed C=device                  49.699 ms    1.148 GFLOP/s 
-  fp64 A=device B=device C=managed                  38.288 ms    1.490 GFLOP/s 
-  fp64 A=managed B=managed C=managed               115.599 ms    0.493 GFLOP/s 
+  fp64 A=device B=device C=device                   21.869 ms    2.608 GFLOP/s 
+  fp64 A=device B=device C=pinned                   37.257 ms    1.531 GFLOP/s 
+  fp64 A=device B=pinned C=device                   52.315 ms    1.090 GFLOP/s 
+  fp64 A=device B=pinned C=pinned                   73.248 ms    0.779 GFLOP/s 
+  fp64 A=pinned B=device C=device                   46.541 ms    1.226 GFLOP/s 
+  fp64 A=pinned B=device C=pinned                   73.668 ms    0.774 GFLOP/s 
+  fp64 A=pinned B=pinned C=device                   93.735 ms    0.608 GFLOP/s 
+  fp64 A=pinned B=pinned C=pinned                  120.839 ms    0.472 GFLOP/s 
+  fp64 A=managed B=device C=device                  49.705 ms    1.147 GFLOP/s 
+  fp64 A=device B=managed C=device                  53.720 ms    1.062 GFLOP/s 
+  fp64 A=device B=device C=managed                  39.357 ms    1.449 GFLOP/s 
+  fp64 A=managed B=managed C=managed               117.599 ms    0.485 GFLOP/s 
 == RxA n=64: 32768 x 262144 (nnz 262144) * 262144 x 262144 (nnz 1810432)
-  fp64 A=device B=device C=device                    1.214 ms    2.981 GFLOP/s 
-  fp64 A=device B=device C=pinned                    2.412 ms    1.501 GFLOP/s 
-  fp64 A=device B=pinned C=device                    3.557 ms    1.018 GFLOP/s 
-  fp64 A=device B=pinned C=pinned                    4.551 ms    0.796 GFLOP/s 
-  fp64 A=pinned B=device C=device                    1.307 ms    2.770 GFLOP/s 
-  fp64 A=pinned B=device C=pinned                    2.568 ms    1.410 GFLOP/s 
-  fp64 A=pinned B=pinned C=device                    4.159 ms    0.871 GFLOP/s 
-  fp64 A=pinned B=pinned C=pinned                    5.136 ms    0.705 GFLOP/s 
-  fp64 A=managed B=device C=device                   1.260 ms    2.875 GFLOP/s 
-  fp64 A=device B=managed C=device                   3.400 ms    1.065 GFLOP/s 
-  fp64 A=device B=device C=managed                   2.322 ms    1.559 GFLOP/s 
-  fp64 A=managed B=managed C=managed                 5.563 ms    0.651 GFLOP/s 
+  fp64 A=device B=device C=device                    1.028 ms    3.524 GFLOP/s 
+  fp64 A=device B=device C=pinned                    2.243 ms    1.614 GFLOP/s 
+  fp64 A=device B=pinned C=device                    3.374 ms    1.073 GFLOP/s 
+  fp64 A=device B=pinned C=pinned                    4.476 ms    0.809 GFLOP/s 
+  fp64 A=pinned B=device C=device                    1.714 ms    2.112 GFLOP/s 
+  fp64 A=pinned B=device C=pinned                    2.659 ms    1.362 GFLOP/s 
+  fp64 A=pinned B=pinned C=device                    3.393 ms    1.067 GFLOP/s 
+  fp64 A=pinned B=pinned C=pinned                    5.024 ms    0.721 GFLOP/s 
+  fp64 A=managed B=device C=device                   1.185 ms    3.055 GFLOP/s 
+  fp64 A=device B=managed C=device                   3.207 ms    1.129 GFLOP/s 
+  fp64 A=device B=device C=managed                   2.357 ms    1.536 GFLOP/s 
+  fp64 A=managed B=managed C=managed                 5.124 ms    0.707 GFLOP/s 
 == RxA n=96: 110592 x 884736 (nnz 884736) * 884736 x 884736 (nnz 6137856)
-  fp64 A=device B=device C=device                    2.403 ms    5.109 GFLOP/s 
-  fp64 A=device B=device C=pinned                    7.421 ms    1.654 GFLOP/s 
-  fp64 A=device B=pinned C=device                    9.277 ms    1.323 GFLOP/s 
-  fp64 A=device B=pinned C=pinned                   14.081 ms    0.872 GFLOP/s 
-  fp64 A=pinned B=device C=device                    2.807 ms    4.374 GFLOP/s 
-  fp64 A=pinned B=device C=pinned                    7.723 ms    1.589 GFLOP/s 
-  fp64 A=pinned B=pinned C=device                   10.809 ms    1.136 GFLOP/s 
-  fp64 A=pinned B=pinned C=pinned                   14.456 ms    0.849 GFLOP/s 
-  fp64 A=managed B=device C=device                   2.814 ms    4.362 GFLOP/s 
-  fp64 A=device B=managed C=device                   9.316 ms    1.318 GFLOP/s 
-  fp64 A=device B=device C=managed                   6.880 ms    1.784 GFLOP/s 
-  fp64 A=managed B=managed C=managed                16.307 ms    0.753 GFLOP/s 
+  fp64 A=device B=device C=device                    2.465 ms    4.981 GFLOP/s 
+  fp64 A=device B=device C=pinned                    6.585 ms    1.864 GFLOP/s 
+  fp64 A=device B=pinned C=device                    9.239 ms    1.329 GFLOP/s 
+  fp64 A=device B=pinned C=pinned                   14.372 ms    0.854 GFLOP/s 
+  fp64 A=pinned B=device C=device                    2.782 ms    4.413 GFLOP/s 
+  fp64 A=pinned B=device C=pinned                    7.685 ms    1.597 GFLOP/s 
+  fp64 A=pinned B=pinned C=device                   11.428 ms    1.074 GFLOP/s 
+  fp64 A=pinned B=pinned C=pinned                   15.976 ms    0.768 GFLOP/s 
+  fp64 A=managed B=device C=device                   2.888 ms    4.250 GFLOP/s 
+  fp64 A=device B=managed C=device                   9.897 ms    1.240 GFLOP/s 
+  fp64 A=device B=device C=managed                   6.856 ms    1.790 GFLOP/s 
+  fp64 A=managed B=managed C=managed                17.671 ms    0.695 GFLOP/s 
 == RxA n=128: 262144 x 2097152 (nnz 2097152) * 2097152 x 2097152 (nnz 14581760)
-  fp64 A=device B=device C=device                    5.264 ms    5.540 GFLOP/s 
-  fp64 A=device B=device C=pinned                   15.255 ms    1.912 GFLOP/s 
-  fp64 A=device B=pinned C=device                   20.429 ms    1.428 GFLOP/s 
-  fp64 A=device B=pinned C=pinned                   30.403 ms    0.959 GFLOP/s 
-  fp64 A=pinned B=device C=device                    6.277 ms    4.646 GFLOP/s 
-  fp64 A=pinned B=device C=pinned                   15.703 ms    1.857 GFLOP/s 
-  fp64 A=pinned B=pinned C=device                   24.207 ms    1.205 GFLOP/s 
-  fp64 A=pinned B=pinned C=pinned                   33.897 ms    0.860 GFLOP/s 
-  fp64 A=managed B=device C=device                   6.175 ms    4.723 GFLOP/s 
-  fp64 A=device B=managed C=device                  21.706 ms    1.344 GFLOP/s 
-  fp64 A=device B=device C=managed                  18.141 ms    1.608 GFLOP/s 
-  fp64 A=managed B=managed C=managed                35.827 ms    0.814 GFLOP/s 
+  fp64 A=device B=device C=device                    5.447 ms    5.354 GFLOP/s 
+  fp64 A=device B=device C=pinned                   15.256 ms    1.912 GFLOP/s 
+  fp64 A=device B=pinned C=device                   21.786 ms    1.339 GFLOP/s 
+  fp64 A=device B=pinned C=pinned                   30.546 ms    0.955 GFLOP/s 
+  fp64 A=pinned B=device C=device                    6.164 ms    4.731 GFLOP/s 
+  fp64 A=pinned B=device C=pinned                   16.494 ms    1.768 GFLOP/s 
+  fp64 A=pinned B=pinned C=device                   25.955 ms    1.124 GFLOP/s 
+  fp64 A=pinned B=pinned C=pinned                   35.199 ms    0.829 GFLOP/s 
+  fp64 A=managed B=device C=device                   6.224 ms    4.686 GFLOP/s 
+  fp64 A=device B=managed C=device                  22.209 ms    1.313 GFLOP/s 
+  fp64 A=device B=device C=managed                  15.069 ms    1.935 GFLOP/s 
+  fp64 A=managed B=managed C=managed                36.374 ms    0.802 GFLOP/s 
 == RxA n=160: 512000 x 4096000 (nnz 4096000) * 4096000 x 4096000 (nnz 28518400)
-  fp64 A=device B=device C=device                   10.170 ms    5.608 GFLOP/s 
-  fp64 A=device B=device C=pinned                   31.475 ms    1.812 GFLOP/s 
-  fp64 A=device B=pinned C=device                   38.947 ms    1.464 GFLOP/s 
-  fp64 A=device B=pinned C=pinned                   57.242 ms    0.996 GFLOP/s 
-  fp64 A=pinned B=device C=device                   11.189 ms    5.097 GFLOP/s 
-  fp64 A=pinned B=device C=pinned                   31.689 ms    1.800 GFLOP/s 
-  fp64 A=pinned B=pinned C=device                   46.326 ms    1.231 GFLOP/s 
-  fp64 A=pinned B=pinned C=pinned                   62.394 ms    0.914 GFLOP/s 
-  fp64 A=managed B=device C=device                  11.409 ms    4.999 GFLOP/s 
-  fp64 A=device B=managed C=device                  40.539 ms    1.407 GFLOP/s 
-  fp64 A=device B=device C=managed                  31.764 ms    1.796 GFLOP/s 
-  fp64 A=managed B=managed C=managed                72.967 ms    0.782 GFLOP/s 
+  fp64 A=device B=device C=device                    9.708 ms    5.876 GFLOP/s 
+  fp64 A=device B=device C=pinned                   31.850 ms    1.791 GFLOP/s 
+  fp64 A=device B=pinned C=device                   41.136 ms    1.387 GFLOP/s 
+  fp64 A=device B=pinned C=pinned                   59.307 ms    0.962 GFLOP/s 
+  fp64 A=pinned B=device C=device                   11.140 ms    5.120 GFLOP/s 
+  fp64 A=pinned B=device C=pinned                   34.355 ms    1.660 GFLOP/s 
+  fp64 A=pinned B=pinned C=device                   48.593 ms    1.174 GFLOP/s 
+  fp64 A=pinned B=pinned C=pinned                   69.048 ms    0.826 GFLOP/s 
+  fp64 A=managed B=device C=device                  11.422 ms    4.994 GFLOP/s 
+  fp64 A=device B=managed C=device                  43.639 ms    1.307 GFLOP/s 
+  fp64 A=device B=device C=managed                  31.085 ms    1.835 GFLOP/s 
+  fp64 A=managed B=managed C=managed                74.792 ms    0.763 GFLOP/s 
 
 0 failures -> results/phase4/placement.csv
-NVIDIA GeForce RTX 4050 Laptop GPU | cuSPARSE 12.8.2 | git b62f4b4 | study placement
+NVIDIA GeForce RTX 4050 Laptop GPU | cuSPARSE 12.8.2 | git 13fcbe3 | study placement
 == AxP n=160: 4096000 x 4096000 (nnz 28518400) * 4096000 x 512000 (nnz 4096000)
-  fp32 A=device B=device C=device                   15.560 ms    3.666 GFLOP/s 
-  fp32 A=device B=device C=pinned                   30.823 ms    1.850 GFLOP/s 
-  fp32 A=device B=pinned C=device                   43.725 ms    1.304 GFLOP/s 
-  fp32 A=device B=pinned C=pinned                   58.597 ms    0.973 GFLOP/s 
-  fp32 A=pinned B=device C=device                   35.349 ms    1.614 GFLOP/s 
-  fp32 A=pinned B=device C=pinned                   49.281 ms    1.157 GFLOP/s 
-  fp32 A=pinned B=pinned C=device                   70.386 ms    0.810 GFLOP/s 
-  fp32 A=pinned B=pinned C=pinned                   85.357 ms    0.668 GFLOP/s 
-  fp32 A=managed B=device C=device                  36.224 ms    1.575 GFLOP/s 
-  fp32 A=device B=managed C=device                  44.485 ms    1.282 GFLOP/s 
-  fp32 A=device B=device C=managed                  31.486 ms    1.811 GFLOP/s 
-  fp32 A=managed B=managed C=managed                86.871 ms    0.657 GFLOP/s 
+  fp32 A=device B=device C=device                   14.915 ms    3.824 GFLOP/s 
+  fp32 A=device B=device C=pinned                   30.509 ms    1.870 GFLOP/s 
+  fp32 A=device B=pinned C=device                   49.153 ms    1.160 GFLOP/s 
+  fp32 A=device B=pinned C=pinned                   71.593 ms    0.797 GFLOP/s 
+  fp32 A=pinned B=device C=device                   37.441 ms    1.523 GFLOP/s 
+  fp32 A=pinned B=device C=pinned                   59.336 ms    0.961 GFLOP/s 
+  fp32 A=pinned B=pinned C=device                   76.180 ms    0.749 GFLOP/s 
+  fp32 A=pinned B=pinned C=pinned                   95.475 ms    0.597 GFLOP/s 
+  fp32 A=managed B=device C=device                  37.866 ms    1.506 GFLOP/s 
+  fp32 A=device B=managed C=device                  47.094 ms    1.211 GFLOP/s 
+  fp32 A=device B=device C=managed                  31.561 ms    1.807 GFLOP/s 
+  fp32 A=managed B=managed C=managed                91.333 ms    0.624 GFLOP/s 
 == RxA n=160: 512000 x 4096000 (nnz 4096000) * 4096000 x 4096000 (nnz 28518400)
-  fp32 A=device B=device C=device                    8.564 ms    6.660 GFLOP/s 
-  fp32 A=device B=device C=pinned                   21.062 ms    2.708 GFLOP/s 
-  fp32 A=device B=pinned C=device                   29.016 ms    1.966 GFLOP/s 
-  fp32 A=device B=pinned C=pinned                   40.080 ms    1.423 GFLOP/s 
-  fp32 A=pinned B=device C=device                    9.737 ms    5.858 GFLOP/s 
-  fp32 A=pinned B=device C=pinned                   21.620 ms    2.638 GFLOP/s 
-  fp32 A=pinned B=pinned C=device                   34.046 ms    1.675 GFLOP/s 
-  fp32 A=pinned B=pinned C=pinned                   45.035 ms    1.266 GFLOP/s 
-  fp32 A=managed B=device C=device                   9.845 ms    5.794 GFLOP/s 
-  fp32 A=device B=managed C=device                  29.864 ms    1.910 GFLOP/s 
-  fp32 A=device B=device C=managed                  27.098 ms    2.105 GFLOP/s 
-  fp32 A=managed B=managed C=managed                47.046 ms    1.212 GFLOP/s 
+  fp32 A=device B=device C=device                    7.979 ms    7.148 GFLOP/s 
+  fp32 A=device B=device C=pinned                   23.911 ms    2.385 GFLOP/s 
+  fp32 A=device B=pinned C=device                   31.350 ms    1.819 GFLOP/s 
+  fp32 A=device B=pinned C=pinned                   45.797 ms    1.245 GFLOP/s 
+  fp32 A=pinned B=device C=device                    9.373 ms    6.085 GFLOP/s 
+  fp32 A=pinned B=device C=pinned                   25.197 ms    2.264 GFLOP/s 
+  fp32 A=pinned B=pinned C=device                   37.098 ms    1.537 GFLOP/s 
+  fp32 A=pinned B=pinned C=pinned                   52.186 ms    1.093 GFLOP/s 
+  fp32 A=managed B=device C=device                   9.513 ms    5.996 GFLOP/s 
+  fp32 A=device B=managed C=device                  32.276 ms    1.767 GFLOP/s 
+  fp32 A=device B=device C=managed                  23.501 ms    2.427 GFLOP/s 
+  fp32 A=managed B=managed C=managed                54.672 ms    1.043 GFLOP/s 
 
 0 failures -> results/phase4/placement.csv
 == Out-of-core: fixed budget, grid size swept (with in-core and device-only references)
-NVIDIA GeForce RTX 4050 Laptop GPU | cuSPARSE 12.8.2 | git b62f4b4 | study ooc
+NVIDIA GeForce RTX 4050 Laptop GPU | cuSPARSE 12.8.2 | git 13fcbe3 | study ooc
 == AxP n=128: 2097152 x 2097152 (nnz 14581760) * 2097152 x 262144 (nnz 2097152)
-  fp64 incore      rasp: incore P_AC=1 P_B=1 depth=1 | predicted 46.30 ms, copies 0.4 GB, peak 717 MiB | rasp: fastest simulated candidate (0.63 GFLOP/s predicted) | 41.85 ms (estimate 6.97, plan 0.02, exec 34.86) = 0.697 GFLOP/s | nnz(C) 8290304 | H2D 0.217 GB, D2H 0.108 GB | peak 937.9 / 4311.2 MiB | 2 tiles, 0 replans, 0 splits
-  fp64 device_only 8.407 ms
+  fp64 incore      rasp: incore P_AC=1 P_B=1 depth=1 | predicted 47.90 ms, copies 0.4 GB, peak 717 MiB | rasp: fastest simulated candidate (0.609 GFLOP/s predicted) | 44.38 ms (estimate 7.05, plan 0.02, exec 37.31) = 0.657 GFLOP/s | nnz(C) 8290304 | H2D 0.217 GB, D2H 0.108 GB | peak 937.9 / 4311.2 MiB | 2 tiles, 0 replans, 0 splits
+  fp64 device_only 7.815 ms
   fp64 budget 512 MiB (problem 310 MiB, ratio 0.60)
-    alg4            45.76 ms  alg4: chunk_b P_AC=6 P_B=1 depth=1 | predicted 51.29 ms, copies 0.4 GB, peak 156 MiB | alg4: copy volume chunk1 0.434 GB, chunk2 0.217 GB | 54.32 ms (estimate 10.79, plan 0.06, exec 43.47) = 0.537 GFLOP/s | nnz(C) 8290304 | H2D 0.217 GB, D2H 0.108 GB | peak 195.3 / 512.0 MiB | 7 tiles, 0 replans, 0 splits
-    alg4_overlap    33.45 ms  alg4: chunk_b P_AC=9 P_B=1 depth=2 | predicted 34.96 ms, copies 0.4 GB, peak 156 MiB | alg4: copy volume chunk1 0.467 GB, chunk2 0.217 GB | 36.79 ms (estimate 9.70, plan 0.07, exec 27.02) = 0.793 GFLOP/s | nnz(C) 8290304 | H2D 0.217 GB, D2H 0.108 GB | peak 202.6 / 512.0 MiB | 10 tiles, 0 replans, 0 splits
-    rasp_static     34.31 ms  rasp: chunk_b P_AC=3 P_B=1 depth=2 | predicted 34.91 ms, copies 0.4 GB, peak 497 MiB | rasp: fastest simulated candidate (0.835 GFLOP/s predicted) | 41.91 ms (estimate 12.92, plan 0.41, exec 28.59) = 0.696 GFLOP/s | nnz(C) 8290304 | H2D 0.217 GB, D2H 0.108 GB | peak 492.2 / 512.0 MiB | 4 tiles, 0 replans, 2 splits
-    rasp            34.55 ms  rasp: chunk_b P_AC=4 P_B=1 depth=2 +probe | predicted 34.91 ms, copies 0.4 GB, peak 497 MiB | rasp: fastest simulated candidate (0.835 GFLOP/s predicted) | 40.97 ms (estimate 11.81, plan 0.44, exec 28.72) = 0.712 GFLOP/s | nnz(C) 8290304 | H2D 0.217 GB, D2H 0.108 GB | peak 484.1 / 512.0 MiB | 5 tiles, 1 replans, 1 splits
-    zerocopy        47.91 ms  rasp: zerocopy P_AC=1 P_B=1 depth=1 | predicted 70.09 ms, copies 0.0336 GB, peak 375 MiB | rasp: fastest simulated candidate (0.416 GFLOP/s predicted) | 50.76 ms (estimate 10.26, plan 0.04, exec 40.46) = 0.575 GFLOP/s | nnz(C) 8290304 | H2D 0.0336 GB, D2H 0 GB | peak 453.6 / 512.0 MiB | 2 tiles, 0 replans, 1 splits
+    alg4            57.03 ms  alg4: chunk_b P_AC=6 P_B=1 depth=1 | predicted 50.45 ms, copies 0.4 GB, peak 156 MiB | alg4: copy volume chunk1 0.434 GB, chunk2 0.217 GB | 57.68 ms (estimate 17.37, plan 0.06, exec 40.25) = 0.506 GFLOP/s | nnz(C) 8290304 | H2D 0.217 GB, D2H 0.108 GB | peak 195.3 / 512.0 MiB | 7 tiles, 0 replans, 0 splits
+    alg4_overlap    37.03 ms  alg4: chunk_b P_AC=9 P_B=1 depth=2 | predicted 34.35 ms, copies 0.4 GB, peak 156 MiB | alg4: copy volume chunk1 0.467 GB, chunk2 0.217 GB | 37.18 ms (estimate 11.19, plan 0.08, exec 25.91) = 0.784 GFLOP/s | nnz(C) 8290304 | H2D 0.217 GB, D2H 0.108 GB | peak 202.6 / 512.0 MiB | 10 tiles, 0 replans, 0 splits
+    rasp_static     36.30 ms  rasp: chunk_b P_AC=3 P_B=1 depth=3 | predicted 34.07 ms, copies 0.4 GB, peak 497 MiB | rasp: fastest simulated candidate (0.856 GFLOP/s predicted) | 34.88 ms (estimate 7.70, plan 0.48, exec 26.69) = 0.836 GFLOP/s | nnz(C) 8290304 | H2D 0.217 GB, D2H 0.108 GB | peak 510.6 / 512.0 MiB | 4 tiles, 0 replans, 0 splits
+    rasp            39.99 ms  rasp: chunk_b P_AC=4 P_B=1 depth=2 +probe | predicted 34.07 ms, copies 0.4 GB, peak 497 MiB | rasp: fastest simulated candidate (0.856 GFLOP/s predicted) | 42.23 ms (estimate 11.84, plan 0.45, exec 29.94) = 0.691 GFLOP/s | nnz(C) 8290304 | H2D 0.217 GB, D2H 0.108 GB | peak 484.1 / 512.0 MiB | 5 tiles, 1 replans, 1 splits
+    zerocopy        50.10 ms  rasp: zerocopy P_AC=1 P_B=1 depth=1 | predicted 62.01 ms, copies 0.0336 GB, peak 375 MiB | rasp: fastest simulated candidate (0.47 GFLOP/s predicted) | 51.06 ms (estimate 8.95, plan 0.04, exec 42.07) = 0.571 GFLOP/s | nnz(C) 8290304 | H2D 0.0336 GB, D2H 0 GB | peak 453.6 / 512.0 MiB | 2 tiles, 0 replans, 1 splits
 == AxP n=160: 4096000 x 4096000 (nnz 28518400) * 4096000 x 512000 (nnz 4096000)
-  fp64 incore      rasp: incore P_AC=1 P_B=1 depth=1 | predicted 92.27 ms, copies 0.783 GB, peak 1400 MiB | rasp: fastest simulated candidate (0.618 GFLOP/s predicted) | 86.29 ms (estimate 17.73, plan 0.02, exec 68.54) = 0.661 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 1834.3 / 4309.5 MiB | 2 tiles, 0 replans, 0 splits
-  fp64 device_only 15.424 ms
+  fp64 incore      rasp: incore P_AC=1 P_B=1 depth=1 | predicted 101.88 ms, copies 0.783 GB, peak 1400 MiB | rasp: fastest simulated candidate (0.56 GFLOP/s predicted) | 85.90 ms (estimate 15.21, plan 0.02, exec 70.67) = 0.664 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 1834.3 / 4309.5 MiB | 2 tiles, 0 replans, 0 splits
+  fp64 device_only 15.154 ms
   fp64 budget 512 MiB (problem 606 MiB, ratio 1.18)
-    alg4            90.97 ms  alg4: chunk_b P_AC=11 P_B=1 depth=1 | predicted 95.82 ms, copies 0.783 GB, peak 187 MiB | alg4: copy volume chunk1 0.979 GB, chunk2 0.424 GB | 88.81 ms (estimate 13.84, plan 0.10, exec 74.86) = 0.642 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 225.8 / 512.0 MiB | 12 tiles, 0 replans, 0 splits
-    alg4_overlap    65.09 ms  alg4: chunk_b P_AC=17 P_B=1 depth=2 | predicted 64.22 ms, copies 0.783 GB, peak 187 MiB | alg4: copy volume chunk1 1.11 GB, chunk2 0.424 GB | 61.89 ms (estimate 11.29, plan 0.13, exec 50.47) = 0.922 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 233.1 / 512.0 MiB | 18 tiles, 0 replans, 0 splits
-    rasp_static     67.91 ms  rasp: chunk_b P_AC=7 P_B=1 depth=3 | predicted 64.00 ms, copies 0.783 GB, peak 497 MiB | rasp: fastest simulated candidate (0.891 GFLOP/s predicted) | 93.04 ms (estimate 37.64, plan 0.89, exec 54.50) = 0.613 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 510.5 / 512.0 MiB | 8 tiles, 0 replans, 0 splits
-    rasp            69.17 ms  rasp: chunk_b P_AC=6 P_B=1 depth=2 +probe | predicted 64.00 ms, copies 0.783 GB, peak 497 MiB | rasp: fastest simulated candidate (0.891 GFLOP/s predicted) | 68.36 ms (estimate 13.32, plan 1.04, exec 54.01) = 0.834 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 478.2 / 512.0 MiB | 15 tiles, 3 replans, 2 splits
-    zerocopy        90.79 ms  rasp: zerocopy P_AC=2 P_B=1 depth=1 | predicted 125.34 ms, copies 0.0655 GB, peak 497 MiB | rasp: fastest simulated candidate (0.455 GFLOP/s predicted) | 89.00 ms (estimate 11.58, plan 0.05, exec 77.37) = 0.641 GFLOP/s | nnz(C) 16230400 | H2D 0.0655 GB, D2H 0 GB | peak 505.8 / 512.0 MiB | 3 tiles, 0 replans, 1 splits
+    alg4            93.16 ms  alg4: chunk_b P_AC=11 P_B=1 depth=1 | predicted 107.85 ms, copies 0.783 GB, peak 187 MiB | alg4: copy volume chunk1 0.979 GB, chunk2 0.424 GB | 92.03 ms (estimate 14.32, plan 0.09, exec 77.62) = 0.620 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 225.8 / 512.0 MiB | 12 tiles, 0 replans, 0 splits
+    alg4_overlap    70.82 ms  alg4: chunk_b P_AC=17 P_B=1 depth=2 | predicted 76.04 ms, copies 0.783 GB, peak 187 MiB | alg4: copy volume chunk1 1.11 GB, chunk2 0.424 GB | 70.98 ms (estimate 16.30, plan 0.14, exec 54.54) = 0.804 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 233.1 / 512.0 MiB | 18 tiles, 0 replans, 0 splits
+    rasp_static     74.62 ms  rasp: chunk_b P_AC=5 P_B=1 depth=2 | predicted 76.04 ms, copies 0.783 GB, peak 497 MiB | rasp: fastest simulated candidate (0.75 GFLOP/s predicted) | 70.58 ms (estimate 14.63, plan 1.01, exec 54.94) = 0.808 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 490.7 / 512.0 MiB | 6 tiles, 0 replans, 6 splits
+    rasp            73.75 ms  rasp: chunk_b P_AC=6 P_B=1 depth=2 +probe | predicted 76.04 ms, copies 0.783 GB, peak 497 MiB | rasp: fastest simulated candidate (0.75 GFLOP/s predicted) | 81.62 ms (estimate 21.66, plan 1.17, exec 58.79) = 0.699 GFLOP/s | nnz(C) 16230400 | H2D 0.424 GB, D2H 0.211 GB | peak 478.2 / 512.0 MiB | 15 tiles, 3 replans, 1 splits
+    zerocopy        99.13 ms  rasp: zerocopy P_AC=2 P_B=1 depth=1 | predicted 152.77 ms, copies 0.0655 GB, peak 497 MiB | rasp: fastest simulated candidate (0.373 GFLOP/s predicted) | 98.27 ms (estimate 16.54, plan 0.08, exec 81.65) = 0.580 GFLOP/s | nnz(C) 16230400 | H2D 0.0655 GB, D2H 0 GB | peak 505.8 / 512.0 MiB | 3 tiles, 0 replans, 1 splits
 == AxP n=192: 7077888 x 7077888 (nnz 49324032) * 7077888 x 884736 (nnz 7077888)
-  fp64 incore      rasp: incore P_AC=1 P_B=1 depth=1 | predicted 159.72 ms, copies 1.35 GB, peak 2421 MiB | rasp: fastest simulated candidate (0.618 GFLOP/s predicted) | 141.97 ms (estimate 26.22, plan 0.02, exec 115.73) = 0.695 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 3172.6 / 4309.5 MiB | 2 tiles, 0 replans, 0 splits
-  fp64 device_only 26.170 ms
+  fp64 incore      rasp: incore P_AC=1 P_B=1 depth=1 | predicted 211.32 ms, copies 1.35 GB, peak 2421 MiB | rasp: fastest simulated candidate (0.467 GFLOP/s predicted) | 143.80 ms (estimate 24.57, plan 0.03, exec 119.21) = 0.686 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 3172.6 / 4309.5 MiB | 2 tiles, 0 replans, 0 splits
+  fp64 device_only 26.803 ms
   fp64 budget 512 MiB (problem 1048 MiB, ratio 2.05)
-    alg4           155.29 ms  alg4: chunk_b P_AC=19 P_B=1 depth=1 | predicted 167.39 ms, copies 1.35 GB, peak 232 MiB | alg4: copy volume chunk1 2.03 GB, chunk2 0.733 GB | 152.95 ms (estimate 25.11, plan 0.17, exec 127.67) = 0.645 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 271.3 / 512.0 MiB | 20 tiles, 0 replans, 0 splits
-    alg4_overlap   114.73 ms  alg4: chunk_b P_AC=29 P_B=1 depth=2 | predicted 112.54 ms, copies 1.35 GB, peak 232 MiB | alg4: copy volume chunk1 2.37 GB, chunk2 0.733 GB | 109.65 ms (estimate 22.83, plan 0.22, exec 86.60) = 0.900 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 278.6 / 512.0 MiB | 30 tiles, 0 replans, 0 splits
-    rasp_static    117.85 ms  rasp: chunk_b P_AC=13 P_B=1 depth=3 | predicted 112.36 ms, copies 1.35 GB, peak 497 MiB | rasp: fastest simulated candidate (0.878 GFLOP/s predicted) | 118.29 ms (estimate 23.45, plan 2.73, exec 92.12) = 0.834 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 511.1 / 512.0 MiB | 14 tiles, 0 replans, 10 splits
-    rasp           116.44 ms  rasp: chunk_b P_AC=14 P_B=1 depth=3 +probe | predicted 112.36 ms, copies 1.35 GB, peak 497 MiB | rasp: fastest simulated candidate (0.878 GFLOP/s predicted) | 113.14 ms (estimate 23.92, plan 2.00, exec 87.22) = 0.872 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 491.9 / 512.0 MiB | 16 tiles, 4 replans, 2 splits
-    zerocopy       159.06 ms  rasp: zerocopy P_AC=3 P_B=1 depth=1 | predicted 221.45 ms, copies 0.113 GB, peak 497 MiB | rasp: fastest simulated candidate (0.445 GFLOP/s predicted) | 157.81 ms (estimate 23.57, plan 0.07, exec 134.17) = 0.625 GFLOP/s | nnz(C) 28090368 | H2D 0.113 GB, D2H 0 GB | peak 491.5 / 512.0 MiB | 6 tiles, 1 replans, 2 splits
+    alg4           159.89 ms  alg4: chunk_b P_AC=19 P_B=1 depth=1 | predicted 156.80 ms, copies 1.35 GB, peak 232 MiB | alg4: copy volume chunk1 2.03 GB, chunk2 0.733 GB | 155.98 ms (estimate 26.20, plan 0.18, exec 129.60) = 0.632 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 271.3 / 512.0 MiB | 20 tiles, 0 replans, 0 splits
+    alg4_overlap   120.99 ms  alg4: chunk_b P_AC=29 P_B=1 depth=2 | predicted 102.17 ms, copies 1.35 GB, peak 232 MiB | alg4: copy volume chunk1 2.37 GB, chunk2 0.733 GB | 121.35 ms (estimate 26.86, plan 0.21, exec 94.28) = 0.813 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 278.6 / 512.0 MiB | 30 tiles, 0 replans, 0 splits
+    rasp_static    127.89 ms  rasp: chunk_b P_AC=13 P_B=1 depth=3 | predicted 101.77 ms, copies 1.35 GB, peak 497 MiB | rasp: fastest simulated candidate (0.969 GFLOP/s predicted) | 137.61 ms (estimate 35.83, plan 3.53, exec 98.25) = 0.717 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 511.1 / 512.0 MiB | 14 tiles, 0 replans, 7 splits
+    rasp           122.11 ms  rasp: chunk_b P_AC=14 P_B=1 depth=3 +probe | predicted 101.77 ms, copies 1.35 GB, peak 497 MiB | rasp: fastest simulated candidate (0.969 GFLOP/s predicted) | 118.80 ms (estimate 24.49, plan 2.24, exec 92.07) = 0.830 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 484.8 / 512.0 MiB | 24 tiles, 6 replans, 2 splits
+    zerocopy       168.14 ms  rasp: zerocopy P_AC=3 P_B=1 depth=1 | predicted 195.50 ms, copies 0.113 GB, peak 497 MiB | rasp: fastest simulated candidate (0.505 GFLOP/s predicted) | 165.55 ms (estimate 23.11, plan 0.11, exec 142.33) = 0.596 GFLOP/s | nnz(C) 28090368 | H2D 0.113 GB, D2H 0 GB | peak 491.5 / 512.0 MiB | 6 tiles, 1 replans, 2 splits
 == AxP n=224: 11239424 x 11239424 (nnz 78374912) * 11239424 x 1404928 (nnz 11239424)
-  fp64 incore      rasp: incore P_AC=1 P_B=1 depth=1 | predicted 289.92 ms, copies 2.15 GB, peak 3846 MiB | rasp: fastest simulated candidate (0.541 GFLOP/s predicted) | 219.39 ms (estimate 37.68, plan 0.02, exec 181.69) = 0.714 GFLOP/s | nnz(C) 44656640 | H2D 1.17 GB, D2H 0.581 GB | peak 3589.7 / 4309.5 MiB | 2 tiles, 0 replans, 1 splits
-  fp64 device_only 41.185 ms
+  fp64 incore      rasp: incore P_AC=1 P_B=1 depth=1 | predicted 248.53 ms, copies 2.15 GB, peak 3846 MiB | rasp: fastest simulated candidate (0.631 GFLOP/s predicted) | 262.26 ms (estimate 71.99, plan 0.03, exec 190.23) = 0.598 GFLOP/s | nnz(C) 44656640 | H2D 1.17 GB, D2H 0.581 GB | peak 3589.7 / 4309.5 MiB | 2 tiles, 0 replans, 1 splits
+  fp64 device_only 42.308 ms
   fp64 budget 512 MiB (problem 1665 MiB, ratio 3.25)
-    alg4           268.22 ms  alg4: chunk_b P_AC=30 P_B=1 depth=1 | predicted 292.41 ms, copies 2.15 GB, peak 296 MiB | alg4: copy volume chunk1 3.95 GB, chunk2 1.17 GB | 267.70 ms (estimate 40.37, plan 0.22, exec 227.11) = 0.586 GFLOP/s | nnz(C) 44656640 | H2D 1.17 GB, D2H 0.581 GB | peak 334.8 / 512.0 MiB | 31 tiles, 0 replans, 0 splits
-    alg4_overlap   177.13 ms  alg4: chunk_b P_AC=46 P_B=1 depth=2 | predicted 205.04 ms, copies 2.15 GB, peak 296 MiB | alg4: copy volume chunk1 4.85 GB, chunk2 1.17 GB | 175.68 ms (estimate 33.26, plan 0.35, exec 142.08) = 0.892 GFLOP/s | nnz(C) 44656640 | H2D 1.17 GB, D2H 0.581 GB | peak 342.1 / 512.0 MiB | 47 tiles, 0 replans, 0 splits
-    rasp_static    188.08 ms  rasp: chunk_b P_AC=18 P_B=1 depth=2 | predicted 205.04 ms, copies 2.15 GB, peak 497 MiB | rasp: fastest simulated candidate (0.765 GFLOP/s predicted) | 212.63 ms (estimate 57.87, plan 2.78, exec 151.99) = 0.737 GFLOP/s | nnz(C) 44656640 | H2D 1.17 GB, D2H 0.581 GB | peak 510.4 / 512.0 MiB | 19 tiles, 0 replans, 19 splits
-    rasp           183.46 ms  rasp: chunk_b P_AC=19 P_B=1 depth=2 +probe | predicted 205.04 ms, copies 2.15 GB, peak 497 MiB | rasp: fastest simulated candidate (0.765 GFLOP/s predicted) | 181.60 ms (estimate 36.49, plan 3.06, exec 142.05) = 0.863 GFLOP/s | nnz(C) 44656640 | H2D 1.17 GB, D2H 0.581 GB | peak 491.8 / 512.0 MiB | 23 tiles, 3 replans, 15 splits
-    zerocopy       250.82 ms  rasp: zerocopy P_AC=6 P_B=1 depth=1 | predicted 420.46 ms, copies 0.18 GB, peak 497 MiB | rasp: fastest simulated candidate (0.373 GFLOP/s predicted) | 246.29 ms (estimate 33.17, plan 0.13, exec 212.99) = 0.636 GFLOP/s | nnz(C) 44656640 | H2D 0.18 GB, D2H 0 GB | peak 492.2 / 512.0 MiB | 11 tiles, 1 replans, 2 splits
+    alg4           258.14 ms  alg4: chunk_b P_AC=30 P_B=1 depth=1 | predicted 279.78 ms, copies 2.15 GB, peak 296 MiB | alg4: copy volume chunk1 3.95 GB, chunk2 1.17 GB | 258.47 ms (estimate 44.78, plan 0.51, exec 213.18) = 0.606 GFLOP/s | nnz(C) 44656640 | H2D 1.17 GB, D2H 0.581 GB | peak 334.8 / 512.0 MiB | 31 tiles, 0 replans, 0 splits
+    alg4_overlap   197.08 ms  alg4: chunk_b P_AC=46 P_B=1 depth=2 | predicted 192.45 ms, copies 2.15 GB, peak 296 MiB | alg4: copy volume chunk1 4.85 GB, chunk2 1.17 GB | 185.30 ms (estimate 39.45, plan 0.44, exec 145.40) = 0.846 GFLOP/s | nnz(C) 44656640 | H2D 1.17 GB, D2H 0.581 GB | peak 342.1 / 512.0 MiB | 47 tiles, 0 replans, 0 splits
+    rasp_static    209.03 ms  rasp: chunk_b P_AC=18 P_B=1 depth=2 | predicted 192.41 ms, copies 2.15 GB, peak 497 MiB | rasp: fastest simulated candidate (0.815 GFLOP/s predicted) | 212.56 ms (estimate 54.29, plan 3.83, exec 154.43) = 0.737 GFLOP/s | nnz(C) 44656640 | H2D 1.17 GB, D2H 0.581 GB | peak 510.4 / 512.0 MiB | 19 tiles, 0 replans, 21 splits
+    rasp           201.17 ms  rasp: chunk_b P_AC=19 P_B=1 depth=2 +probe | predicted 192.41 ms, copies 2.15 GB, peak 497 MiB | rasp: fastest simulated candidate (0.815 GFLOP/s predicted) | 195.79 ms (estimate 44.58, plan 3.35, exec 147.86) = 0.801 GFLOP/s | nnz(C) 44656640 | H2D 1.17 GB, D2H 0.581 GB | peak 498.1 / 512.0 MiB | 25 tiles, 5 replans, 14 splits
+    zerocopy       264.97 ms  rasp: zerocopy P_AC=6 P_B=1 depth=1 | predicted 394.29 ms, copies 0.18 GB, peak 497 MiB | rasp: fastest simulated candidate (0.398 GFLOP/s predicted) | 283.15 ms (estimate 56.82, plan 0.16, exec 226.17) = 0.554 GFLOP/s | nnz(C) 44656640 | H2D 0.18 GB, D2H 0 GB | peak 492.2 / 512.0 MiB | 11 tiles, 1 replans, 2 splits
 == AxP n=256: 16777216 x 16777216 (nnz 117047296) * 16777216 x 2097152 (nnz 16777216)
   fp64 incore      rasp: no SpGEMM plan fits a budget of 4383.273124 MB
-  fp64 device_only 217.081 ms
+  fp64 device_only 253.804 ms
   fp64 budget 512 MiB (problem 2487 MiB, ratio 4.86)
-    alg4           518.52 ms  alg4: chunk_b P_AC=45 P_B=1 depth=1 | predicted 408.41 ms, copies 3.21 GB, peak 380 MiB | alg4: copy volume chunk1 7.24 GB, chunk2 1.74 GB | 524.59 ms (estimate 148.27, plan 0.78, exec 375.54) = 0.446 GFLOP/s | nnz(C) 66715648 | H2D 1.74 GB, D2H 0.868 GB | peak 419.3 / 512.0 MiB | 46 tiles, 0 replans, 0 splits
-    alg4_overlap   390.71 ms  alg4: chunk_b P_AC=68 P_B=1 depth=2 | predicted 277.93 ms, copies 3.21 GB, peak 380 MiB | alg4: copy volume chunk1 inf GB, chunk2 1.74 GB | 408.83 ms (estimate 160.60, plan 1.80, exec 246.43) = 0.573 GFLOP/s | nnz(C) 66715648 | H2D 1.74 GB, D2H 0.868 GB | peak 426.6 / 512.0 MiB | 69 tiles, 0 replans, 0 splits
-    rasp_static    430.72 ms  rasp: chunk_b P_AC=35 P_B=1 depth=2 | predicted 277.86 ms, copies 3.21 GB, peak 497 MiB | rasp: fastest simulated candidate (0.842 GFLOP/s predicted) | 429.72 ms (estimate 135.87, plan 13.10, exec 280.75) = 0.545 GFLOP/s | nnz(C) 66715648 | H2D 1.74 GB, D2H 0.868 GB | peak 508.6 / 512.0 MiB | 36 tiles, 0 replans, 32 splits
-    rasp           446.56 ms  rasp: chunk_b P_AC=36 P_B=1 depth=2 +probe | predicted 277.86 ms, copies 3.21 GB, peak 497 MiB | rasp: fastest simulated candidate (0.842 GFLOP/s predicted) | 447.12 ms (estimate 147.07, plan 17.36, exec 282.69) = 0.524 GFLOP/s | nnz(C) 66715648 | H2D 1.74 GB, D2H 0.868 GB | peak 493.0 / 512.0 MiB | 72 tiles, 4 replans, 2 splits
-    zerocopy       473.75 ms  rasp: zerocopy P_AC=12 P_B=1 depth=1 | predicted 558.15 ms, copies 0.268 GB, peak 497 MiB | rasp: fastest simulated candidate (0.419 GFLOP/s predicted) | 459.31 ms (estimate 121.00, plan 0.57, exec 337.74) = 0.510 GFLOP/s | nnz(C) 66715648 | H2D 0.268 GB, D2H 0 GB | peak 493.1 / 512.0 MiB | 23 tiles, 1 replans, 2 splits
+    alg4           436.91 ms  alg4: chunk_b P_AC=45 P_B=1 depth=1 | predicted 615.23 ms, copies 3.21 GB, peak 380 MiB | alg4: copy volume chunk1 7.24 GB, chunk2 1.74 GB | 435.67 ms (estimate 93.12, plan 0.45, exec 342.09) = 0.537 GFLOP/s | nnz(C) 66715648 | H2D 1.74 GB, D2H 0.868 GB | peak 419.3 / 512.0 MiB | 46 tiles, 0 replans, 0 splits
+    alg4_overlap   329.79 ms  alg4: chunk_b P_AC=68 P_B=1 depth=2 | predicted 484.68 ms, copies 3.21 GB, peak 380 MiB | alg4: copy volume chunk1 inf GB, chunk2 1.74 GB | 308.91 ms (estimate 79.36, plan 0.52, exec 229.03) = 0.758 GFLOP/s | nnz(C) 66715648 | H2D 1.74 GB, D2H 0.868 GB | peak 426.6 / 512.0 MiB | 69 tiles, 0 replans, 0 splits
+    rasp_static    361.56 ms  rasp: chunk_b P_AC=35 P_B=1 depth=2 | predicted 484.68 ms, copies 3.21 GB, peak 497 MiB | rasp: fastest simulated candidate (0.483 GFLOP/s predicted) | 343.62 ms (estimate 97.94, plan 6.40, exec 239.28) = 0.681 GFLOP/s | nnz(C) 66715648 | H2D 1.74 GB, D2H 0.868 GB | peak 508.6 / 512.0 MiB | 36 tiles, 0 replans, 45 splits
+    rasp           339.37 ms  rasp: chunk_b P_AC=36 P_B=1 depth=2 +probe | predicted 484.68 ms, copies 3.21 GB, peak 497 MiB | rasp: fastest simulated candidate (0.483 GFLOP/s predicted) | 334.71 ms (estimate 91.36, plan 7.75, exec 235.59) = 0.699 GFLOP/s | nnz(C) 66715648 | H2D 1.74 GB, D2H 0.868 GB | peak 497.6 / 512.0 MiB | 45 tiles, 4 replans, 22 splits
+    zerocopy       444.91 ms  rasp: zerocopy P_AC=12 P_B=1 depth=1 | predicted 929.48 ms, copies 0.268 GB, peak 497 MiB | rasp: fastest simulated candidate (0.252 GFLOP/s predicted) | 421.43 ms (estimate 91.32, plan 0.29, exec 329.83) = 0.555 GFLOP/s | nnz(C) 66715648 | H2D 0.268 GB, D2H 0 GB | peak 493.1 / 512.0 MiB | 23 tiles, 1 replans, 2 splits
 == RxA n=128: 262144 x 2097152 (nnz 2097152) * 2097152 x 2097152 (nnz 14581760)
-  fp64 incore      rasp: incore P_AC=1 P_B=1 depth=1 | predicted 61.58 ms, copies 0.386 GB, peak 703 MiB | rasp: fastest simulated candidate (0.474 GFLOP/s predicted) | 32.61 ms (estimate 1.89, plan 0.02, exec 30.71) = 0.894 GFLOP/s | nnz(C) 8290304 | H2D 0.21 GB, D2H 0.101 GB | peak 766.8 / 4309.5 MiB | 2 tiles, 0 replans, 0 splits
-  fp64 device_only 5.284 ms
+  fp64 incore      rasp: incore P_AC=1 P_B=1 depth=1 | predicted 45.22 ms, copies 0.386 GB, peak 703 MiB | rasp: fastest simulated candidate (0.645 GFLOP/s predicted) | 36.84 ms (estimate 2.74, plan 0.02, exec 34.09) = 0.792 GFLOP/s | nnz(C) 8290304 | H2D 0.21 GB, D2H 0.101 GB | peak 766.8 / 4309.5 MiB | 2 tiles, 0 replans, 0 splits
+  fp64 device_only 5.359 ms
   fp64 budget 512 MiB (problem 296 MiB, ratio 0.58)
-    alg4            36.23 ms  alg4: chunk_b P_AC=5 P_B=1 depth=1 | predicted 51.73 ms, copies 0.386 GB, peak 299 MiB | alg4: copy volume chunk1 0.569 GB, chunk2 0.21 GB | 36.76 ms (estimate 1.94, plan 0.04, exec 34.79) = 0.793 GFLOP/s | nnz(C) 8290304 | H2D 0.21 GB, D2H 0.101 GB | peak 313.3 / 512.0 MiB | 6 tiles, 0 replans, 0 splits
-    alg4_overlap    28.42 ms  alg4: chunk_b P_AC=6 P_B=1 depth=2 | predicted 38.01 ms, copies 0.386 GB, peak 299 MiB | alg4: copy volume chunk1 0.569 GB, chunk2 0.21 GB | 29.58 ms (estimate 2.50, plan 0.05, exec 27.02) = 0.986 GFLOP/s | nnz(C) 8290304 | H2D 0.21 GB, D2H 0.101 GB | peak 305.5 / 512.0 MiB | 7 tiles, 0 replans, 0 splits
-    rasp_static     30.36 ms  rasp: chunk_b P_AC=9 P_B=1 depth=3 | predicted 37.05 ms, copies 0.386 GB, peak 282 MiB | rasp: fastest simulated candidate (0.787 GFLOP/s predicted) | 32.91 ms (estimate 2.81, plan 1.70, exec 28.41) = 0.886 GFLOP/s | nnz(C) 8290304 | H2D 0.21 GB, D2H 0.101 GB | peak 260.8 / 512.0 MiB | 10 tiles, 0 replans, 0 splits
-    rasp            33.29 ms  rasp: chunk_b P_AC=10 P_B=1 depth=3 +probe | predicted 37.02 ms, copies 0.386 GB, peak 282 MiB | rasp: fastest simulated candidate (0.788 GFLOP/s predicted) | 33.35 ms (estimate 1.96, plan 1.31, exec 30.08) = 0.874 GFLOP/s | nnz(C) 8290304 | H2D 0.21 GB, D2H 0.101 GB | peak 306.2 / 512.0 MiB | 9 tiles, 4 replans, 0 splits
-    zerocopy        33.16 ms  rasp: zerocopy P_AC=2 P_B=1 depth=1 | predicted 43.17 ms, copies 0.183 GB, peak 497 MiB | rasp: fastest simulated candidate (0.676 GFLOP/s predicted) | 32.07 ms (estimate 1.79, plan 0.03, exec 30.25) = 0.909 GFLOP/s | nnz(C) 8290304 | H2D 0.183 GB, D2H 0 GB | peak 414.9 / 512.0 MiB | 3 tiles, 0 replans, 1 splits
+    alg4            38.37 ms  alg4: chunk_b P_AC=5 P_B=1 depth=1 | predicted 47.20 ms, copies 0.386 GB, peak 299 MiB | alg4: copy volume chunk1 0.569 GB, chunk2 0.21 GB | 44.20 ms (estimate 9.46, plan 0.04, exec 34.69) = 0.660 GFLOP/s | nnz(C) 8290304 | H2D 0.21 GB, D2H 0.101 GB | peak 313.3 / 512.0 MiB | 6 tiles, 0 replans, 0 splits
+    alg4_overlap    30.59 ms  alg4: chunk_b P_AC=6 P_B=1 depth=2 | predicted 34.18 ms, copies 0.386 GB, peak 299 MiB | alg4: copy volume chunk1 0.569 GB, chunk2 0.21 GB | 34.19 ms (estimate 3.34, plan 0.08, exec 30.77) = 0.853 GFLOP/s | nnz(C) 8290304 | H2D 0.21 GB, D2H 0.101 GB | peak 299.9 / 512.0 MiB | 7 tiles, 0 replans, 0 splits
+    rasp_static     33.58 ms  rasp: chunk_b P_AC=7 P_B=1 depth=2 | predicted 34.04 ms, copies 0.386 GB, peak 282 MiB | rasp: fastest simulated candidate (0.857 GFLOP/s predicted) | 32.16 ms (estimate 2.41, plan 2.72, exec 27.02) = 0.907 GFLOP/s | nnz(C) 8290304 | H2D 0.21 GB, D2H 0.101 GB | peak 280.2 / 512.0 MiB | 8 tiles, 0 replans, 0 splits
+    rasp            40.55 ms  rasp: chunk_b P_AC=8 P_B=1 depth=2 +probe | predicted 34.06 ms, copies 0.386 GB, peak 282 MiB | rasp: fastest simulated candidate (0.856 GFLOP/s predicted) | 49.80 ms (estimate 12.16, plan 2.38, exec 35.26) = 0.586 GFLOP/s | nnz(C) 8290304 | H2D 0.21 GB, D2H 0.101 GB | peak 314.7 / 512.0 MiB | 9 tiles, 3 replans, 0 splits
+    zerocopy        37.76 ms  rasp: zerocopy P_AC=2 P_B=1 depth=1 | predicted 37.58 ms, copies 0.183 GB, peak 497 MiB | rasp: fastest simulated candidate (0.776 GFLOP/s predicted) | 34.04 ms (estimate 2.88, plan 0.03, exec 31.13) = 0.857 GFLOP/s | nnz(C) 8290304 | H2D 0.183 GB, D2H 0 GB | peak 414.9 / 512.0 MiB | 3 tiles, 0 replans, 1 splits
 == RxA n=160: 512000 x 4096000 (nnz 4096000) * 4096000 x 4096000 (nnz 28518400)
-  fp64 incore      rasp: incore P_AC=1 P_B=1 depth=1 | predicted 100.84 ms, copies 0.754 GB, peak 1373 MiB | rasp: fastest simulated candidate (0.566 GFLOP/s predicted) | 73.36 ms (estimate 12.77, plan 0.02, exec 60.57) = 0.778 GFLOP/s | nnz(C) 16230400 | H2D 0.41 GB, D2H 0.197 GB | peak 1499.7 / 4309.5 MiB | 2 tiles, 0 replans, 0 splits
-  fp64 device_only 9.854 ms
+  fp64 incore      rasp: incore P_AC=1 P_B=1 depth=1 | predicted 85.95 ms, copies 0.754 GB, peak 1373 MiB | rasp: fastest simulated candidate (0.664 GFLOP/s predicted) | 70.86 ms (estimate 3.46, plan 0.02, exec 67.38) = 0.805 GFLOP/s | nnz(C) 16230400 | H2D 0.41 GB, D2H 0.197 GB | peak 1499.7 / 4309.5 MiB | 2 tiles, 0 replans, 0 splits
+  fp64 device_only 9.246 ms
   fp64 budget 512 MiB (problem 579 MiB, ratio 1.13)
-    alg4            71.59 ms  alg4: chunk_b P_AC=9 P_B=1 depth=1 | predicted 102.42 ms, copies 0.754 GB, peak 466 MiB | alg4: copy volume chunk1 1.47 GB, chunk2 0.41 GB | 78.22 ms (estimate 9.43, plan 0.07, exec 68.72) = 0.729 GFLOP/s | nnz(C) 16230400 | H2D 0.41 GB, D2H 0.197 GB | peak 480.5 / 512.0 MiB | 10 tiles, 0 replans, 0 splits
-    alg4_overlap    58.35 ms  alg4: chunk_b P_AC=12 P_B=1 depth=2 | predicted 73.55 ms, copies 0.754 GB, peak 466 MiB | alg4: copy volume chunk1 1.83 GB, chunk2 0.41 GB | 60.80 ms (estimate 7.08, plan 0.08, exec 53.64) = 0.938 GFLOP/s | nnz(C) 16230400 | H2D 0.41 GB, D2H 0.197 GB | peak 472.6 / 512.0 MiB | 13 tiles, 0 replans, 1 splits
-    rasp_static     60.18 ms  rasp: chunk_b P_AC=18 P_B=1 depth=3 | predicted 72.55 ms, copies 0.754 GB, peak 445 MiB | rasp: fastest simulated candidate (0.786 GFLOP/s predicted) | 59.05 ms (estimate 3.26, plan 2.20, exec 53.60) = 0.966 GFLOP/s | nnz(C) 16230400 | H2D 0.41 GB, D2H 0.197 GB | peak 430.2 / 512.0 MiB | 19 tiles, 0 replans, 0 splits
-    rasp            59.86 ms  rasp: chunk_b P_AC=19 P_B=1 depth=3 +probe | predicted 72.51 ms, copies 0.754 GB, peak 445 MiB | rasp: fastest simulated candidate (0.787 GFLOP/s predicted) | 65.27 ms (estimate 7.20, plan 2.47, exec 55.60) = 0.874 GFLOP/s | nnz(C) 16230400 | H2D 0.41 GB, D2H 0.197 GB | peak 469.7 / 512.0 MiB | 18 tiles, 4 replans, 0 splits
-    zerocopy        66.01 ms  rasp: zerocopy P_AC=5 P_B=1 depth=1 | predicted 87.68 ms, copies 0.359 GB, peak 497 MiB | rasp: fastest simulated candidate (0.651 GFLOP/s predicted) | 68.33 ms (estimate 4.26, plan 0.05, exec 64.02) = 0.835 GFLOP/s | nnz(C) 16230400 | H2D 0.359 GB, D2H 0 GB | peak 483.2 / 512.0 MiB | 7 tiles, 1 replans, 2 splits
+    alg4            72.58 ms  alg4: chunk_b P_AC=9 P_B=1 depth=1 | predicted 89.33 ms, copies 0.754 GB, peak 466 MiB | alg4: copy volume chunk1 1.47 GB, chunk2 0.41 GB | 68.51 ms (estimate 3.02, plan 0.07, exec 65.42) = 0.833 GFLOP/s | nnz(C) 16230400 | H2D 0.41 GB, D2H 0.197 GB | peak 480.5 / 512.0 MiB | 10 tiles, 0 replans, 0 splits
+    alg4_overlap    59.57 ms  alg4: chunk_b P_AC=12 P_B=1 depth=2 | predicted 62.08 ms, copies 0.754 GB, peak 466 MiB | alg4: copy volume chunk1 1.83 GB, chunk2 0.41 GB | 55.24 ms (estimate 3.91, plan 0.09, exec 51.25) = 1.032 GFLOP/s | nnz(C) 16230400 | H2D 0.41 GB, D2H 0.197 GB | peak 472.6 / 512.0 MiB | 13 tiles, 0 replans, 1 splits
+    rasp_static     64.29 ms  rasp: chunk_b P_AC=12 P_B=1 depth=3 | predicted 62.01 ms, copies 0.754 GB, peak 497 MiB | rasp: fastest simulated candidate (0.92 GFLOP/s predicted) | 60.03 ms (estimate 3.04, plan 4.69, exec 52.31) = 0.950 GFLOP/s | nnz(C) 16230400 | H2D 0.41 GB, D2H 0.197 GB | peak 474.7 / 512.0 MiB | 13 tiles, 0 replans, 1 splits
+    rasp            62.01 ms  rasp: chunk_b P_AC=13 P_B=1 depth=3 +probe | predicted 62.01 ms, copies 0.754 GB, peak 497 MiB | rasp: fastest simulated candidate (0.92 GFLOP/s predicted) | 61.47 ms (estimate 3.28, plan 3.57, exec 54.62) = 0.928 GFLOP/s | nnz(C) 16230400 | H2D 0.41 GB, D2H 0.197 GB | peak 472.2 / 512.0 MiB | 14 tiles, 3 replans, 2 splits
+    zerocopy        69.05 ms  rasp: zerocopy P_AC=5 P_B=1 depth=1 | predicted 67.59 ms, copies 0.359 GB, peak 497 MiB | rasp: fastest simulated candidate (0.844 GFLOP/s predicted) | 61.80 ms (estimate 3.23, plan 0.06, exec 58.52) = 0.923 GFLOP/s | nnz(C) 16230400 | H2D 0.359 GB, D2H 0 GB | peak 483.2 / 512.0 MiB | 7 tiles, 1 replans, 2 splits
 == RxA n=192: 884736 x 7077888 (nnz 7077888) * 7077888 x 7077888 (nnz 49324032)
-  fp64 incore      rasp: incore P_AC=1 P_B=1 depth=1 | predicted 154.77 ms, copies 1.3 GB, peak 2374 MiB | rasp: fastest simulated candidate (0.637 GFLOP/s predicted) | 105.17 ms (estimate 6.33, plan 0.02, exec 98.82) = 0.938 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 2593.8 / 4309.5 MiB | 2 tiles, 0 replans, 0 splits
-  fp64 device_only 17.365 ms
+  fp64 incore      rasp: incore P_AC=1 P_B=1 depth=1 | predicted 249.43 ms, copies 1.3 GB, peak 2374 MiB | rasp: fastest simulated candidate (0.395 GFLOP/s predicted) | 110.20 ms (estimate 8.70, plan 0.14, exec 101.36) = 0.895 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 2593.8 / 4309.5 MiB | 2 tiles, 0 replans, 0 splits
+  fp64 device_only 16.333 ms
   fp64 budget 512 MiB (problem 1001 MiB, ratio 1.95)
-    alg4           204.40 ms  alg4: chunk_b P_AC=20 P_B=2 depth=1 | predicted 276.99 ms, copies 2.58 GB, peak 497 MiB | alg4: copy volume chunk1 3.78 GB, chunk2 1.39 GB | 200.54 ms (estimate 3.65, plan 0.12, exec 196.77) = 0.492 GFLOP/s | nnz(C) 28090368 | H2D 0.998 GB, D2H 0.541 GB | peak 473.3 / 512.0 MiB | 42 tiles, 0 replans, 0 splits
-    alg4_overlap   155.23 ms  alg4: chunk_b P_AC=30 P_B=2 depth=2 | predicted 204.79 ms, copies 2.58 GB, peak 497 MiB | alg4: copy volume chunk1 5.03 GB, chunk2 1.39 GB | 156.41 ms (estimate 3.72, plan 0.18, exec 152.52) = 0.631 GFLOP/s | nnz(C) 28090368 | H2D 0.998 GB, D2H 0.541 GB | peak 475.2 / 512.0 MiB | 62 tiles, 0 replans, 0 splits
-    rasp_static    218.31 ms  rasp: chunk_b P_AC=81 P_B=2 depth=3 | predicted 204.24 ms, copies 2.58 GB, peak 435 MiB | rasp: fastest simulated candidate (0.483 GFLOP/s predicted) | 255.58 ms (estimate 15.03, plan 10.63, exec 229.91) = 0.386 GFLOP/s | nnz(C) 28090368 | H2D 0.998 GB, D2H 0.541 GB | peak 428.7 / 512.0 MiB | 164 tiles, 0 replans, 0 splits
-    rasp           218.01 ms  rasp: chunk_b P_AC=81 P_B=2 depth=3 | predicted 204.24 ms, copies 2.58 GB, peak 435 MiB | rasp: fastest simulated candidate (0.483 GFLOP/s predicted) | 210.56 ms (estimate 4.24, plan 5.52, exec 200.80) = 0.469 GFLOP/s | nnz(C) 28090368 | H2D 0.998 GB, D2H 0.541 GB | peak 428.7 / 512.0 MiB | 164 tiles, 0 replans, 0 splits
+    alg4           221.27 ms  alg4: chunk_b P_AC=20 P_B=2 depth=1 | predicted 271.43 ms, copies 2.58 GB, peak 497 MiB | alg4: copy volume chunk1 3.78 GB, chunk2 1.39 GB | 223.26 ms (estimate 12.99, plan 0.12, exec 210.15) = 0.442 GFLOP/s | nnz(C) 28090368 | H2D 0.998 GB, D2H 0.541 GB | peak 473.3 / 512.0 MiB | 42 tiles, 0 replans, 0 splits
+    alg4_overlap   176.12 ms  alg4: chunk_b P_AC=30 P_B=2 depth=2 | predicted 199.24 ms, copies 2.58 GB, peak 497 MiB | alg4: copy volume chunk1 5.03 GB, chunk2 1.39 GB | 179.06 ms (estimate 11.79, plan 0.38, exec 166.89) = 0.551 GFLOP/s | nnz(C) 28090368 | H2D 0.998 GB, D2H 0.541 GB | peak 475.2 / 512.0 MiB | 62 tiles, 0 replans, 0 splits
+    rasp_static    212.09 ms  rasp: chunk_b P_AC=60 P_B=2 depth=3 | predicted 198.75 ms, copies 2.58 GB, peak 455 MiB | rasp: fastest simulated candidate (0.496 GFLOP/s predicted) | 204.54 ms (estimate 12.71, plan 6.31, exec 185.51) = 0.482 GFLOP/s | nnz(C) 28090368 | H2D 0.998 GB, D2H 0.541 GB | peak 438.6 / 512.0 MiB | 122 tiles, 0 replans, 0 splits
+    rasp           214.48 ms  rasp: chunk_b P_AC=60 P_B=2 depth=3 | predicted 198.75 ms, copies 2.58 GB, peak 455 MiB | rasp: fastest simulated candidate (0.496 GFLOP/s predicted) | 208.58 ms (estimate 15.96, plan 6.76, exec 185.86) = 0.473 GFLOP/s | nnz(C) 28090368 | H2D 0.998 GB, D2H 0.541 GB | peak 410.2 / 512.0 MiB | 122 tiles, 0 replans, 0 splits
     zerocopy     infeasible: rasp: no SpGEMM plan fits a budget of 520.764785 MB
 == RxA n=224: 1404928 x 11239424 (nnz 11239424) * 11239424 x 11239424 (nnz 78374912)
-  fp64 incore      rasp: incore P_AC=1 P_B=1 depth=1 | predicted 252.16 ms, copies 2.07 GB, peak 3771 MiB | rasp: fastest simulated candidate (0.622 GFLOP/s predicted) | 168.48 ms (estimate 12.63, plan 0.02, exec 155.83) = 0.930 GFLOP/s | nnz(C) 44656640 | H2D 1.13 GB, D2H 0.541 GB | peak 4121.6 / 4309.5 MiB | 2 tiles, 0 replans, 0 splits
-  fp64 device_only 26.983 ms
+  fp64 incore      rasp: incore P_AC=1 P_B=1 depth=1 | predicted 236.62 ms, copies 2.07 GB, peak 3771 MiB | rasp: fastest simulated candidate (0.662 GFLOP/s predicted) | 204.14 ms (estimate 34.41, plan 0.13, exec 169.60) = 0.768 GFLOP/s | nnz(C) 44656640 | H2D 1.13 GB, D2H 0.541 GB | peak 4121.6 / 4309.5 MiB | 2 tiles, 0 replans, 0 splits
+  fp64 device_only 26.691 ms
   fp64 budget 512 MiB (problem 1590 MiB, ratio 3.11)
-    alg4           417.79 ms  alg4: chunk_b P_AC=29 P_B=3 depth=1 | predicted 647.13 ms, copies 6.14 GB, peak 497 MiB | alg4: copy volume chunk1 8.97 GB, chunk2 3.3 GB | 423.37 ms (estimate 13.69, plan 0.20, exec 409.48) = 0.370 GFLOP/s | nnz(C) 44656640 | H2D 1.98 GB, D2H 1.12 GB | peak 486.0 / 512.0 MiB | 90 tiles, 0 replans, 0 splits
-    alg4_overlap   311.09 ms  alg4: chunk_b P_AC=44 P_B=3 depth=2 | predicted 505.48 ms, copies 6.14 GB, peak 497 MiB | alg4: copy volume chunk1 11.9 GB, chunk2 3.3 GB | 310.60 ms (estimate 10.85, plan 0.42, exec 299.33) = 0.505 GFLOP/s | nnz(C) 44656640 | H2D 1.98 GB, D2H 1.12 GB | peak 497.0 / 512.0 MiB | 135 tiles, 0 replans, 0 splits
-    rasp_static    619.31 ms  rasp: chunk_b P_AC=182 P_B=3 depth=3 | predicted 505.14 ms, copies 6.14 GB, peak 414 MiB | rasp: fastest simulated candidate (0.31 GFLOP/s predicted) | 620.73 ms (estimate 14.70, plan 6.81, exec 599.22) = 0.253 GFLOP/s | nnz(C) 44656640 | H2D 1.98 GB, D2H 1.12 GB | peak 435.8 / 512.0 MiB | 549 tiles, 0 replans, 0 splits
-    rasp           628.51 ms  rasp: chunk_b P_AC=182 P_B=3 depth=3 | predicted 505.14 ms, copies 6.14 GB, peak 414 MiB | rasp: fastest simulated candidate (0.31 GFLOP/s predicted) | 622.74 ms (estimate 15.35, plan 6.83, exec 600.56) = 0.252 GFLOP/s | nnz(C) 44656640 | H2D 1.98 GB, D2H 1.12 GB | peak 435.8 / 512.0 MiB | 549 tiles, 0 replans, 0 splits
+    alg4           421.06 ms  alg4: chunk_b P_AC=29 P_B=3 depth=1 | predicted 615.44 ms, copies 6.14 GB, peak 497 MiB | alg4: copy volume chunk1 8.97 GB, chunk2 3.3 GB | 423.14 ms (estimate 20.65, plan 0.41, exec 402.08) = 0.370 GFLOP/s | nnz(C) 44656640 | H2D 1.98 GB, D2H 1.12 GB | peak 486.0 / 512.0 MiB | 90 tiles, 0 replans, 0 splits
+    alg4_overlap   326.18 ms  alg4: chunk_b P_AC=44 P_B=3 depth=2 | predicted 473.81 ms, copies 6.14 GB, peak 497 MiB | alg4: copy volume chunk1 11.9 GB, chunk2 3.3 GB | 338.28 ms (estimate 36.16, plan 0.46, exec 301.66) = 0.463 GFLOP/s | nnz(C) 44656640 | H2D 1.98 GB, D2H 1.12 GB | peak 497.0 / 512.0 MiB | 135 tiles, 0 replans, 0 splits
+    rasp_static    683.27 ms  rasp: chunk_b P_AC=182 P_B=3 depth=3 | predicted 473.46 ms, copies 6.14 GB, peak 414 MiB | rasp: fastest simulated candidate (0.331 GFLOP/s predicted) | 669.57 ms (estimate 17.90, plan 12.37, exec 639.30) = 0.234 GFLOP/s | nnz(C) 44656640 | H2D 1.98 GB, D2H 1.12 GB | peak 435.8 / 512.0 MiB | 549 tiles, 0 replans, 0 splits
+    rasp           666.23 ms  rasp: chunk_b P_AC=182 P_B=3 depth=3 | predicted 473.46 ms, copies 6.14 GB, peak 414 MiB | rasp: fastest simulated candidate (0.331 GFLOP/s predicted) | 668.72 ms (estimate 15.18, plan 8.43, exec 645.10) = 0.234 GFLOP/s | nnz(C) 44656640 | H2D 1.98 GB, D2H 1.12 GB | peak 435.8 / 512.0 MiB | 549 tiles, 0 replans, 0 splits
     zerocopy     infeasible: rasp: no SpGEMM plan fits a budget of 520.764785 MB
 == RxA n=256: 2097152 x 16777216 (nnz 16777216) * 16777216 x 16777216 (nnz 117047296)
   fp64 incore      rasp: no SpGEMM plan fits a budget of 4383.273124 MB
-  fp64 device_only 69.109 ms
+  fp64 device_only 90.506 ms
   fp64 budget 512 MiB (problem 2375 MiB, ratio 4.64)
-    alg4           937.86 ms  alg4: chunk_b P_AC=40 P_B=5 depth=1 | predicted 1487.47 ms, copies 15.2 GB, peak 497 MiB | alg4: copy volume chunk1 19.3 GB, chunk2 8.17 GB | 943.64 ms (estimate 25.76, plan 0.47, exec 917.41) = 0.248 GFLOP/s | nnz(C) 66715648 | H2D 4.32 GB, D2H 2.6 GB | peak 494.2 / 512.0 MiB | 205 tiles, 0 replans, 0 splits
-    alg4_overlap   703.16 ms  alg4: chunk_b P_AC=63 P_B=5 depth=2 | predicted 1197.84 ms, copies 15.2 GB, peak 497 MiB | alg4: copy volume chunk1 inf GB, chunk2 8.17 GB | 699.00 ms (estimate 13.56, plan 0.40, exec 685.05) = 0.335 GFLOP/s | nnz(C) 66715648 | H2D 4.32 GB, D2H 2.6 GB | peak 454.6 / 512.0 MiB | 320 tiles, 0 replans, 0 splits
-    rasp_static    782.42 ms  rasp: chunk_b P_AC=87 P_B=5 depth=3 | predicted 1197.61 ms, copies 15.2 GB, peak 497 MiB | rasp: fastest simulated candidate (0.195 GFLOP/s predicted) | 770.19 ms (estimate 16.48, plan 6.08, exec 747.64) = 0.304 GFLOP/s | nnz(C) 66715648 | H2D 4.32 GB, D2H 2.6 GB | peak 438.0 / 512.0 MiB | 440 tiles, 0 replans, 0 splits
-    rasp           799.12 ms  rasp: chunk_b P_AC=87 P_B=5 depth=3 | predicted 1197.61 ms, copies 15.2 GB, peak 497 MiB | rasp: fastest simulated candidate (0.195 GFLOP/s predicted) | 817.70 ms (estimate 24.90, plan 5.93, exec 786.87) = 0.286 GFLOP/s | nnz(C) 66715648 | H2D 4.32 GB, D2H 2.6 GB | peak 500.9 / 512.0 MiB | 440 tiles, 0 replans, 0 splits
+    alg4          1013.20 ms  alg4: chunk_b P_AC=40 P_B=5 depth=1 | predicted 1445.69 ms, copies 15.2 GB, peak 497 MiB | alg4: copy volume chunk1 19.3 GB, chunk2 8.17 GB | 1058.88 ms (estimate 19.88, plan 0.64, exec 1038.36) = 0.221 GFLOP/s | nnz(C) 66715648 | H2D 4.32 GB, D2H 2.6 GB | peak 494.2 / 512.0 MiB | 205 tiles, 0 replans, 0 splits
+    alg4_overlap   790.16 ms  alg4: chunk_b P_AC=63 P_B=5 depth=2 | predicted 1156.06 ms, copies 15.2 GB, peak 497 MiB | alg4: copy volume chunk1 inf GB, chunk2 8.17 GB | 795.42 ms (estimate 18.11, plan 0.43, exec 776.88) = 0.294 GFLOP/s | nnz(C) 66715648 | H2D 4.32 GB, D2H 2.6 GB | peak 454.6 / 512.0 MiB | 320 tiles, 0 replans, 1 splits
+    rasp_static    879.00 ms  rasp: chunk_b P_AC=87 P_B=5 depth=3 | predicted 1155.84 ms, copies 15.2 GB, peak 497 MiB | rasp: fastest simulated candidate (0.203 GFLOP/s predicted) | 904.29 ms (estimate 19.48, plan 7.61, exec 877.19) = 0.259 GFLOP/s | nnz(C) 66715648 | H2D 4.32 GB, D2H 2.6 GB | peak 446.9 / 512.0 MiB | 440 tiles, 0 replans, 0 splits
+    rasp           877.02 ms  rasp: chunk_b P_AC=87 P_B=5 depth=3 | predicted 1155.84 ms, copies 15.2 GB, peak 497 MiB | rasp: fastest simulated candidate (0.203 GFLOP/s predicted) | 867.22 ms (estimate 14.96, plan 5.95, exec 846.31) = 0.270 GFLOP/s | nnz(C) 66715648 | H2D 4.32 GB, D2H 2.6 GB | peak 500.9 / 512.0 MiB | 440 tiles, 0 replans, 0 splits
     zerocopy     infeasible: rasp: no SpGEMM plan fits a budget of 520.764785 MB
 
 0 failures -> results/phase4/ooc.csv
 == Out-of-core: fixed size, budget swept
-NVIDIA GeForce RTX 4050 Laptop GPU | cuSPARSE 12.8.2 | git b62f4b4 | study ooc
+NVIDIA GeForce RTX 4050 Laptop GPU | cuSPARSE 12.8.2 | git 13fcbe3 | study ooc
 == AxP n=192: 7077888 x 7077888 (nnz 49324032) * 7077888 x 884736 (nnz 7077888)
   fp64 budget 2096 MiB (problem 1048 MiB, ratio 0.50)
-    alg4           149.37 ms  alg4: chunk_b P_AC=5 P_B=1 depth=1 | predicted 165.66 ms, copies 1.35 GB, peak 616 MiB | alg4: copy volume chunk1 1.47 GB, chunk2 0.733 GB | 148.21 ms (estimate 23.95, plan 0.06, exec 124.20) = 0.666 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 780.5 / 2095.9 MiB | 6 tiles, 0 replans, 0 splits
-    alg4_overlap   110.16 ms  alg4: chunk_b P_AC=7 P_B=1 depth=2 | predicted 114.83 ms, copies 1.35 GB, peak 616 MiB | alg4: copy volume chunk1 1.58 GB, chunk2 0.733 GB | 107.88 ms (estimate 21.94, plan 0.10, exec 85.85) = 0.914 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 861.1 / 2095.9 MiB | 8 tiles, 0 replans, 0 splits
-    rasp_static    115.51 ms  rasp: chunk_b P_AC=3 P_B=1 depth=2 | predicted 114.83 ms, copies 1.35 GB, peak 1391 MiB | rasp: fastest simulated candidate (0.859 GFLOP/s predicted) | 134.58 ms (estimate 45.13, plan 0.57, exec 88.88) = 0.733 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 1824.2 / 2095.9 MiB | 4 tiles, 0 replans, 0 splits
-    rasp           110.16 ms  rasp: chunk_b P_AC=3 P_B=1 depth=2 +probe | predicted 114.83 ms, copies 1.35 GB, peak 1792 MiB | rasp: fastest simulated candidate (0.859 GFLOP/s predicted) | 110.86 ms (estimate 22.85, plan 0.71, exec 87.30) = 0.890 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 1850.2 / 2095.9 MiB | 4 tiles, 0 replans, 0 splits
-    zerocopy       157.29 ms  rasp: zerocopy P_AC=1 P_B=1 depth=1 | predicted 227.24 ms, copies 0.113 GB, peak 1265 MiB | rasp: fastest simulated candidate (0.434 GFLOP/s predicted) | 155.02 ms (estimate 22.50, plan 0.04, exec 132.49) = 0.636 GFLOP/s | nnz(C) 28090368 | H2D 0.113 GB, D2H 0 GB | peak 1534.0 / 2095.9 MiB | 2 tiles, 0 replans, 1 splits
+    alg4           149.62 ms  alg4: chunk_b P_AC=5 P_B=1 depth=1 | predicted 154.82 ms, copies 1.35 GB, peak 616 MiB | alg4: copy volume chunk1 1.47 GB, chunk2 0.733 GB | 149.52 ms (estimate 24.12, plan 0.07, exec 125.34) = 0.660 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 780.5 / 2095.9 MiB | 6 tiles, 0 replans, 0 splits
+    alg4_overlap   120.10 ms  alg4: chunk_b P_AC=7 P_B=1 depth=2 | predicted 104.59 ms, copies 1.35 GB, peak 616 MiB | alg4: copy volume chunk1 1.58 GB, chunk2 0.733 GB | 111.10 ms (estimate 22.60, plan 0.10, exec 88.40) = 0.888 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 810.5 / 2095.9 MiB | 8 tiles, 0 replans, 0 splits
+    rasp_static    116.47 ms  rasp: chunk_b P_AC=3 P_B=1 depth=3 | predicted 103.99 ms, copies 1.35 GB, peak 2033 MiB | rasp: fastest simulated candidate (0.949 GFLOP/s predicted) | 131.38 ms (estimate 33.41, plan 1.37, exec 96.59) = 0.751 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 1960.3 / 2095.9 MiB | 4 tiles, 0 replans, 0 splits
+    rasp           119.32 ms  rasp: chunk_b P_AC=3 P_B=1 depth=2 +probe | predicted 103.99 ms, copies 1.35 GB, peak 1792 MiB | rasp: fastest simulated candidate (0.949 GFLOP/s predicted) | 117.41 ms (estimate 24.33, plan 1.15, exec 91.93) = 0.840 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 1850.2 / 2095.9 MiB | 4 tiles, 0 replans, 0 splits
+    zerocopy       169.18 ms  rasp: zerocopy P_AC=1 P_B=1 depth=1 | predicted 197.92 ms, copies 0.113 GB, peak 1265 MiB | rasp: fastest simulated candidate (0.498 GFLOP/s predicted) | 177.19 ms (estimate 36.82, plan 0.04, exec 140.34) = 0.557 GFLOP/s | nnz(C) 28090368 | H2D 0.113 GB, D2H 0 GB | peak 1534.0 / 2095.9 MiB | 2 tiles, 0 replans, 1 splits
   fp64 budget 1048 MiB (problem 1048 MiB, ratio 1.00)
-    alg4           149.25 ms  alg4: chunk_b P_AC=10 P_B=1 depth=1 | predicted 165.05 ms, copies 1.35 GB, peak 362 MiB | alg4: copy volume chunk1 1.69 GB, chunk2 0.733 GB | 149.36 ms (estimate 22.22, plan 0.10, exec 127.04) = 0.660 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 443.6 / 1047.9 MiB | 11 tiles, 0 replans, 0 splits
-    alg4_overlap   110.02 ms  alg4: chunk_b P_AC=14 P_B=1 depth=2 | predicted 112.77 ms, copies 1.35 GB, peak 362 MiB | alg4: copy volume chunk1 1.81 GB, chunk2 0.733 GB | 122.48 ms (estimate 34.15, plan 0.14, exec 88.19) = 0.805 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 458.6 / 1047.9 MiB | 15 tiles, 0 replans, 0 splits
-    rasp_static    115.72 ms  rasp: chunk_b P_AC=4 P_B=1 depth=2 | predicted 112.72 ms, copies 1.35 GB, peak 1016 MiB | rasp: fastest simulated candidate (0.875 GFLOP/s predicted) | 122.33 ms (estimate 28.73, plan 0.95, exec 92.65) = 0.806 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 1008.7 / 1047.9 MiB | 5 tiles, 0 replans, 4 splits
-    rasp           114.49 ms  rasp: chunk_b P_AC=5 P_B=1 depth=2 +probe | predicted 112.72 ms, copies 1.35 GB, peak 1016 MiB | rasp: fastest simulated candidate (0.875 GFLOP/s predicted) | 110.53 ms (estimate 22.81, plan 0.95, exec 86.77) = 0.892 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 988.6 / 1047.9 MiB | 14 tiles, 3 replans, 2 splits
-    zerocopy       159.16 ms  rasp: zerocopy P_AC=2 P_B=1 depth=1 | predicted 221.45 ms, copies 0.113 GB, peak 1016 MiB | rasp: fastest simulated candidate (0.445 GFLOP/s predicted) | 162.13 ms (estimate 29.68, plan 0.05, exec 132.41) = 0.608 GFLOP/s | nnz(C) 28090368 | H2D 0.113 GB, D2H 0 GB | peak 1005.6 / 1047.9 MiB | 3 tiles, 0 replans, 1 splits
+    alg4           155.33 ms  alg4: chunk_b P_AC=10 P_B=1 depth=1 | predicted 158.95 ms, copies 1.35 GB, peak 362 MiB | alg4: copy volume chunk1 1.69 GB, chunk2 0.733 GB | 154.86 ms (estimate 25.46, plan 0.13, exec 129.27) = 0.637 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 443.6 / 1047.9 MiB | 11 tiles, 0 replans, 0 splits
+    alg4_overlap   126.30 ms  alg4: chunk_b P_AC=14 P_B=1 depth=2 | predicted 106.92 ms, copies 1.35 GB, peak 362 MiB | alg4: copy volume chunk1 1.81 GB, chunk2 0.733 GB | 135.67 ms (estimate 42.94, plan 0.16, exec 92.57) = 0.727 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 458.6 / 1047.9 MiB | 15 tiles, 0 replans, 0 splits
+    rasp_static    121.47 ms  rasp: chunk_b P_AC=6 P_B=1 depth=3 | predicted 106.63 ms, copies 1.35 GB, peak 1016 MiB | rasp: fastest simulated candidate (0.925 GFLOP/s predicted) | 116.87 ms (estimate 24.63, plan 1.36, exec 90.89) = 0.844 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 1046.7 / 1047.9 MiB | 7 tiles, 0 replans, 0 splits
+    rasp           124.87 ms  rasp: chunk_b P_AC=5 P_B=1 depth=2 +probe | predicted 106.63 ms, copies 1.35 GB, peak 1016 MiB | rasp: fastest simulated candidate (0.925 GFLOP/s predicted) | 130.01 ms (estimate 28.23, plan 1.14, exec 100.64) = 0.759 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 1004.0 / 1047.9 MiB | 7 tiles, 2 replans, 2 splits
+    zerocopy       167.94 ms  rasp: zerocopy P_AC=2 P_B=1 depth=1 | predicted 207.58 ms, copies 0.113 GB, peak 1016 MiB | rasp: fastest simulated candidate (0.475 GFLOP/s predicted) | 161.74 ms (estimate 23.33, plan 0.05, exec 138.36) = 0.610 GFLOP/s | nnz(C) 28090368 | H2D 0.113 GB, D2H 0 GB | peak 1005.6 / 1047.9 MiB | 3 tiles, 0 replans, 1 splits
   fp64 budget 699 MiB (problem 1048 MiB, ratio 1.50)
-    alg4           155.39 ms  alg4: chunk_b P_AC=14 P_B=1 depth=1 | predicted 166.16 ms, copies 1.35 GB, peak 277 MiB | alg4: copy volume chunk1 1.81 GB, chunk2 0.733 GB | 150.75 ms (estimate 21.53, plan 0.12, exec 129.10) = 0.654 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 331.3 / 698.6 MiB | 15 tiles, 0 replans, 0 splits
-    alg4_overlap   111.26 ms  alg4: chunk_b P_AC=21 P_B=1 depth=2 | predicted 112.76 ms, copies 1.35 GB, peak 277 MiB | alg4: copy volume chunk1 2.03 GB, chunk2 0.733 GB | 125.06 ms (estimate 37.13, plan 0.16, exec 87.76) = 0.789 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 341.3 / 698.6 MiB | 22 tiles, 0 replans, 0 splits
-    rasp_static    121.42 ms  rasp: chunk_b P_AC=7 P_B=1 depth=2 | predicted 112.63 ms, copies 1.35 GB, peak 678 MiB | rasp: fastest simulated candidate (0.876 GFLOP/s predicted) | 114.32 ms (estimate 20.99, plan 1.55, exec 91.78) = 0.863 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 672.4 / 698.6 MiB | 8 tiles, 0 replans, 8 splits
-    rasp           115.62 ms  rasp: chunk_b P_AC=8 P_B=1 depth=2 +probe | predicted 112.63 ms, copies 1.35 GB, peak 678 MiB | rasp: fastest simulated candidate (0.876 GFLOP/s predicted) | 115.18 ms (estimate 26.48, plan 1.51, exec 87.19) = 0.856 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 659.9 / 698.6 MiB | 10 tiles, 3 replans, 6 splits
-    zerocopy       163.76 ms  rasp: zerocopy P_AC=3 P_B=1 depth=1 | predicted 221.79 ms, copies 0.113 GB, peak 678 MiB | rasp: fastest simulated candidate (0.445 GFLOP/s predicted) | 170.92 ms (estimate 30.00, plan 0.06, exec 140.86) = 0.577 GFLOP/s | nnz(C) 28090368 | H2D 0.113 GB, D2H 0 GB | peak 670.5 / 698.6 MiB | 4 tiles, 1 replans, 2 splits
+    alg4           155.66 ms  alg4: chunk_b P_AC=14 P_B=1 depth=1 | predicted 160.19 ms, copies 1.35 GB, peak 277 MiB | alg4: copy volume chunk1 1.81 GB, chunk2 0.733 GB | 178.77 ms (estimate 47.37, plan 0.14, exec 131.27) = 0.552 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 331.3 / 698.6 MiB | 15 tiles, 0 replans, 0 splits
+    alg4_overlap   120.22 ms  alg4: chunk_b P_AC=21 P_B=1 depth=2 | predicted 106.94 ms, copies 1.35 GB, peak 277 MiB | alg4: copy volume chunk1 2.03 GB, chunk2 0.733 GB | 128.02 ms (estimate 34.37, plan 0.19, exec 93.46) = 0.771 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 341.3 / 698.6 MiB | 22 tiles, 0 replans, 0 splits
+    rasp_static    123.47 ms  rasp: chunk_b P_AC=9 P_B=1 depth=3 | predicted 106.67 ms, copies 1.35 GB, peak 678 MiB | rasp: fastest simulated candidate (0.925 GFLOP/s predicted) | 124.62 ms (estimate 30.00, plan 1.52, exec 93.10) = 0.792 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 696.1 / 698.6 MiB | 10 tiles, 0 replans, 4 splits
+    rasp           121.59 ms  rasp: chunk_b P_AC=8 P_B=1 depth=2 +probe | predicted 106.67 ms, copies 1.35 GB, peak 678 MiB | rasp: fastest simulated candidate (0.925 GFLOP/s predicted) | 127.12 ms (estimate 32.42, plan 1.85, exec 92.85) = 0.776 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 667.1 / 698.6 MiB | 12 tiles, 4 replans, 2 splits
+    zerocopy       182.45 ms  rasp: zerocopy P_AC=3 P_B=1 depth=1 | predicted 209.83 ms, copies 0.113 GB, peak 678 MiB | rasp: fastest simulated candidate (0.47 GFLOP/s predicted) | 167.61 ms (estimate 23.43, plan 0.06, exec 144.12) = 0.589 GFLOP/s | nnz(C) 28090368 | H2D 0.113 GB, D2H 0 GB | peak 670.5 / 698.6 MiB | 4 tiles, 1 replans, 2 splits
   fp64 budget 524 MiB (problem 1048 MiB, ratio 2.00)
-    alg4           165.68 ms  alg4: chunk_b P_AC=19 P_B=1 depth=1 | predicted 168.45 ms, copies 1.35 GB, peak 235 MiB | alg4: copy volume chunk1 2.03 GB, chunk2 0.733 GB | 151.66 ms (estimate 21.37, plan 0.19, exec 130.10) = 0.650 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 275.1 / 524.0 MiB | 20 tiles, 0 replans, 0 splits
-    alg4_overlap   113.14 ms  alg4: chunk_b P_AC=28 P_B=1 depth=2 | predicted 113.58 ms, copies 1.35 GB, peak 235 MiB | alg4: copy volume chunk1 2.37 GB, chunk2 0.733 GB | 108.16 ms (estimate 21.60, plan 0.21, exec 86.35) = 0.912 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 282.6 / 524.0 MiB | 29 tiles, 0 replans, 0 splits
-    rasp_static    117.09 ms  rasp: chunk_b P_AC=9 P_B=1 depth=2 | predicted 113.42 ms, copies 1.35 GB, peak 508 MiB | rasp: fastest simulated candidate (0.87 GFLOP/s predicted) | 116.08 ms (estimate 22.47, plan 2.01, exec 91.60) = 0.850 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 504.3 / 524.0 MiB | 10 tiles, 0 replans, 12 splits
-    rasp           112.94 ms  rasp: chunk_b P_AC=10 P_B=1 depth=2 +probe | predicted 113.42 ms, copies 1.35 GB, peak 508 MiB | rasp: fastest simulated candidate (0.87 GFLOP/s predicted) | 119.10 ms (estimate 28.27, plan 2.08, exec 88.76) = 0.828 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 495.9 / 524.0 MiB | 21 tiles, 4 replans, 1 splits
-    zerocopy       157.33 ms  rasp: zerocopy P_AC=3 P_B=1 depth=1 | predicted 223.75 ms, copies 0.113 GB, peak 508 MiB | rasp: fastest simulated candidate (0.441 GFLOP/s predicted) | 156.34 ms (estimate 21.59, plan 0.08, exec 134.67) = 0.631 GFLOP/s | nnz(C) 28090368 | H2D 0.113 GB, D2H 0 GB | peak 502.9 / 524.0 MiB | 5 tiles, 1 replans, 2 splits
+    alg4           154.95 ms  alg4: chunk_b P_AC=19 P_B=1 depth=1 | predicted 159.27 ms, copies 1.35 GB, peak 235 MiB | alg4: copy volume chunk1 2.03 GB, chunk2 0.733 GB | 160.56 ms (estimate 29.57, plan 0.16, exec 130.83) = 0.614 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 275.1 / 524.0 MiB | 20 tiles, 0 replans, 0 splits
+    alg4_overlap   121.23 ms  alg4: chunk_b P_AC=28 P_B=1 depth=2 | predicted 104.60 ms, copies 1.35 GB, peak 235 MiB | alg4: copy volume chunk1 2.37 GB, chunk2 0.733 GB | 128.09 ms (estimate 37.07, plan 0.22, exec 90.80) = 0.770 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 282.6 / 524.0 MiB | 29 tiles, 0 replans, 0 splits
+    rasp_static    123.40 ms  rasp: chunk_b P_AC=12 P_B=1 depth=3 | predicted 104.25 ms, copies 1.35 GB, peak 508 MiB | rasp: fastest simulated candidate (0.946 GFLOP/s predicted) | 120.78 ms (estimate 26.09, plan 2.94, exec 91.75) = 0.817 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 523.2 / 524.0 MiB | 13 tiles, 0 replans, 9 splits
+    rasp           118.95 ms  rasp: chunk_b P_AC=10 P_B=1 depth=2 +probe | predicted 104.25 ms, copies 1.35 GB, peak 508 MiB | rasp: fastest simulated candidate (0.946 GFLOP/s predicted) | 114.22 ms (estimate 26.16, plan 2.10, exec 85.96) = 0.864 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 510.1 / 524.0 MiB | 20 tiles, 3 replans, 2 splits
+    zerocopy       163.64 ms  rasp: zerocopy P_AC=3 P_B=1 depth=1 | predicted 201.44 ms, copies 0.113 GB, peak 508 MiB | rasp: fastest simulated candidate (0.49 GFLOP/s predicted) | 175.67 ms (estimate 40.99, plan 0.07, exec 134.60) = 0.562 GFLOP/s | nnz(C) 28090368 | H2D 0.113 GB, D2H 0 GB | peak 502.9 / 524.0 MiB | 5 tiles, 1 replans, 2 splits
   fp64 budget 349 MiB (problem 1048 MiB, ratio 3.00)
-    alg4           171.66 ms  alg4: chunk_b P_AC=28 P_B=1 depth=1 | predicted 171.04 ms, copies 1.35 GB, peak 193 MiB | alg4: copy volume chunk1 2.37 GB, chunk2 0.733 GB | 239.25 ms (estimate 34.62, plan 0.22, exec 204.42) = 0.412 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 219.0 / 349.3 MiB | 29 tiles, 0 replans, 0 splits
-    alg4_overlap   112.94 ms  alg4: chunk_b P_AC=42 P_B=1 depth=2 | predicted 113.52 ms, copies 1.35 GB, peak 193 MiB | alg4: copy volume chunk1 2.83 GB, chunk2 0.733 GB | 112.76 ms (estimate 24.64, plan 0.30, exec 87.82) = 0.875 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 223.9 / 349.3 MiB | 43 tiles, 0 replans, 0 splits
-    rasp_static    124.34 ms  rasp: chunk_b P_AC=21 P_B=1 depth=3 | predicted 113.32 ms, copies 1.35 GB, peak 339 MiB | rasp: fastest simulated candidate (0.871 GFLOP/s predicted) | 122.21 ms (estimate 26.43, plan 2.90, exec 92.88) = 0.807 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 346.9 / 349.3 MiB | 22 tiles, 0 replans, 17 splits
-    rasp           117.19 ms  rasp: chunk_b P_AC=17 P_B=1 depth=2 +probe | predicted 113.32 ms, copies 1.35 GB, peak 339 MiB | rasp: fastest simulated candidate (0.871 GFLOP/s predicted) | 120.97 ms (estimate 28.57, plan 2.91, exec 89.49) = 0.816 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 335.2 / 349.3 MiB | 21 tiles, 3 replans, 14 splits
-    zerocopy       154.84 ms  rasp: zerocopy P_AC=6 P_B=1 depth=1 | predicted 224.73 ms, copies 0.113 GB, peak 339 MiB | rasp: fastest simulated candidate (0.439 GFLOP/s predicted) | 151.69 ms (estimate 21.50, plan 0.12, exec 130.07) = 0.650 GFLOP/s | nnz(C) 28090368 | H2D 0.113 GB, D2H 0 GB | peak 335.4 / 349.3 MiB | 10 tiles, 1 replans, 2 splits
+    alg4           157.71 ms  alg4: chunk_b P_AC=28 P_B=1 depth=1 | predicted 160.55 ms, copies 1.35 GB, peak 193 MiB | alg4: copy volume chunk1 2.37 GB, chunk2 0.733 GB | 158.11 ms (estimate 26.12, plan 0.63, exec 131.37) = 0.624 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 219.0 / 349.3 MiB | 29 tiles, 0 replans, 0 splits
+    alg4_overlap   121.28 ms  alg4: chunk_b P_AC=42 P_B=1 depth=2 | predicted 103.23 ms, copies 1.35 GB, peak 193 MiB | alg4: copy volume chunk1 2.83 GB, chunk2 0.733 GB | 124.68 ms (estimate 35.75, plan 0.40, exec 88.53) = 0.791 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 209.8 / 349.3 MiB | 43 tiles, 0 replans, 0 splits
+    rasp_static    123.91 ms  rasp: chunk_b P_AC=21 P_B=1 depth=3 | predicted 102.83 ms, copies 1.35 GB, peak 339 MiB | rasp: fastest simulated candidate (0.959 GFLOP/s predicted) | 118.36 ms (estimate 21.97, plan 3.94, exec 92.46) = 0.833 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 346.9 / 349.3 MiB | 22 tiles, 0 replans, 17 splits
+    rasp           132.13 ms  rasp: chunk_b P_AC=17 P_B=1 depth=2 +probe | predicted 102.83 ms, copies 1.35 GB, peak 339 MiB | rasp: fastest simulated candidate (0.959 GFLOP/s predicted) | 122.15 ms (estimate 26.27, plan 3.12, exec 92.77) = 0.808 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 335.2 / 349.3 MiB | 51 tiles, 2 replans, 2 splits
+    zerocopy       162.16 ms  rasp: zerocopy P_AC=6 P_B=1 depth=1 | predicted 197.23 ms, copies 0.113 GB, peak 339 MiB | rasp: fastest simulated candidate (0.5 GFLOP/s predicted) | 156.62 ms (estimate 26.84, plan 0.12, exec 129.66) = 0.630 GFLOP/s | nnz(C) 28090368 | H2D 0.113 GB, D2H 0 GB | peak 335.4 / 349.3 MiB | 10 tiles, 1 replans, 2 splits
   fp64 budget 262 MiB (problem 1048 MiB, ratio 4.00)
-    alg4           174.49 ms  alg4: chunk_b P_AC=37 P_B=1 depth=1 | predicted 171.58 ms, copies 1.35 GB, peak 172 MiB | alg4: copy volume chunk1 2.71 GB, chunk2 0.733 GB | 178.64 ms (estimate 30.44, plan 0.29, exec 147.90) = 0.552 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 190.9 / 262.0 MiB | 38 tiles, 0 replans, 0 splits
-    alg4_overlap   113.66 ms  alg4: chunk_b P_AC=56 P_B=1 depth=2 | predicted 111.61 ms, copies 1.35 GB, peak 172 MiB | alg4: copy volume chunk1 3.39 GB, chunk2 0.733 GB | 113.31 ms (estimate 24.24, plan 0.43, exec 88.64) = 0.871 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 194.6 / 262.0 MiB | 57 tiles, 0 replans, 0 splits
-    rasp_static    123.54 ms  rasp: chunk_b P_AC=33 P_B=1 depth=3 | predicted 111.16 ms, copies 1.35 GB, peak 254 MiB | rasp: fastest simulated candidate (0.887 GFLOP/s predicted) | 116.71 ms (estimate 22.24, plan 4.56, exec 89.90) = 0.845 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 258.1 / 262.0 MiB | 34 tiles, 0 replans, 17 splits
-    rasp           120.78 ms  rasp: chunk_b P_AC=34 P_B=1 depth=3 +probe | predicted 111.16 ms, copies 1.35 GB, peak 254 MiB | rasp: fastest simulated candidate (0.887 GFLOP/s predicted) | 121.78 ms (estimate 23.35, plan 4.39, exec 94.04) = 0.810 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 253.5 / 262.0 MiB | 38 tiles, 5 replans, 6 splits
-    zerocopy       157.52 ms  rasp: zerocopy P_AC=8 P_B=1 depth=1 | predicted 219.37 ms, copies 0.113 GB, peak 254 MiB | rasp: fastest simulated candidate (0.45 GFLOP/s predicted) | 156.72 ms (estimate 22.81, plan 0.14, exec 133.76) = 0.629 GFLOP/s | nnz(C) 28090368 | H2D 0.113 GB, D2H 0 GB | peak 251.6 / 262.0 MiB | 16 tiles, 2 replans, 2 splits
+    alg4           183.79 ms  alg4: chunk_b P_AC=37 P_B=1 depth=1 | predicted 163.49 ms, copies 1.35 GB, peak 172 MiB | alg4: copy volume chunk1 2.71 GB, chunk2 0.733 GB | 173.41 ms (estimate 24.31, plan 0.29, exec 148.80) = 0.569 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 190.9 / 262.0 MiB | 38 tiles, 0 replans, 0 splits
+    alg4_overlap   131.30 ms  alg4: chunk_b P_AC=56 P_B=1 depth=2 | predicted 103.64 ms, copies 1.35 GB, peak 172 MiB | alg4: copy volume chunk1 3.39 GB, chunk2 0.733 GB | 135.72 ms (estimate 34.71, plan 0.42, exec 100.59) = 0.727 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 184.0 / 262.0 MiB | 57 tiles, 0 replans, 0 splits
+    rasp_static    135.35 ms  rasp: chunk_b P_AC=33 P_B=1 depth=3 | predicted 103.07 ms, copies 1.35 GB, peak 254 MiB | rasp: fastest simulated candidate (0.957 GFLOP/s predicted) | 131.55 ms (estimate 26.23, plan 4.80, exec 100.53) = 0.750 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 258.1 / 262.0 MiB | 34 tiles, 0 replans, 14 splits
+    rasp           145.94 ms  rasp: chunk_b P_AC=34 P_B=1 depth=3 +probe | predicted 103.07 ms, copies 1.35 GB, peak 254 MiB | rasp: fastest simulated candidate (0.957 GFLOP/s predicted) | 176.58 ms (estimate 58.66, plan 5.44, exec 112.47) = 0.559 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 252.5 / 262.0 MiB | 38 tiles, 4 replans, 4 splits
+    zerocopy       169.51 ms  rasp: zerocopy P_AC=8 P_B=1 depth=1 | predicted 198.95 ms, copies 0.113 GB, peak 254 MiB | rasp: fastest simulated candidate (0.496 GFLOP/s predicted) | 164.41 ms (estimate 23.92, plan 0.17, exec 140.32) = 0.600 GFLOP/s | nnz(C) 28090368 | H2D 0.113 GB, D2H 0 GB | peak 251.6 / 262.0 MiB | 16 tiles, 1 replans, 2 splits
 == RxA n=192: 884736 x 7077888 (nnz 7077888) * 7077888 x 7077888 (nnz 49324032)
   fp64 budget 2001 MiB (problem 1001 MiB, ratio 0.50)
-    alg4           106.53 ms  alg4: chunk_b P_AC=4 P_B=1 depth=1 | predicted 153.19 ms, copies 1.3 GB, peak 1077 MiB | alg4: copy volume chunk1 1.92 GB, chunk2 0.709 GB | 103.68 ms (estimate 3.76, plan 0.05, exec 99.87) = 0.952 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 1136.0 / 2001.4 MiB | 5 tiles, 0 replans, 0 splits
-    alg4_overlap    86.88 ms  alg4: chunk_b P_AC=6 P_B=1 depth=2 | predicted 112.14 ms, copies 1.3 GB, peak 1077 MiB | alg4: copy volume chunk1 1.92 GB, chunk2 0.709 GB | 86.16 ms (estimate 3.26, plan 0.06, exec 82.84) = 1.145 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 1105.2 / 2001.4 MiB | 7 tiles, 0 replans, 0 splits
-    rasp_static     91.32 ms  rasp: chunk_b P_AC=14 P_B=1 depth=3 | predicted 105.82 ms, copies 1.3 GB, peak 816 MiB | rasp: fastest simulated candidate (0.932 GFLOP/s predicted) | 108.07 ms (estimate 14.06, plan 4.19, exec 89.82) = 0.913 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 808.5 / 2001.4 MiB | 15 tiles, 0 replans, 0 splits
-    rasp            98.53 ms  rasp: chunk_b P_AC=15 P_B=1 depth=3 +probe | predicted 105.68 ms, copies 1.3 GB, peak 816 MiB | rasp: fastest simulated candidate (0.934 GFLOP/s predicted) | 91.79 ms (estimate 3.20, plan 3.70, exec 84.90) = 1.075 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 1091.5 / 2001.4 MiB | 25 tiles, 4 replans, 0 splits
-    zerocopy        99.10 ms  rasp: zerocopy P_AC=1 P_B=1 depth=1 | predicted 116.88 ms, copies 0.62 GB, peak 1725 MiB | rasp: fastest simulated candidate (0.844 GFLOP/s predicted) | 98.54 ms (estimate 3.79, plan 0.03, exec 94.72) = 1.001 GFLOP/s | nnz(C) 28090368 | H2D 0.62 GB, D2H 0 GB | peak 1438.7 / 2001.4 MiB | 2 tiles, 0 replans, 1 splits
+    alg4           113.62 ms  alg4: chunk_b P_AC=4 P_B=1 depth=1 | predicted 157.79 ms, copies 1.3 GB, peak 1077 MiB | alg4: copy volume chunk1 1.92 GB, chunk2 0.709 GB | 113.38 ms (estimate 3.90, plan 0.06, exec 109.42) = 0.870 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 1136.0 / 2001.4 MiB | 5 tiles, 0 replans, 0 splits
+    alg4_overlap   103.20 ms  alg4: chunk_b P_AC=6 P_B=1 depth=2 | predicted 116.50 ms, copies 1.3 GB, peak 1077 MiB | alg4: copy volume chunk1 1.92 GB, chunk2 0.709 GB | 104.71 ms (estimate 12.06, plan 0.06, exec 92.59) = 0.942 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 1105.2 / 2001.4 MiB | 7 tiles, 0 replans, 0 splits
+    rasp_static    105.73 ms  rasp: chunk_b P_AC=19 P_B=1 depth=3 | predicted 109.84 ms, copies 1.3 GB, peak 760 MiB | rasp: fastest simulated candidate (0.898 GFLOP/s predicted) | 114.27 ms (estimate 13.59, plan 7.98, exec 92.71) = 0.863 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 754.0 / 2001.4 MiB | 20 tiles, 0 replans, 0 splits
+    rasp           110.32 ms  rasp: chunk_b P_AC=15 P_B=1 depth=3 +probe | predicted 109.78 ms, copies 1.3 GB, peak 816 MiB | rasp: fastest simulated candidate (0.899 GFLOP/s predicted) | 103.84 ms (estimate 5.04, plan 4.08, exec 94.72) = 0.950 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 864.6 / 2001.4 MiB | 16 tiles, 6 replans, 0 splits
+    zerocopy       109.82 ms  rasp: zerocopy P_AC=1 P_B=1 depth=1 | predicted 124.85 ms, copies 0.62 GB, peak 1725 MiB | rasp: fastest simulated candidate (0.79 GFLOP/s predicted) | 112.39 ms (estimate 5.91, plan 0.09, exec 106.39) = 0.878 GFLOP/s | nnz(C) 28090368 | H2D 0.62 GB, D2H 0 GB | peak 1438.7 / 2001.4 MiB | 2 tiles, 0 replans, 1 splits
   fp64 budget 1001 MiB (problem 1001 MiB, ratio 1.00)
-    alg4           115.62 ms  alg4: chunk_b P_AC=8 P_B=1 depth=1 | predicted 154.47 ms, copies 1.3 GB, peak 834 MiB | alg4: copy volume chunk1 2.54 GB, chunk2 0.709 GB | 112.33 ms (estimate 5.09, plan 0.06, exec 107.17) = 0.878 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 863.2 / 1000.7 MiB | 9 tiles, 0 replans, 0 splits
-    alg4_overlap    91.29 ms  alg4: chunk_b P_AC=11 P_B=1 depth=2 | predicted 107.75 ms, copies 1.3 GB, peak 834 MiB | alg4: copy volume chunk1 3.16 GB, chunk2 0.709 GB | 85.78 ms (estimate 3.60, plan 0.08, exec 82.10) = 1.150 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 847.8 / 1000.7 MiB | 12 tiles, 0 replans, 0 splits
-    rasp_static     92.01 ms  rasp: chunk_b P_AC=13 P_B=1 depth=3 | predicted 106.22 ms, copies 1.3 GB, peak 844 MiB | rasp: fastest simulated candidate (0.929 GFLOP/s predicted) | 90.98 ms (estimate 3.18, plan 5.44, exec 82.36) = 1.084 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 835.5 / 1000.7 MiB | 14 tiles, 0 replans, 0 splits
-    rasp            96.90 ms  rasp: chunk_b P_AC=14 P_B=1 depth=3 +probe | predicted 106.02 ms, copies 1.3 GB, peak 844 MiB | rasp: fastest simulated candidate (0.93 GFLOP/s predicted) | 95.46 ms (estimate 3.11, plan 4.92, exec 87.43) = 1.033 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 819.4 / 1000.7 MiB | 15 tiles, 3 replans, 0 splits
-    zerocopy       101.29 ms  rasp: zerocopy P_AC=3 P_B=1 depth=1 | predicted 117.79 ms, copies 0.62 GB, peak 971 MiB | rasp: fastest simulated candidate (0.837 GFLOP/s predicted) | 98.99 ms (estimate 2.97, plan 0.05, exec 95.98) = 0.997 GFLOP/s | nnz(C) 28090368 | H2D 0.62 GB, D2H 0 GB | peak 937.3 / 1000.7 MiB | 5 tiles, 1 replans, 2 splits
+    alg4           118.65 ms  alg4: chunk_b P_AC=8 P_B=1 depth=1 | predicted 151.24 ms, copies 1.3 GB, peak 834 MiB | alg4: copy volume chunk1 2.54 GB, chunk2 0.709 GB | 117.79 ms (estimate 4.32, plan 0.10, exec 113.37) = 0.838 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 863.2 / 1000.7 MiB | 9 tiles, 0 replans, 0 splits
+    alg4_overlap   102.47 ms  alg4: chunk_b P_AC=11 P_B=1 depth=2 | predicted 104.61 ms, copies 1.3 GB, peak 834 MiB | alg4: copy volume chunk1 3.16 GB, chunk2 0.709 GB | 99.20 ms (estimate 7.75, plan 0.15, exec 91.30) = 0.994 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 847.8 / 1000.7 MiB | 12 tiles, 0 replans, 0 splits
+    rasp_static    107.41 ms  rasp: chunk_b P_AC=13 P_B=1 depth=2 | predicted 103.56 ms, copies 1.3 GB, peak 781 MiB | rasp: fastest simulated candidate (0.953 GFLOP/s predicted) | 116.36 ms (estimate 10.29, plan 9.13, exec 96.94) = 0.848 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 791.5 / 1000.7 MiB | 14 tiles, 0 replans, 0 splits
+    rasp           110.99 ms  rasp: chunk_b P_AC=14 P_B=1 depth=2 +probe | predicted 103.41 ms, copies 1.3 GB, peak 781 MiB | rasp: fastest simulated candidate (0.954 GFLOP/s predicted) | 103.84 ms (estimate 4.51, plan 5.28, exec 94.05) = 0.950 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 833.4 / 1000.7 MiB | 24 tiles, 4 replans, 0 splits
+    zerocopy       112.95 ms  rasp: zerocopy P_AC=3 P_B=1 depth=1 | predicted 112.13 ms, copies 0.62 GB, peak 971 MiB | rasp: fastest simulated candidate (0.88 GFLOP/s predicted) | 114.65 ms (estimate 7.56, plan 0.05, exec 107.04) = 0.860 GFLOP/s | nnz(C) 28090368 | H2D 0.62 GB, D2H 0 GB | peak 937.3 / 1000.7 MiB | 5 tiles, 1 replans, 2 splits
   fp64 budget 667 MiB (problem 1001 MiB, ratio 1.50)
-    alg4           197.05 ms  alg4: chunk_b P_AC=17 P_B=2 depth=1 | predicted 276.40 ms, copies 2.58 GB, peak 647 MiB | alg4: copy volume chunk1 3.16 GB, chunk2 1.39 GB | 194.18 ms (estimate 3.89, plan 0.10, exec 190.19) = 0.508 GFLOP/s | nnz(C) 28090368 | H2D 1.06 GB, D2H 0.606 GB | peak 606.3 / 667.1 MiB | 36 tiles, 0 replans, 0 splits
-    alg4_overlap   148.34 ms  alg4: chunk_b P_AC=25 P_B=2 depth=2 | predicted 206.56 ms, copies 2.58 GB, peak 647 MiB | alg4: copy volume chunk1 4.41 GB, chunk2 1.39 GB | 145.36 ms (estimate 3.08, plan 0.15, exec 142.12) = 0.679 GFLOP/s | nnz(C) 28090368 | H2D 1.06 GB, D2H 0.606 GB | peak 605.7 / 667.1 MiB | 52 tiles, 0 replans, 0 splits
-    rasp_static    116.10 ms  rasp: chunk_b P_AC=45 P_B=1 depth=2 | predicted 112.99 ms, copies 1.3 GB, peak 647 MiB | rasp: fastest simulated candidate (0.873 GFLOP/s predicted) | 115.76 ms (estimate 5.63, plan 4.82, exec 105.31) = 0.852 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 642.0 / 667.1 MiB | 46 tiles, 0 replans, 0 splits
-    rasp           121.65 ms  rasp: chunk_b P_AC=46 P_B=1 depth=2 +probe | predicted 113.15 ms, copies 1.3 GB, peak 647 MiB | rasp: fastest simulated candidate (0.872 GFLOP/s predicted) | 142.97 ms (estimate 13.58, plan 6.38, exec 123.01) = 0.690 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 642.8 / 667.1 MiB | 50 tiles, 4 replans, 0 splits
-    zerocopy       120.72 ms  rasp: zerocopy P_AC=21 P_B=1 depth=1 | predicted 123.96 ms, copies 0.62 GB, peak 647 MiB | rasp: fastest simulated candidate (0.796 GFLOP/s predicted) | 133.99 ms (estimate 15.72, plan 0.23, exec 118.04) = 0.736 GFLOP/s | nnz(C) 28090368 | H2D 0.62 GB, D2H 0 GB | peak 642.5 / 667.1 MiB | 32 tiles, 3 replans, 2 splits
+    alg4           213.56 ms  alg4: chunk_b P_AC=17 P_B=2 depth=1 | predicted 269.54 ms, copies 2.58 GB, peak 647 MiB | alg4: copy volume chunk1 3.16 GB, chunk2 1.39 GB | 231.12 ms (estimate 20.55, plan 0.22, exec 210.35) = 0.427 GFLOP/s | nnz(C) 28090368 | H2D 1.06 GB, D2H 0.606 GB | peak 606.3 / 667.1 MiB | 36 tiles, 0 replans, 0 splits
+    alg4_overlap   166.90 ms  alg4: chunk_b P_AC=25 P_B=2 depth=2 | predicted 199.71 ms, copies 2.58 GB, peak 647 MiB | alg4: copy volume chunk1 4.41 GB, chunk2 1.39 GB | 174.26 ms (estimate 9.74, plan 0.16, exec 164.36) = 0.566 GFLOP/s | nnz(C) 28090368 | H2D 1.06 GB, D2H 0.606 GB | peak 605.7 / 667.1 MiB | 52 tiles, 0 replans, 0 splits
+    rasp_static    135.54 ms  rasp: chunk_b P_AC=45 P_B=1 depth=2 | predicted 110.34 ms, copies 1.3 GB, peak 647 MiB | rasp: fastest simulated candidate (0.894 GFLOP/s predicted) | 130.15 ms (estimate 6.44, plan 5.54, exec 118.17) = 0.758 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 642.1 / 667.1 MiB | 46 tiles, 0 replans, 0 splits
+    rasp           132.24 ms  rasp: chunk_b P_AC=46 P_B=1 depth=2 +probe | predicted 110.50 ms, copies 1.3 GB, peak 647 MiB | rasp: fastest simulated candidate (0.893 GFLOP/s predicted) | 143.90 ms (estimate 9.58, plan 8.35, exec 125.97) = 0.686 GFLOP/s | nnz(C) 28090368 | H2D 0.709 GB, D2H 0.341 GB | peak 642.8 / 667.1 MiB | 50 tiles, 4 replans, 0 splits
+    zerocopy       138.84 ms  rasp: zerocopy P_AC=21 P_B=1 depth=1 | predicted 117.68 ms, copies 0.62 GB, peak 647 MiB | rasp: fastest simulated candidate (0.838 GFLOP/s predicted) | 138.64 ms (estimate 7.50, plan 0.19, exec 130.95) = 0.712 GFLOP/s | nnz(C) 28090368 | H2D 0.62 GB, D2H 0 GB | peak 642.5 / 667.1 MiB | 32 tiles, 3 replans, 2 splits
   fp64 budget 500 MiB (problem 1001 MiB, ratio 2.00)
-    alg4           202.02 ms  alg4: chunk_b P_AC=21 P_B=2 depth=1 | predicted 277.15 ms, copies 2.58 GB, peak 485 MiB | alg4: copy volume chunk1 3.78 GB, chunk2 1.39 GB | 201.75 ms (estimate 5.10, plan 0.12, exec 196.52) = 0.489 GFLOP/s | nnz(C) 28090368 | H2D 0.993 GB, D2H 0.537 GB | peak 463.1 / 500.3 MiB | 44 tiles, 0 replans, 0 splits
-    alg4_overlap   151.60 ms  alg4: chunk_b P_AC=31 P_B=2 depth=2 | predicted 204.32 ms, copies 2.58 GB, peak 485 MiB | alg4: copy volume chunk1 5.03 GB, chunk2 1.39 GB | 149.11 ms (estimate 3.53, plan 0.18, exec 145.40) = 0.662 GFLOP/s | nnz(C) 28090368 | H2D 0.993 GB, D2H 0.537 GB | peak 465.3 / 500.3 MiB | 64 tiles, 0 replans, 0 splits
-    rasp_static    216.74 ms  rasp: chunk_b P_AC=82 P_B=2 depth=3 | predicted 203.79 ms, copies 2.58 GB, peak 425 MiB | rasp: fastest simulated candidate (0.484 GFLOP/s predicted) | 217.15 ms (estimate 8.72, plan 6.05, exec 202.38) = 0.454 GFLOP/s | nnz(C) 28090368 | H2D 0.993 GB, D2H 0.537 GB | peak 419.7 / 500.3 MiB | 166 tiles, 0 replans, 0 splits
-    rasp           214.86 ms  rasp: chunk_b P_AC=82 P_B=2 depth=3 | predicted 203.79 ms, copies 2.58 GB, peak 425 MiB | rasp: fastest simulated candidate (0.484 GFLOP/s predicted) | 232.43 ms (estimate 13.58, plan 6.14, exec 212.71) = 0.424 GFLOP/s | nnz(C) 28090368 | H2D 0.993 GB, D2H 0.537 GB | peak 419.7 / 500.3 MiB | 166 tiles, 0 replans, 0 splits
+    alg4           227.56 ms  alg4: chunk_b P_AC=21 P_B=2 depth=1 | predicted 269.34 ms, copies 2.58 GB, peak 485 MiB | alg4: copy volume chunk1 3.78 GB, chunk2 1.39 GB | 215.51 ms (estimate 7.83, plan 0.12, exec 207.56) = 0.458 GFLOP/s | nnz(C) 28090368 | H2D 0.993 GB, D2H 0.537 GB | peak 463.1 / 500.3 MiB | 44 tiles, 0 replans, 0 splits
+    alg4_overlap   181.23 ms  alg4: chunk_b P_AC=31 P_B=2 depth=2 | predicted 196.52 ms, copies 2.58 GB, peak 485 MiB | alg4: copy volume chunk1 5.03 GB, chunk2 1.39 GB | 157.10 ms (estimate 5.75, plan 0.26, exec 151.09) = 0.628 GFLOP/s | nnz(C) 28090368 | H2D 0.993 GB, D2H 0.537 GB | peak 465.3 / 500.3 MiB | 64 tiles, 0 replans, 1 splits
+    rasp_static    219.85 ms  rasp: chunk_b P_AC=61 P_B=2 depth=3 | predicted 196.05 ms, copies 2.58 GB, peak 445 MiB | rasp: fastest simulated candidate (0.503 GFLOP/s predicted) | 195.32 ms (estimate 8.23, plan 6.00, exec 181.09) = 0.505 GFLOP/s | nnz(C) 28090368 | H2D 0.993 GB, D2H 0.537 GB | peak 429.4 / 500.3 MiB | 124 tiles, 0 replans, 0 splits
+    rasp           241.86 ms  rasp: chunk_b P_AC=61 P_B=2 depth=3 | predicted 196.05 ms, copies 2.58 GB, peak 445 MiB | rasp: fastest simulated candidate (0.503 GFLOP/s predicted) | 208.77 ms (estimate 9.12, plan 5.65, exec 193.99) = 0.473 GFLOP/s | nnz(C) 28090368 | H2D 0.993 GB, D2H 0.537 GB | peak 429.4 / 500.3 MiB | 124 tiles, 0 replans, 0 splits
     zerocopy     infeasible: rasp: no SpGEMM plan fits a budget of 508.908995 MB
   fp64 budget 334 MiB (problem 1001 MiB, ratio 3.00)
-    alg4           301.19 ms  alg4: chunk_b P_AC=28 P_B=3 depth=1 | predicted 403.52 ms, copies 3.86 GB, peak 324 MiB | alg4: copy volume chunk1 5.65 GB, chunk2 2.08 GB | 300.39 ms (estimate 11.79, plan 0.19, exec 288.41) = 0.328 GFLOP/s | nnz(C) 28090368 | H2D 1.26 GB, D2H 0.717 GB | peak 315.8 / 333.6 MiB | 87 tiles, 0 replans, 0 splits
-    alg4_overlap   214.25 ms  alg4: chunk_b P_AC=43 P_B=3 depth=2 | predicted 305.74 ms, copies 3.86 GB, peak 324 MiB | alg4: copy volume chunk1 7.51 GB, chunk2 2.08 GB | 218.81 ms (estimate 9.01, plan 0.33, exec 209.47) = 0.451 GFLOP/s | nnz(C) 28090368 | H2D 1.26 GB, D2H 0.717 GB | peak 322.4 / 333.6 MiB | 132 tiles, 0 replans, 0 splits
-    rasp_static    328.12 ms  rasp: chunk_b P_AC=118 P_B=3 depth=3 | predicted 305.51 ms, copies 3.86 GB, peak 283 MiB | rasp: fastest simulated candidate (0.323 GFLOP/s predicted) | 386.06 ms (estimate 13.51, plan 4.53, exec 368.02) = 0.256 GFLOP/s | nnz(C) 28090368 | H2D 1.26 GB, D2H 0.717 GB | peak 289.6 / 333.6 MiB | 357 tiles, 0 replans, 0 splits
-    rasp           331.00 ms  rasp: chunk_b P_AC=118 P_B=3 depth=3 | predicted 305.51 ms, copies 3.86 GB, peak 283 MiB | rasp: fastest simulated candidate (0.323 GFLOP/s predicted) | 347.50 ms (estimate 8.89, plan 4.83, exec 333.78) = 0.284 GFLOP/s | nnz(C) 28090368 | H2D 1.26 GB, D2H 0.717 GB | peak 289.6 / 333.6 MiB | 357 tiles, 0 replans, 0 splits
+    alg4           292.99 ms  alg4: chunk_b P_AC=28 P_B=3 depth=1 | predicted 390.96 ms, copies 3.86 GB, peak 324 MiB | alg4: copy volume chunk1 5.65 GB, chunk2 2.08 GB | 285.19 ms (estimate 10.04, plan 0.17, exec 274.98) = 0.346 GFLOP/s | nnz(C) 28090368 | H2D 1.26 GB, D2H 0.717 GB | peak 315.8 / 333.6 MiB | 87 tiles, 0 replans, 0 splits
+    alg4_overlap   228.85 ms  alg4: chunk_b P_AC=43 P_B=3 depth=2 | predicted 293.19 ms, copies 3.86 GB, peak 324 MiB | alg4: copy volume chunk1 7.51 GB, chunk2 2.08 GB | 226.14 ms (estimate 9.25, plan 0.32, exec 216.57) = 0.436 GFLOP/s | nnz(C) 28090368 | H2D 1.26 GB, D2H 0.717 GB | peak 293.4 / 333.6 MiB | 132 tiles, 0 replans, 0 splits
+    rasp_static    294.45 ms  rasp: chunk_b P_AC=88 P_B=3 depth=3 | predicted 292.97 ms, copies 3.86 GB, peak 297 MiB | rasp: fastest simulated candidate (0.337 GFLOP/s predicted) | 290.24 ms (estimate 11.71, plan 4.52, exec 274.01) = 0.340 GFLOP/s | nnz(C) 28090368 | H2D 1.26 GB, D2H 0.717 GB | peak 268.4 / 333.6 MiB | 267 tiles, 0 replans, 0 splits
+    rasp           294.03 ms  rasp: chunk_b P_AC=88 P_B=3 depth=3 | predicted 292.97 ms, copies 3.86 GB, peak 297 MiB | rasp: fastest simulated candidate (0.337 GFLOP/s predicted) | 284.20 ms (estimate 7.69, plan 4.51, exec 272.01) = 0.347 GFLOP/s | nnz(C) 28090368 | H2D 1.26 GB, D2H 0.717 GB | peak 269.8 / 333.6 MiB | 267 tiles, 0 replans, 0 splits
     zerocopy     infeasible: rasp: no SpGEMM plan fits a budget of 339.272663 MB
   fp64 budget 250 MiB (problem 1001 MiB, ratio 4.00)
-    alg4           357.42 ms  alg4: chunk_b P_AC=35 P_B=4 depth=1 | predicted 534.49 ms, copies 5.14 GB, peak 243 MiB | alg4: copy volume chunk1 6.89 GB, chunk2 2.76 GB | 357.46 ms (estimate 4.94, plan 0.28, exec 352.24) = 0.276 GFLOP/s | nnz(C) 28090368 | H2D 1.52 GB, D2H 0.882 GB | peak 239.6 / 250.2 MiB | 144 tiles, 0 replans, 0 splits
-    alg4_overlap   289.63 ms  alg4: chunk_b P_AC=56 P_B=4 depth=2 | predicted 407.85 ms, copies 5.14 GB, peak 243 MiB | alg4: copy volume chunk1 9.37 GB, chunk2 2.76 GB | 287.78 ms (estimate 12.63, plan 0.69, exec 274.47) = 0.343 GFLOP/s | nnz(C) 28090368 | H2D 1.52 GB, D2H 0.882 GB | peak 249.6 / 250.2 MiB | 228 tiles, 0 replans, 0 splits
-    rasp_static    329.64 ms  rasp: chunk_b P_AC=76 P_B=4 depth=3 | predicted 407.73 ms, copies 5.14 GB, peak 243 MiB | rasp: fastest simulated candidate (0.242 GFLOP/s predicted) | 305.59 ms (estimate 5.91, plan 5.98, exec 293.71) = 0.323 GFLOP/s | nnz(C) 28090368 | H2D 1.52 GB, D2H 0.882 GB | peak 216.1 / 250.2 MiB | 308 tiles, 0 replans, 0 splits
-    rasp           319.06 ms  rasp: chunk_b P_AC=76 P_B=4 depth=3 | predicted 407.73 ms, copies 5.14 GB, peak 243 MiB | rasp: fastest simulated candidate (0.242 GFLOP/s predicted) | 304.04 ms (estimate 5.25, plan 6.00, exec 292.79) = 0.324 GFLOP/s | nnz(C) 28090368 | H2D 1.52 GB, D2H 0.882 GB | peak 239.9 / 250.2 MiB | 308 tiles, 0 replans, 0 splits
+    alg4           379.03 ms  alg4: chunk_b P_AC=35 P_B=4 depth=1 | predicted 532.71 ms, copies 5.14 GB, peak 243 MiB | alg4: copy volume chunk1 6.89 GB, chunk2 2.76 GB | 362.00 ms (estimate 6.55, plan 0.27, exec 355.19) = 0.273 GFLOP/s | nnz(C) 28090368 | H2D 1.52 GB, D2H 0.882 GB | peak 239.6 / 250.2 MiB | 144 tiles, 0 replans, 0 splits
+    alg4_overlap   301.20 ms  alg4: chunk_b P_AC=56 P_B=4 depth=2 | predicted 406.07 ms, copies 5.14 GB, peak 243 MiB | alg4: copy volume chunk1 9.37 GB, chunk2 2.76 GB | 303.40 ms (estimate 15.00, plan 0.72, exec 287.68) = 0.325 GFLOP/s | nnz(C) 28090368 | H2D 1.52 GB, D2H 0.882 GB | peak 249.7 / 250.2 MiB | 228 tiles, 0 replans, 0 splits
+    rasp_static    355.37 ms  rasp: chunk_b P_AC=76 P_B=4 depth=3 | predicted 405.95 ms, copies 5.14 GB, peak 243 MiB | rasp: fastest simulated candidate (0.243 GFLOP/s predicted) | 359.89 ms (estimate 8.13, plan 7.38, exec 344.39) = 0.274 GFLOP/s | nnz(C) 28090368 | H2D 1.52 GB, D2H 0.882 GB | peak 239.9 / 250.2 MiB | 308 tiles, 0 replans, 0 splits
+    rasp           336.92 ms  rasp: chunk_b P_AC=76 P_B=4 depth=3 | predicted 405.95 ms, copies 5.14 GB, peak 243 MiB | rasp: fastest simulated candidate (0.243 GFLOP/s predicted) | 356.57 ms (estimate 9.99, plan 6.50, exec 340.08) = 0.277 GFLOP/s | nnz(C) 28090368 | H2D 1.52 GB, D2H 0.882 GB | peak 239.9 / 250.2 MiB | 308 tiles, 0 replans, 0 splits
     zerocopy     infeasible: rasp: no SpGEMM plan fits a budget of 254.454497 MB
 
 0 failures -> results/phase4/ooc.csv
-== Nsight Systems trace: H2D on the copy stream must overlap cuSPARSE on the compute stream
-NVIDIA GeForce RTX 4050 Laptop GPU | cuSPARSE 12.8.2 | git b62f4b4 | study ooc
-== AxP n=192: 7077888 x 7077888 (nnz 49324032) * 7077888 x 884736 (nnz 7077888)
-  fp64 budget 512 MiB (problem 1048 MiB, ratio 2.05)
-    alg4           206.40 ms  alg4: chunk_b P_AC=19 P_B=1 depth=1 | predicted 171.62 ms, copies 1.35 GB, peak 232 MiB | alg4: copy volume chunk1 2.03 GB, chunk2 0.733 GB | 206.40 ms (estimate 62.20, plan 0.30, exec 143.90) = 0.478 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 271.3 / 512.0 MiB | 20 tiles, 0 replans, 0 splits
-    rasp           120.77 ms  rasp: chunk_b P_AC=11 P_B=1 depth=2 +probe | predicted 116.60 ms, copies 1.35 GB, peak 497 MiB | rasp: fastest simulated candidate (0.846 GFLOP/s predicted) | 120.77 ms (estimate 28.26, plan 2.58, exec 89.93) = 0.817 GFLOP/s | nnz(C) 28090368 | H2D 0.733 GB, D2H 0.365 GB | peak 507.5 / 512.0 MiB | 29 tiles, 2 replans, 1 splits
-
-0 failures -> /tmp/rasp_nsys_ooc.csv
-Collecting data...
-Generating '/tmp/nsys-report-58df.qdstrm'
-[1/1] [0%                          ] nsys_ooc.nsys-rep[1/1] [0%                          ] nsys_ooc.nsys-rep[1/1] [===22%                      ] nsys_ooc.nsys-rep[1/1] [===23%                      ] nsys_ooc.nsys-rep[1/1] [===24%                      ] nsys_ooc.nsys-rep[1/1] [===========50%              ] nsys_ooc.nsys-rep[1/1] [===========51%              ] nsys_ooc.nsys-rep[1/1] [===========52%              ] nsys_ooc.nsys-rep[1/1] [===========53%              ] nsys_ooc.nsys-rep[1/1] [============54%             ] nsys_ooc.nsys-rep[1/1] [============55%             ] nsys_ooc.nsys-rep[1/1] [============56%             ] nsys_ooc.nsys-rep[1/1] [============57%             ] nsys_ooc.nsys-rep[1/1] [================70%         ] nsys_ooc.nsys-rep[1/1] [=================74%        ] nsys_ooc.nsys-rep[1/1] [========================100%] nsys_ooc.nsys-rep[1/1] [========================100%] nsys_ooc.nsys-rep
-Generated:
-	/home/vivian/HPC_Project/results/phase4/nsys_ooc.nsys-rep
-open results/phase4/nsys_ooc.nsys-rep in Nsight Systems for the timeline screenshot (report figure)
 == Analysis
 == Placement (G5): 120 runs, 0 errors or failed checks
 slowdown vs all-device (fp64; D = device, P = pinned zero-copy, M = managed):
 A  B  C  AxP n=160  AxP range  RxA n=160  RxA range
 D  D  D      1.00x  1.00-1.00      1.00x  1.00-1.00
-D  D  P      2.56x  1.98-2.59      3.09x  1.99-3.09
-P  D  D      2.67x  2.20-3.03      1.10x  1.08-1.19
-P  D  P      4.16x  3.30-4.59      3.12x  2.11-3.21
-D  P  D      2.98x  2.01-3.11      3.83x  2.93-3.88
-D  P  P      4.46x  3.03-4.69      5.63x  3.75-5.86
-P  P  D      5.09x  3.74-5.42      4.56x  3.42-4.60
-P  P  P      6.58x  4.83-6.62      6.14x  4.23-6.44
-M  D  D      2.75x  2.30-3.11      1.12x  1.04-1.17
-D  M  D      2.95x  2.18-3.08      3.99x  2.80-4.12
-D  D  M      2.27x  2.13-2.49      3.12x  1.91-3.45
-M  M  M      6.86x  4.91-6.86      7.17x  4.58-7.17
-  AxP: nnz(C) / flop upper bound = 0.568; device-resident 3.66 GFLOP/s at best
-  RxA: nnz(C) / flop upper bound = 0.568; device-resident 5.61 GFLOP/s at best
-  all-managed / all-pinned time: 1.068 (geomean): UVM on WSL2 behaves as zero-copy
+D  D  P      1.70x  1.70-2.63      3.28x  2.18-3.28
+P  D  D      2.13x  2.13-3.14      1.15x  1.13-1.67
+P  D  P      3.37x  3.37-4.75      3.54x  2.59-3.54
+D  P  D      2.39x  2.39-3.31      4.24x  3.28-4.24
+D  P  P      3.35x  3.29-5.13      6.11x  4.36-6.11
+P  P  D      4.29x  4.05-5.91      5.01x  3.30-5.01
+P  P  P      5.53x  5.43-7.52      7.11x  4.89-7.11
+M  D  D      2.27x  2.27-3.30      1.18x  1.14-1.18
+D  M  D      2.46x  2.27-3.47      4.50x  3.12-4.50
+D  D  M      1.80x  1.80-3.05      3.20x  2.29-3.20
+M  M  M      5.38x  5.38-7.75      7.70x  4.99-7.70
+  AxP: nnz(C) / flop upper bound = 0.568; device-resident 3.71 GFLOP/s at best
+  RxA: nnz(C) / flop upper bound = 0.568; device-resident 5.88 GFLOP/s at best
+  all-managed / all-pinned time: 1.042 (geomean): UVM on WSL2 behaves as zero-copy
 
 == Out-of-core (G6): 130 rows
   errors 0, failed checks 0, infeasible 8 (incore, zerocopy)
@@ -429,18 +415,18 @@ wrote results/phase4/scaling.png
 wrote results/phase4/timeline.png
 
   speedup over Alg. 4 when the problem exceeds the budget (geomean [min, max], #configs):
-    Alg. 4 + double buffering         AxP: 1.44 [1.33, 1.54] n=8  RxA: 1.31 [1.23, 1.41] n=8
-    RASP (static plan)                AxP: 1.34 [1.20, 1.43] n=8  RxA: 1.04 [0.67, 1.70] n=8
-    RASP (adaptive)                   AxP: 1.37 [1.16, 1.47] n=8  RxA: 1.04 [0.66, 1.62] n=8
-    zero-copy A, C (= UVM on WSL2)    AxP: 1.04 [0.95, 1.11] n=8  RxA: 1.33 [1.08, 1.63] n=2
+    Alg. 4 + double buffering         AxP: 1.32 [1.28, 1.40] n=8  RxA: 1.27 [1.22, 1.29] n=8
+    RASP (static plan)                AxP: 1.26 [1.21, 1.36] n=8  RxA: 1.05 [0.62, 1.58] n=8
+    RASP (adaptive)                   AxP: 1.27 [1.19, 1.31] n=8  RxA: 1.05 [0.63, 1.61] n=8
+    zero-copy A, C (= UVM on WSL2)    AxP: 0.96 [0.85, 1.08] n=8  RxA: 1.27 [1.05, 1.54] n=2
 
   G6 (target >= 1.3x over Alg. 4 when problem > budget):
-    AxP: 1.37x -> MET
-    RxA: 1.04x -> NOT MET
+    AxP: 1.27x -> NOT MET
+    RxA: 1.05x -> NOT MET
 
-  RASP cost model: predicted / measured execution time median 1.24 (p10 0.92, p90 1.38)
-  RASP estimate + plan share of total time: median 18.6% (max 36.8%)
-  RASP re-plans per run: mean 2.36; overflow splits: mean 2.32
-  RASP GFLOP/s as a fraction of the device-only kernel: median 0.20
-  measured model parameters (RASP runs, median): 0.91 G multiply-adds/s, gamma 0.570, workspace 45.0 B/flop; PCIe 11.9 / 12.4 GB/s
-== Done 2026-10-08T22:39:33+05:30. Commit results/phase4/ (CSVs, PNGs, summary.txt, run.log).
+  RASP cost model: predicted / measured execution time median 1.12 (p10 0.92, p90 1.30)
+  RASP estimate + plan share of total time: median 21.6% (max 43.9%)
+  RASP re-plans per run: mean 2.45; overflow splits: mean 2.45
+  RASP GFLOP/s as a fraction of the device-only kernel: median 0.17
+  measured model parameters (RASP runs, median): 0.85 G multiply-adds/s, gamma 0.570, workspace 45.0 B/flop; PCIe 13.0 / 12.9 GB/s
+== Done 2026-11-26T00:28:59+05:30. Commit results/phase4/ (CSVs, PNGs, summary.txt, run.log).
