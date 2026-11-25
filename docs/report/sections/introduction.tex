@@ -1,53 +1,50 @@
 \section{Introduction}\label{sec:intro}
 
 Sparse matrix--vector multiplication (SpMV, $y = Ax$) and sparse matrix--matrix multiplication (SpGEMM,
-$C = AB$) dominate iterative solvers, multigrid set-up and graph analytics. Both are limited by memory traffic
-rather than arithmetic, and both are irregular: how evenly the nonzeros are spread over rows, how long the longest
-row is, and how large the operands are relative to GPU memory all change which implementation is fastest.
+$C = AB$) are the core of iterative solvers, multigrid set-up and graph analytics. A conjugate-gradient solve
+performs one SpMV per iteration, often for thousands of iterations, and building an algebraic multigrid (AMG)
+hierarchy performs two SpGEMMs per level. Both kernels do very little arithmetic per byte they read, so they are
+limited by memory traffic rather than by compute, and both are irregular: how evenly the nonzeros are spread over
+rows, how long the longest row is, and how large the operands are relative to GPU memory all change which
+implementation is fastest. This makes them a natural target for GPUs, whose memory bandwidth is several times a
+CPU's, and at the same time a difficult one, because a GPU only reaches that bandwidth when neighbouring threads read
+neighbouring words.
 
-The two papers this project starts from show this clearly, and both stop short of acting on it.
-Heller and Oberhuber's adaptive row-grouped CSR (ArgCSR) gives long rows more threads, and its performance depends
-strongly on one parameter, \texttt{desiredChunkSize}: on \texttt{rajat23} a value of~1 is six times faster than~32,
-while the AFE matrices prefer~32. The paper then fixes the value to~1 for every matrix, and concludes that ``if high
-performance is the top priority, one should test more formats and choose the best one''~\cite{heller2012argcsr}.
-Deveci et al.\ extend the KokkosKernels SpGEMM to multilevel memory: when the operands do not fit in
-fast memory they keep one operand's row block resident and stream the other through it~\cite{deveci2018multilevel}.
-Their partitioning heuristic (Algorithm~4) reserves a fixed 75\%/25\% of fast memory for the resident and the
-streamed operand and chooses between the two chunking variants by copy volume alone. Copies and computation are not
+\paragraph{SpMV formats.} The standard compressed sparse row (CSR) format stores row pointers, column indices and
+values. \emph{CSR-scalar} gives each row one thread, which serialises long rows; \emph{CSR-vector} gives each row a
+group of 2--32 threads that read it together~\cite{bell2009spmv}. ELL pads every row to the longest one so that reads
+coalesce, and wastes memory as soon as row lengths vary; SELL-$C$-$\sigma$ sorts rows by length inside windows and
+pads only within slices of $C$ rows~\cite{kreutzer2014sell}. Vendor libraries add load-balanced CSR kernels: cuSPARSE's
+\texttt{CSR\_ALG2} follows merge-based SpMV~\cite{merrill2016merge}. No format is best for every matrix, and the
+right parameters (threads per row, slice height, chunk size) differ from matrix to matrix.
+
+\paragraph{Paper 1: out-of-core SpGEMM.} When $A$, $B$ and $C$ do not fit in fast memory, Deveci et al.\
+keep a row block of one operand resident and stream the other through it~\cite{deveci2018multilevel}. Their
+partitioning heuristic (Algorithm~4) reserves a fixed 75\%/25\% of fast memory for the resident and the streamed
+operand and chooses between the two chunking variants by copy volume alone. Copies and computation are not
 overlapped, which the authors leave as future work.
 
-RASP (\emph{Runtime-Adaptive Sparse Processing}) makes these choices at run time, per matrix, from cheap
-measurements:
-\begin{enumerate}
-\item \textbf{A lightweight SpMV selector.} One GPU kernel extracts structural features; a shallow decision tree,
-  trained offline and compiled into the library as plain C++, predicts the best format \emph{and} its parameters;
-  a break-even test converts formats only when the expected number of calls repays the conversion (\cref{sec:design-spmv}).
-\item \textbf{An overlapped, self-calibrating out-of-core SpGEMM.} Paper~1's chunking, extended with double and
-  triple buffering, a cost model that simulates the copy/compute pipeline using bandwidths and kernel rates
-  measured at run time, and re-partitioning while it runs (\cref{sec:design-spgemm}).
-\item \textbf{A re-evaluation of both papers} on a PCIe-attached consumer GPU (RTX~4050 Laptop, Ada) under
-  WSL2, against the 2026 cuSPARSE (\cref{sec:eval}).
-\end{enumerate}
-Automatic format selection with machine learning is an established research area
-(\cref{sec:related}); our novelty is relative to the two assigned papers: tuning ArgCSR's parameters per matrix and
-per row region, a conversion-aware cost model, and bringing runtime adaptivity and overlap to out-of-core SpGEMM.
+\paragraph{Paper 2: ArgCSR.} Heller and Oberhuber's adaptive row-grouped CSR packs consecutive rows into
+groups handled by one CUDA block and gives the longest rows of each group extra threads~\cite{heller2012argcsr}. Its
+speed depends strongly on one parameter, \texttt{desiredChunkSize}: on \texttt{rajat23} a value of~1 is six times
+faster than~32, while other matrices prefer~32. The paper nevertheless fixes the value to~1 for every matrix, and
+concludes that ``if high performance is the top priority, one should test more formats and choose the best one''.
 
-\Cref{tab:goals} lists the goals we set at the start and where each is evaluated.
+\paragraph{Motivation.} Both papers measured exactly the effect that should drive the choice, and both then made the
+choice statically. A static choice is wrong for many inputs: a chunk size that is best on average is far from best on
+many matrices, and a fixed memory split ignores how fast the link and the kernel actually are. Our platform makes the
+second point sharper. The papers used a Fermi GPU and an NVLink-attached P100; we use a consumer RTX~4050 Laptop GPU
+behind PCIe~4.0, whose host link is \stat{pf-stream-penalty} times slower than its memory and which has a single copy
+engine, and we run under WSL2, where managed memory never migrates to the GPU. On such a machine the cost of moving
+data dominates out-of-core work, and every launch and synchronisation costs microseconds that small SpMVs feel.
 
-\begin{table}[t]
-\centering\small
-\caption{Project goals and where they are evaluated.}\label{tab:goals}
-\begin{tabular}{@{}lp{6.2cm}p{5.6cm}l@{}}
-\toprule
- & Goal & Target & Section \\
-\midrule
-\G1 & Reproduce paper 2 (ArgCSR) on modern hardware & same qualitative winners and losers & \ref{sec:eval-g1} \\
-\G2 & Runtime SpMV selector & geomean $T_\text{selected}/T_\text{oracle} \le 1.10$; never $>$5\% slower than cuSPARSE on matrices $\ge$ 1M nnz & \ref{sec:eval-g2} \\
-\G3 & Selection is cheap & features + inference $\le$ 2 SpMVs & \ref{sec:eval-g2} \\
-\G4 & Conversion-aware choice & never $>$5\% worse than cuSPARSE at $N=1$ & \ref{sec:eval-g2} \\
-\G5 & Paper 1's placement study on a PCIe GPU & our version of its Table 3 & \ref{sec:eval-g5} \\
-\G6 & Overlapped, adaptive out-of-core SpGEMM & $\ge 1.3\times$ over Algorithm 4 when the problem exceeds the budget & \ref{sec:eval-g6} \\
-\G7 & End-to-end applications & CG (SpMV) and AMG set-up (SpGEMM) working and timed & \ref{sec:eval-g7} \\
-\bottomrule
-\end{tabular}
-\end{table}
+This project, RASP (\emph{Runtime-Adaptive Sparse Processing}), therefore makes these choices at run time, per
+matrix, from measurements that are cheap compared with the work they steer. For SpMV it predicts the best format
+and its parameters from structural features and converts formats only when the expected number of calls repays the
+conversion. For SpGEMM it measures the PCIe link and the kernel, plans the partitions and the pipeline by simulating
+them, overlaps copies with computation and re-plans while it runs. Because a GPU result means little without a fair
+CPU comparison, we also measure a sequential and an OpenMP multi-core version of the same kernels on the same
+machines. \Cref{sec:objective} states the goals, \cref{sec:contrib} the contributions and the test-bed,
+\cref{sec:metrics} the metrics, and \cref{sec:results} the results; \cref{sec:limitations,sec:observations} discuss
+what remains open. The appendices give the design (\cref{sec:design}), the full evaluation (\cref{sec:eval}) and the
+OpenMP version (\cref{sec:omp}) in detail.

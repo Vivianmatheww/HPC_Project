@@ -1,4 +1,22 @@
-\section{Evaluation}\label{sec:eval}
+\section{Detailed evaluation}\label{sec:eval}
+This appendix gives the full evaluation behind \cref{sec:results}.
+
+\subsection{Measurement procedure}
+\paragraph{Timing.} Kernels are timed with CUDA events: 5 warm-up runs, then the median of 20 with the
+interquartile range. The 24\,MB L2 cache is flushed before every timed SpMV, because matrices smaller than the cache
+would otherwise look faster than they are. Out-of-core SpGEMM is timed on the host from pinned inputs to pinned output,
+including every transfer and the estimation and planning time. Pinned allocation and context creation are excluded
+from the total and reported separately. Under WSL2, host-side timing shows position effects of 5--10\,\textmu s, which
+a fixed order of methods turned into fake differences of $\pm 9\%$ at $N=1$ in Phase~3. Every comparison of
+selectors or SpGEMM methods therefore runs the methods in a freshly shuffled order in each repetition. Median timing
+noise in the Phase~1 baseline was \stat{p1-iqr-median-pct}\% (IQR over median).
+
+\paragraph{Correctness.} Every SpMV result is compared with a CPU reference accumulated in double precision
+(relative $L_2$ error $\le 10^{-12}$ in fp64, $\le 10^{-5}$ in fp32). Every SpGEMM run must give the same
+$\mathrm{nnz}(C)$ as every other method, and 2,000 random rows (plus the first and the last) are recomputed on the CPU.
+CG residuals are recomputed on the CPU from the downloaded solution. Each AMG level is checked against the other
+methods and against the Galerkin row-sum identity $A_{l+1}\mathbf 1 = R_l(A_l \mathbf 1)$, which holds exactly for
+Laplace. All CSVs carry the GPU, driver, CUDA and cuSPARSE versions, the git commit and a dirty flag.
 
 \subsection{Baseline: how well does cuSPARSE use the GPU?}
 cuSPARSE \texttt{CSR\_ALG1} reaches a median of \stat{p1-fp64-csr-alg1-bw}\% of the measured device bandwidth in
@@ -16,12 +34,12 @@ in small and medium matrices.
 directions, as in paper~2.}\label{fig:chunk}
 \end{figure}
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering\small
 \caption{Paper~2's named matrices (fp64, GFLOP/s): cuSPARSE \texttt{ALG1}, ArgCSR at the paper's default and tuned,
 and the fastest configuration.}\label{tab:named}
 \stattable{p2-named}
-\end{table}
+\end{table*}
 
 \textbf{The chunk-size sensitivity reproduces.} On \texttt{rajat23}, ArgCSR with \texttt{desiredChunkSize} 1 runs at
 \stat{p2-rajat23-d1}\,GFLOP/s and with 32 at \stat{p2-rajat23-d32} (paper~2: 5.1 vs 0.81 on a Fermi C2070). Padding
@@ -73,12 +91,12 @@ cuSPARSE is already near-optimal on large matrices. We therefore re-scoped \G2 f
 \end{table}
 
 \subsection{G2--G4: the runtime selector on held-out matrices}\label{sec:eval-g2}
-\begin{table}[t]
+\begin{table*}[t]
 \centering\small
 \caption{Steady-state selection on \stat{p3-heldout-samples} held-out samples (\stat{p3-heldout-matrices} matrices
 $\times$ 2 precisions).}\label{tab:g2}
 \stattable{p3-g2}
-\end{table}
+\end{table*}
 
 \begin{figure}[t]
 \centering
@@ -200,8 +218,8 @@ device-to-host) overlap the per-tile SpGEMM kernels (blue) on the others.}\label
 \subsection{G7: end-to-end applications}\label{sec:eval-g7}
 \paragraph{Conjugate gradients.} A solver knows its iteration cap, and that is the natural \texttt{expected\_calls}
 hint for break-even. Over \stat{p5-cg-matrices} SPD matrices, Jacobi-preconditioned CG with \texttt{SpmvPlan} given that
-hint takes \stat{p5-cg-tree-geomean}\x{} the time of the same solver with cuSPARSE (worst \stat{p5-cg-tree-worst}\x,
-best \stat{p5-cg-tree-best}\x), and \stat{p5-cg-tree-exact-geomean}\x{} when it knows the exact iteration count
+hint is \stat{p5-cg-tree-geomean}\x{} faster than the same solver with cuSPARSE (worst \stat{p5-cg-tree-worst}\x,
+best \stat{p5-cg-tree-best}\x), and \stat{p5-cg-tree-exact-geomean}\x{} faster when it knows the exact iteration count
 (\cref{tab:cg}, \cref{fig:cg}). SpMV is only \stat{p5-cg-spmv-share}\% of a solve (median); vector updates, reductions
 and two host synchronisations per iteration take the rest, which caps what any SpMV selector can gain end to end.
 \stat{p5-cg-failures} solves failed the CPU residual check.
@@ -216,11 +234,11 @@ On \texttt{ted\_B} (17 iterations) the exact hint makes break-even decline the f
 the cap's choice, CSR-vector, was slightly faster. With a hint this small the test is conservative, not wasteful, and on
 a 3\,ms solve the difference is within the noise.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering\small
 \caption{CG time-to-solution (plan + solve) against the same solver with cuSPARSE.}\label{tab:cg}
 \stattable{p5-cg}
-\end{table}
+\end{table*}
 
 \begin{figure}[t]
 \centering\rfig[0.95\linewidth]{p5_cg}
@@ -242,18 +260,18 @@ product takes 33--36\,ms even on the $8^3$ grid, and 31--35\,ms of it is the hos
 disturbance in that run, not a cost of Algorithm~4. With overlapped Algorithm~4's estimate times in its place, RASP's
 speedup at $n=256$ would be about 1.37\x. The final run re-measures it.
 
-\begin{table}[t]
+\begin{table*}[t]
 \centering\small
 \caption{AMG set-up for Laplace3D $n=192$ under a 256\,MiB budget (median of 3).}\label{tab:amg}
 \stattable{p5-amg-192}
-\end{table}
+\end{table*}
 
 \subsection{Kernel profiles}
-\begin{table}[t]
+\begin{table*}[t]
 \centering\small
 \caption{Nsight Compute metrics of representative kernels (ncu locks clocks, so these are not timings).}\label{tab:ncu}
 \resizebox{\linewidth}{!}{\stattable{p5-ncu}}
-\end{table}
+\end{table*}
 \Cref{tab:ncu} lists hardware counters for kernels behind the results above. CSR-vector on \texttt{af\_shell1}
 reaches \stat{p5-ncu-spmv-csr-vector-af-shell1-dram}\% of peak DRAM throughput; ArgCSR on \texttt{rajat23} reaches
 \stat{p5-ncu-spmv-argcsr-D32-rajat23-dram}\% with chunk size 32 and \stat{p5-ncu-spmv-argcsr-D1-rajat23-dram}\% with

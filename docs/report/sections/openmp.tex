@@ -10,9 +10,9 @@ Threads are pinned to separate cores (\texttt{OMP\_PROC\_BIND=close}, \texttt{OM
 
 \subsection{What was parallelised}
 \begin{table}[t]
-\centering\small
+\centering\footnotesize
 \caption{Kernels of \texttt{seq/rasp\_omp.cpp} and how each is parallelised.}\label{tab:omp-kernels}
-\begin{tabular}{@{}p{3.1cm}p{9.6cm}@{}}
+\begin{tabular}{@{}p{2.1cm}p{5.8cm}@{}}
 \toprule
 kernel & OpenMP \\
 \midrule
@@ -96,4 +96,4 @@ comparison is against a sequential and a GPU run on the same hardware.
 \subsection{OpenMP against the GPU}
 Even with every core busy, the CPU version is limited to \stat{omp-cg-best-speedup}--\stat{omp-spmv-best-speedup}\x{} over one core on its memory-bound kernels,
 because its bandwidth rises only \stat{omp-bw-ceiling}\x{} with all threads, while the GPU has several times the bandwidth.
-\todo{add the same-machine OpenMP-vs-GPU table (Kaggle T4 and RTX 4050) from scripts/compare\_seq\_gpu.py once those runs are in}
+\Cref{tab:same-machine} compares the GPU with the CPU on the same machines.

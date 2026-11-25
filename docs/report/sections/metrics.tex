@@ -1,0 +1,42 @@
+\section{Performance Measuring Metrics}\label{sec:metrics}
+
+\paragraph{Throughput (GFLOP/s).} SpMV performs $2\,\mathrm{nnz}$ flops per call and SpGEMM two flops per
+multiply-add. GFLOP/s normalises time by the work done, so matrices of different sizes can be compared, and it is the
+unit both papers report, which lets us compare with them directly.
+
+\paragraph{Effective bandwidth (fraction of measured peak).} SpMV and SpGEMM are memory-bound, so the fraction of the
+\emph{measured} \stat{pf-device-read}\,GB/s a kernel reaches says how close it is to the hardware limit, and therefore
+how much any other format could still gain. We use the measured rather than the datasheet peak (192\,GB/s), which no
+kernel can reach. Nsight Compute's DRAM, L2 and occupancy counters explain \emph{why} a kernel sits where it does.
+
+\paragraph{Slowdown against the oracle, $T/T_\text{oracle}$.} The oracle is the fastest of all configurations for
+each matrix, found by exhaustive measurement. The ratio says how much of the attainable speed a selector leaves
+behind, independently of how good cuSPARSE happens to be on that matrix. We aggregate ratios with the \emph{geometric}
+mean, the correct mean for ratios (a 2\x{} gain and a 2\x{} loss cancel), and also report the worst case, since a
+selector that is good on average but occasionally very slow is not safe to deploy.
+
+\paragraph{Performance profiles.} Dolan--Mor\'e profiles~\cite{dolan2002profiles} plot, for every factor $\tau$, the
+fraction of matrices on which a method is within $\tau$ of the oracle. They show the whole distribution, not only its
+mean, and are the standard way to compare solvers over a test set.
+
+\paragraph{Selection overhead in SpMV equivalents.} Feature extraction and conversion times are divided by the time of
+one cuSPARSE SpMV on the same matrix. This expresses an overhead in the unit that matters to the caller: how many calls
+it takes to pay it back.
+
+\paragraph{Total time for $N$ calls.} Plan cost plus $N$ SpMVs, relative to always using cuSPARSE, for $N$ from 1 to
+1000. This is the quantity break-even optimises, and it makes the one-call case ($N=1$) explicit.
+
+\paragraph{Speedup.} Against Algorithm~4 for out-of-core SpGEMM (the paper's own baseline), against cuSPARSE for the
+selector and CG, and against the sequential CPU code on the same machine for the GPU and OpenMP versions. For
+OpenMP we also report speedup over the same code on one thread and parallel efficiency, which separate parallel
+scaling from compiler or algorithm effects.
+
+\paragraph{Data transfer cost.} PCIe bandwidth (host to device, device to host, both), the slowdown when an operand
+lives in host memory, and out-of-core throughput as a fraction of the device-only kernel's. These quantify how much the
+host link costs, which is the central constraint of out-of-core work.
+
+\paragraph{Time to solution.} For CG and the AMG set-up we time the whole application, including planning and
+transfers, because a faster kernel only matters if it shortens the end result.
+
+\paragraph{Cost-model accuracy.} The ratio of the planner's predicted execution time to the measured one shows whether
+the simulated pipeline is trustworthy enough to choose plans with.

@@ -1,21 +1,17 @@
-% RASP final report. Build: latexmk -pdf main.tex (or upload docs/report/ to Overleaf).
+% RASP final report, ACM SIG Proceedings format (acmart, sigconf) as required by the course.
+% Build: latexmk -pdf main.tex (or upload docs/report/ to Overleaf).
 % Numbers, tables and figures come from scripts/make_report_assets.py; never type a result by hand.
-\documentclass[11pt,a4paper]{article}
-\usepackage[margin=2.2cm]{geometry}
-\usepackage[T1]{fontenc}
-\usepackage{lmodern}
-\usepackage{microtype}
-\usepackage{amsmath,amssymb}
-\usepackage{graphicx}
+% Section order and word limits follow the course's report guidelines:
+%   Abstract (6-8 sentences) | 1 Introduction (500-1000 words) | 2 Objective of the Work (100-200)
+%   3 Major Contributions (500-1000; 3.1 papers, 3.2 experiments) | 4 Performance Measuring Metrics
+%   5 Results / Outcomes (50-100 per method) | 6 Limitations and Future Scope (>= 200)
+%   7 Observations from the Study (100-200). Appendices hold the detailed design and evaluation.
+\documentclass[sigconf,nonacm]{acmart}
 \usepackage{booktabs}
-\usepackage{xcolor}
-\usepackage{caption}
 \usepackage{enumitem}
-\usepackage[numbers,sort&compress]{natbib}
-\usepackage[hidelinks]{hyperref}
 \usepackage[capitalise,noabbrev]{cleveref}
 \setlist{nosep,leftmargin=*}
-\captionsetup{font=small,labelfont=bf}
+\setlength{\emergencystretch}{2em} % two columns and long \texttt names
 
 \input{rasp-macros}
 \InputIfFileExists{generated/platform.tex}{}{}
@@ -25,44 +21,62 @@
 \InputIfFileExists{generated/phase5.tex}{}{}
 \InputIfFileExists{generated/omp.tex}{}{}
 
-% TODO(team): course name.
-\newcommand{\teammembers}{Harsh Raj (S20240010084) \and Karmanya (S20240010108) \and Vivian (S20240010258)}
-\title{\textbf{Runtime-Adaptive Sparse Matrix Optimization for GPUs}\\[4pt]
-  \large Sparse matrix representation and GPU memory-layout optimization}
-\author{\teammembers}
-\date{\todo{course} \quad December 2026}
+\settopmatter{printacmref=false}
+\setcopyright{none}
 
 \begin{document}
-\maketitle
+
+\title{Runtime-Adaptive Sparse Matrix Optimization for GPUs}
+\subtitle{Sparse matrix representation and GPU memory-layout optimization\\[2pt]
+  Course project, High Performance Computing, December 2026}
+
+\author{Harsh Raj (S20240010084)}
+\author{Karmanya (S20240010108)}
+\author{Vivian (S20240010258)}
+\affiliation{\institution{Indian Institute of Information Technology Sri City}\city{Sri City}\state{Andhra Pradesh}\country{India}}
+\renewcommand{\shortauthors}{Harsh Raj, Karmanya and Vivian}
 
 \begin{abstract}
-Sparse kernels are memory-bound and irregular, so the fastest way to run them depends on the matrix and on how
-the data fits the GPU. Two papers we build on show this and still ship static choices: adaptive row-grouped CSR
-(ArgCSR) fixes one global chunk size~\cite{heller2012argcsr}, and chunked out-of-core SpGEMM fixes a 75/25 split
-of fast memory, chosen by copy volume, without overlapping copies and computation~\cite{deveci2018multilevel}.
-RASP makes both choices at run time on a PCIe-attached RTX~4050 laptop GPU.
-For SpMV it extracts structural features on the GPU, predicts the best of \stat{p2-configs} kernel configurations
-with a decision tree compiled into the library, and converts formats only when the expected number of calls repays
-the conversion. On \stat{p3-heldout-matrices} held-out SuiteSparse matrices it runs within
-\stat{p3-g2-tree}\x{} of the per-matrix oracle (geometric mean; always using cuSPARSE: \stat{p3-g2-cusparse}\x),
-and its break-even logic keeps one-shot calls at cuSPARSE's cost.
-For SpGEMM it calibrates PCIe bandwidth at start-up, plans partitions and pipeline depth by simulating the
-copy/compute pipeline, measures the kernel rate, the output compression and the workspace on a small probe
-block, and re-plans as it goes. When the problem exceeds the fast-memory budget it is
-\stat{p4-g6-AxP}\x{} (A$\cdot$P) and \stat{p4-g6-RxA}\x{} (R$\cdot$A) faster than paper~1's Algorithm~4.
-We also re-evaluate both papers' claims on this hardware: ArgCSR's sensitivity to its chunk size reproduces, but
-its advantage over the vendor library does not.
+Sparse matrix--vector (SpMV) and sparse matrix--matrix (SpGEMM) multiplication are memory-bound and irregular, so the
+fastest GPU implementation depends on each matrix's structure and on whether the operands fit in GPU memory, yet the
+two methods we build on, adaptive row-grouped CSR (ArgCSR)~\cite{heller2012argcsr} and chunked out-of-core
+SpGEMM~\cite{deveci2018multilevel}, fix these choices once for all inputs.
+We aim to make the choices at run time: to come within 10\% of the best of \stat{p2-configs} SpMV configurations on
+every matrix without ever costing more than the vendor library for a single call, and to be at least 1.3\x{} faster
+than the out-of-core baseline when a product does not fit in GPU memory.
+Our library, RASP, is written in CUDA C++ on top of cuSPARSE, and we also parallelised the sequential CPU version
+with OpenMP so that all CPU cores can be compared with the GPU.
+Experiments run on an RTX~4050 Laptop GPU on PCIe~4.0 with an 8-core Ryzen~7 7840HS under WSL2 Ubuntu (CUDA~13.3,
+cuSPARSE~12.8), with cross-checks on a Kaggle Tesla~T4 and a Core i5-1235U.
+On \stat{p3-heldout-matrices} unseen SuiteSparse matrices the SpMV selector runs within \stat{p3-g2-tree}\x{} of the
+per-matrix best, and on the same machine the GPU is 5.0\x{} (SpMV), 9.1\x{} (conjugate gradients) and 5.0\x{} (AMG
+set-up) faster than one CPU core, while OpenMP on all cores gains only \stat{omp-cg-best-speedup}--\stat{omp-spmv-best-speedup}\x{}
+because CPU memory bandwidth saturates.
+Out of core, overlapping PCIe copies with computation makes SpGEMM \stat{p4-g6-AxP}\x{} faster than the baseline on
+$A\cdot P$ but only \stat{p4-g6-RxA}\x{} on $R\cdot A$, and the data transfers still hold it to
+\stat{p4-frac-of-device} of the in-memory kernel's throughput.
+The code, the raw results and the scripts that regenerate every number in this report are openly available at
+\url{https://github.com/Vivianmatheww/HPC_Project}.
 \end{abstract}
 
+\keywords{SpMV, SpGEMM, sparse formats, autotuning, out-of-core, CUDA, OpenMP}
+
+\maketitle
+
 \input{sections/introduction}
-\input{sections/background}
+\input{sections/objective}
+\input{sections/contributions}
+\input{sections/metrics}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/observations}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{refs}
+
+\appendix
 \input{sections/design}
-\input{sections/methodology}
 \input{sections/evaluation}
 \input{sections/openmp}
-\input{sections/related}
-\input{sections/discussion}
 
-\bibliographystyle{plainnat}
-\bibliography{refs}
 \end{document}

@@ -1,0 +1,104 @@
+\section{Results / Outcomes}\label{sec:results}
+
+Each method is summarised below; \cref{sec:eval} gives the full tables and figures.
+
+\subsection{Reproducing ArgCSR (G1)}\label{sec:res-g1}
+The chunk-size sensitivity reproduces. On \texttt{rajat23}, ArgCSR with chunk size~1 runs at
+\stat{p2-rajat23-d1}\,GFLOP/s and 32 at \stat{p2-rajat23-d32} (paper~2: 5.1 vs 0.81), because one long row pads its
+whole group. No global value is right: fixing the paper's choice of~1 costs \stat{p2-d1-slowdown}\x{} on average against
+the best value per matrix. The paper's headline does not hold against 2026 cuSPARSE: ArgCSR reaches
+\stat{p2-argcsr-default-fp64}\x{} of cuSPARSE's speed in fp64 at its default and \stat{p2-argcsr-tuned-fp64}\x{} when
+tuned per matrix (\cref{sec:eval-g1}). G1 is met.
+
+\subsection{SpMV formats and our two kernels}\label{sec:res-formats}
+The fastest configuration per matrix is \stat{p2-oracle-fp64}\x{} faster than cuSPARSE \texttt{ALG1} in fp64
+(geometric mean), and the headroom shrinks with size: \stat{p2-oracle-size-lt100k}\x{} below $10^5$ nonzeros,
+\stat{p2-oracle-size-gt1M}\x{} above $10^6$. cuSPARSE is fastest on \stat{p2-cusparse-wins-fp64} matrices and CSR-vector
+with few lanes on most others. Without tuning, our ArgCSR-local reaches \stat{p2-local-vs-tuned} of per-matrix-tuned
+ArgCSR, and CSR-binned matches tuned CSR-vector, but neither moves the oracle by more than about a percent.
+
+\subsection{Runtime SpMV selector (G2, G3)}\label{sec:res-g2}
+On \stat{p3-heldout-matrices} unseen matrices the decision tree runs at \stat{p3-g2-tree}\x{} of the oracle (target
+1.10: met), \stat{p3-g2-tree-vs-cusparse}\x{} faster than always using cuSPARSE, which sits at \stat{p3-g2-cusparse}\x;
+hand-written rules reach only \stat{p3-g2-rules}\x. It is never more than 5\% slower than cuSPARSE on matrices with at
+least $10^6$ nonzeros, though only \stat{p3-heldout-large} held-out samples are that large. Deciding costs a median of
+\stat{p3-g3-median} SpMVs, so G3 is met only narrowly: \stat{p3-g3-size-gt1M} on large matrices but
+\stat{p3-g3-size-lt100k} on small ones.
+
+\subsection{Conversion-aware break-even (G4)}\label{sec:res-g4}
+With break-even, planning plus a single call costs \stat{p3-g4-tree-1}\x{} the time of always using cuSPARSE, and
+\stat{p3-g4-n1-same} of \stat{p3-g4-n1-total} one-call plans do exactly the baseline's work. Without break-even the same
+tree costs \stat{p3-g4-tree-nobe-1}\x{} at one call (worst \stat{p3-g4-tree-nobe-1-worst}\x), because it converts formats
+it cannot repay. At 1000 calls the selector gains \stat{p3-g4-tree-1000}\x. G4 is met: the selector never costs more than
+it saves when a matrix is used once.
+
+\subsection{Operand placement (G5)}\label{sec:res-g5}
+With $B$, the operand every row gathers from at random, in pinned host memory, cuSPARSE SpGEMM slows down
+\stat{p4-place-RxA-b}\x{} ($R\cdot A$) and \stat{p4-place-AxP-b}\x{} ($A\cdot P$); the streamed left operand of
+$R\cdot A$ costs only \stat{p4-place-RxA-a}\x. Managed memory behaves exactly like pinned memory under WSL2
+(\stat{p4-managed-vs-pinned}\x). Our ratios are smaller than paper~1's 7--29\x{} on NVLink because our device-resident
+kernel is slower, so there is less speed to lose, but the conclusion is the same: $B$ stays on the device and $A$
+and $C$ are streamed.
+
+\subsection{Overlapped out-of-core SpGEMM (G6)}\label{sec:res-g6}
+When the problem exceeds the budget, RASP is \stat{p4-g6-AxP}\x{} faster than Algorithm~4 on $A\cdot P$ (G6
+\stat{p4-g6-AxP-verdict}) but only \stat{p4-g6-RxA}\x{} on $R\cdot A$ (\stat{p4-g6-RxA-verdict}). Most of the gain is
+copy/compute overlap, not the cost model: double buffering with Algorithm~4's own partitions already gives
+\stat{p4-speedup-alg4-overlap-AxP}\x{} and \stat{p4-speedup-alg4-overlap-RxA}\x. On $R\cdot A$, RASP cuts $A$ and $C$
+into too many tiles once $B$ is split, and re-planning never fires in those plans. Even overlapped, PCIe holds
+throughput to \stat{p4-frac-of-device} of the device-only kernel.
+
+\subsection{Conjugate gradients (G7)}\label{sec:res-cg}
+Jacobi-preconditioned CG on \stat{p5-cg-matrices} SPD matrices, using the solver's iteration cap as the call count, is
+\stat{p5-cg-tree-geomean}\x{} faster than the same solver with cuSPARSE (worst \stat{p5-cg-tree-worst}\x, best
+\stat{p5-cg-tree-best}\x), and \stat{p5-cg-failures} solves fail the CPU residual check. The gain is small because SpMV
+is only \stat{p5-cg-spmv-share}\% of a solve. An overstated hint does no harm: the cap and the exact iteration count
+pick the same kernel on \stat{p5-cg-hint-same} matrices, and planning costs a median \stat{p5-cg-plan-pct-median}\% of a
+solve.
+
+\subsection{AMG set-up (G7)}\label{sec:res-amg}
+Building a Laplace3D ($n=192$) hierarchy under a 256\,MiB budget, RASP is \stat{p5-amg-192-rasp-speedup}\x{} faster than
+Algorithm~4 and about as fast as overlapped Algorithm~4 (\stat{p5-amg-192-alg4-overlap-speedup}\x). Only the finest
+levels are tiled, and level~0 takes 82--85\% of the set-up time. Every method produces identical coarse operators that
+satisfy the Galerkin row-sum identity. The \stat{p5-amg-256-rasp-speedup}\x{} measured at $n=256$ is inflated by an
+anomalous host-side estimate in that Algorithm~4 run (\cref{sec:eval-g7}).
+
+\subsection{GPU against the sequential CPU code}\label{sec:res-seq}
+\Cref{tab:same-machine} compares the GPU with one core of the same machine. On the RTX~4050 laptop the GPU is
+5.0\x{} faster for SpMV, 9.1\x{} for CG and 5.0\x{} for the AMG set-up, including PCIe transfers. The T4's ratios are
+higher mainly because Kaggle's 2\,GHz Xeon is slower: sequential CG takes 15.5\,s there against 7.5\,s on the Ryzen.
+With a warm L2 cache, the T4's best-configuration lead over cuSPARSE falls from 1.44\x{} to 1.28\x, so we report
+flushed numbers throughout.
+\todo{add the OpenMP (all cores) column for both machines from results/*/omp via scripts/compare\_seq\_gpu.py}
+
+\begin{table}[t]
+\centering\small
+\caption{Speedup of the GPU over the sequential CPU code on the same machine (\texttt{results/*/comparison.txt}).
+SpMV: geometric mean over six matrices, fp64, L2 flushed. CG: Laplace $128^3$. AMG: set-up at $n=160$, in core.}\label{tab:same-machine}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}lrr@{}}
+\toprule
+ & RTX 4050 / Ryzen 7 7840HS & Tesla T4 / Xeon 2\,GHz \\
+\midrule
+SpMV, cuSPARSE & 5.0\x & 10.4\x \\
+SpMV, fastest GPU configuration & 5.3\x & 14.9\x \\
+CG, time to solution & 9.1\x & 24.0\x \\
+AMG set-up, incl.\ transfers & 5.0\x & 4.8\x \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\subsection{OpenMP multi-core version}\label{sec:res-omp}
+Parallelising the sequential code with OpenMP, without changing its algorithms and verified against it, gives at most
+\stat{omp-spmv-best-speedup}\x{} for SpMV, \stat{omp-cg-best-speedup}\x{} for CG and \stat{omp-amg-best-speedup}\x{} for
+the AMG SpGEMMs on the 12-thread i5-1235U. SpMV and CG are capped by memory bandwidth, which rises only
+\stat{omp-bw-ceiling}\x{} from one thread to all; the SpGEMM is capped by single-threaded zero-filling and the page faults
+it causes (Amdahl's law). The GPU's advantage on these kernels is bandwidth, which no number of CPU cores supplies
+(\cref{sec:omp}).
+
+\subsection{Kernel profiles}\label{sec:res-ncu}
+Nsight Compute confirms the bandwidth explanation. CSR-vector on \texttt{af\_shell1} keeps DRAM busy
+\stat{p5-ncu-spmv-csr-vector-af-shell1-dram}\% of the time at \stat{p5-ncu-spmv-csr-vector-af-shell1-gbs}\,GB/s, and
+cuSPARSE sits at the same limit, so no format can gain much there. ArgCSR with chunk size 32 on \texttt{rajat23} moves
+only 1.3\x{} the DRAM bytes of chunk size 1 but takes 17\x{} as long: its warps stall on barriers at
+\stat{p5-ncu-spmv-argcsr-D32-rajat23-occ}\% occupancy, so its cost is synchronisation, not padding traffic.

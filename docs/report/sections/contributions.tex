@@ -1,0 +1,75 @@
+\section{Major Contributions}\label{sec:contrib}
+
+This project contributes four things, described in full in \cref{sec:design}:
+\begin{enumerate}
+\item \textbf{A lightweight runtime SpMV selector.} One GPU kernel extracts structural features; a shallow decision
+  tree, trained offline and compiled into the library as plain C++, chooses among \stat{p2-configs} configurations of
+  CSR, ELL, SELL, ArgCSR, cuSPARSE and two new kernels (ArgCSR with a chunk size per row region, and CSR with lanes
+  per row); a break-even test converts formats only when the expected number of calls repays the conversion.
+\item \textbf{An overlapped, self-calibrating out-of-core SpGEMM.} Paper~1's chunking, extended with double and
+  triple buffering, a cost model that simulates the copy/compute pipeline from bandwidths and kernel rates measured at
+  run time, and re-partitioning while it runs, all within a hard device-memory budget.
+\item \textbf{A re-evaluation of both papers} on a PCIe-attached consumer GPU against the 2026 cuSPARSE.
+\item \textbf{Sequential and OpenMP CPU versions} of the same kernels, for same-machine comparisons.
+\end{enumerate}
+
+\subsection{Contributions of the papers we studied}\label{sec:papers}
+\paragraph{Paper 1: Deveci et al., multilevel-memory SpGEMM~\cite{deveci2018multilevel}.} The paper runs the
+KokkosKernels \texttt{kkmem} SpGEMM~\cite{deveci2018kkmem} on a KNL and on a P100 connected to its host over NVLink.
+It contributes (i) two chunked out-of-core algorithms: \emph{chunk1} keeps a row block of $A$ and $C$ resident and
+streams the row blocks of $B$, \emph{chunk2} keeps a row block of $B$ resident and streams $A$ and $C$; (ii) a
+partitioning heuristic, Algorithm~4, that splits fast memory 75\%/25\% between the resident and the streamed operand
+and picks the variant with the smaller copy volume; and (iii) a placement study (its Table~3) showing that $B$ in host
+memory costs 7--29\x, while $A$ and $C$ hurt only when large, and that unified memory reaches at most 30\% of the
+device's speed.
+
+\paragraph{Paper 2: Heller and Oberhuber, adaptive row-grouped CSR~\cite{heller2012argcsr}.} The paper contributes
+the ArgCSR format: rows are packed into groups handled by one CUDA block, spare threads go to the rows with the
+longest chunks, and chunks are padded and interleaved so that reads coalesce. Measured on 1,600 matrices on a Fermi
+C2070, ArgCSR beat CPU CSR on 1,168 of them and was up to ten times faster than the cuSPARSE of 2012 on circuit
+matrices. The paper also documents how strongly its chunk-size parameter matters, and recommends testing several
+formats per matrix without automating that choice.
+
+\paragraph{Other work we drew on.} CSR-vector and ELL kernels~\cite{bell2009spmv}, SELL-$C$-$\sigma$~\cite{kreutzer2014sell},
+CSR5~\cite{liu2015csr5} and merge-based SpMV~\cite{merrill2016merge} define the candidate formats. SMAT~\cite{li2013smat},
+decision trees~\cite{sedaghati2015selection}, SVMs~\cite{benatia2016svm} and CNNs~\cite{zhao2018cnn} have all been used to
+select formats; unlike them, our selector also predicts the cost of \emph{acting} on its choice. Hash-based SpGEMM
+(nsparse~\cite{nagasaka2017nsparse}, spECK~\cite{parger2020speck}) and output-size handling~\cite{liu2014spgemm} inform the
+SpGEMM engine.
+
+\subsection{Experiments: test-bed and datasets}\label{sec:testbed}
+\paragraph{Hardware and software.} The primary machine is a laptop with an RTX~4050 Laptop GPU (Ada, sm\_89, 6\,GB,
+20~SMs, 24\,MB L2) on PCIe~4.0~x8 and an 8-core, 16-thread Ryzen~7 7840HS, running Ubuntu~22.04 under WSL2 with CUDA~13.3,
+cuSPARSE~12.8 and g++~11.4. \Cref{tab:platform} gives its measured characteristics. A Kaggle Tesla~T4 (CUDA~12.8, 4-thread
+Xeon) repeats the same-machine comparison, and the OpenMP scaling study also ran on a Core i5-1235U. No simulator is
+used: everything is measured on real hardware.
+
+\paragraph{Datasets.} SpMV: \stat{p2-matrices} SuiteSparse matrices~\cite{davis2011suitesparse} for training (50 drawn at
+random, real and square with $10^4$--$5\cdot10^6$ nonzeros, plus 10 named in paper~2) and \stat{p3-heldout-matrices}
+different matrices drawn the same way for evaluation, never seen in training. CG: the SPD matrices of these sets, 20 more
+SPD matrices, and 3-D Laplacians. SpGEMM: paper~1's multigrid products on the 7-point Laplace3D with $2\times2\times2$
+aggregation ($P$, $R=P^T$), generated in memory, which allows multi-GB problems.
+
+\paragraph{Procedure.} Kernels are timed with CUDA events: 5 warm-up runs, then the median of 20 with the
+interquartile range; the L2 cache is flushed before every timed SpMV. Out-of-core SpGEMM is timed from pinned inputs to
+pinned output, including every transfer and the planning time. Methods are run in a freshly shuffled order in every
+repetition, because a fixed order produced fake differences of $\pm9\%$ under WSL2. Every result is checked against a
+CPU reference, and every CSV records the GPU, driver, library versions and git commit. Runs use AC power and the
+``best performance'' mode. \texttt{scripts/run\_all.sh} rebuilds from a clean tree, reruns every test and benchmark,
+and regenerates every number, table and figure in this report.
+
+\begin{table}[t]
+\centering\small
+\caption{Platform measurements of the RTX~4050 laptop (\texttt{results/platform/uvm\_probe.csv}).}\label{tab:platform}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}lr@{}}
+\toprule
+Device memory, sequential read (4 GiB) & \stat{pf-device-read} GB/s \\
+Device memory, copy (read + write) & \stat{pf-device-copy} GB/s \\
+Pinned host $\to$ device / device $\to$ host & \stat{pf-h2d} / \stat{pf-d2h} GB/s \\
+Both directions at once (one copy engine) & \stat{pf-bidir} GB/s \\
+Zero-copy / managed (UVM) read by a kernel & \stat{pf-zc-read} / \stat{pf-uvm-read} GB/s \\
+Random 8-byte gathers, device vs zero-copy & \stat{pf-gather-device} vs \stat{pf-gather-zc} M/s \\
+\bottomrule
+\end{tabular}}
+\end{table}

@@ -1,35 +1,35 @@
-\section{Limitations}\label{sec:limitations}
+\section{Limitations and Future Scope}\label{sec:limitations}
+
+\paragraph{Limitations.}
 \begin{itemize}
-\item \textbf{One laptop GPU under WSL2.} Every number comes from one RTX~4050 Laptop. Clocks and thermals vary, which
-  we contain with medians, shuffled orders and AC power but cannot remove. WSL2 also changes the semantics we
-  study: managed memory never migrates, so paper~1's UVM experiments cannot be reproduced here, and host-side
-  latencies of tens of microseconds weigh on small SpMVs and on G3. A native Linux system and a data-centre GPU would
-  test whether the trained selector transfers across architectures.
+\item \textbf{One main GPU, under WSL2.} The selector was trained and almost every number measured on one RTX~4050
+  Laptop. Clocks and thermals vary, which we contain with medians, shuffled orders and AC power but cannot remove.
+  WSL2 also changes the semantics we study: managed memory never migrates, so paper~1's unified-memory experiments
+  cannot be reproduced, and host-side latencies of tens of microseconds weigh on small SpMVs and on G3.
 \item \textbf{Few large held-out matrices.} Only \stat{p3-heldout-large} held-out samples have at least $10^6$
   nonzeros, so the ``never lose on large matrices'' half of G2 rests mostly on cross-validation.
-\item \textbf{G3 is borderline} (\stat{p3-g3-median} SpMVs median): fine for large matrices, expensive for small
-  ones, where the gate simply skips selection.
+\item \textbf{G3 is borderline} (\stat{p3-g3-median} SpMVs median): cheap for large matrices, expensive for small
+  ones, where the feature gate simply skips selection.
+\item \textbf{G6 is not met for $R\cdot A$.} The cost model over-partitions $A$ and $C$ once $B$ must be split, and
+  re-planning cannot repair the split. On this machine, overlapped Algorithm~4 is the better schedule for both
+  products.
 \item \textbf{SpGEMM engine.} cuSPARSE's SpGEMM does not report its workspace in advance and blocks the host in its
-  size queries. We learn the workspace size, plan pipeline depths around the host stalls, and split tiles that do
-  not fit. A custom hash SpGEMM with a column-range filter (as \texttt{kkmem}) would avoid the full-height row pointers
-  of $B$ blocks and the host round trips. Our partial-product sum uses one thread per row, which suits multigrid
-  products but not power-law graphs.
-\item \textbf{Workloads.} Out-of-core results are for paper~1's multigrid products on Laplace3D. Graph products
-  ($L\cdot L$ for triangle counting) are supported by the benchmark but not part of the evaluated set.
-  \todo{remove this item if the SNAP runs are added.}
-\item \textbf{Budget emulation.} The fast-memory budget emulates a smaller GPU, as paper~1 does; the operands live in
-  pinned host memory and the estimation pass runs on the host CPU.
+  size queries; we learn the workspace size and plan around the stalls. Our partial-product sum uses one thread per
+  row, which suits multigrid products but not power-law graphs.
+\item \textbf{Workloads.} Out-of-core results cover paper~1's multigrid products on Laplace3D. Graph products
+  ($L\cdot L$ for triangle counting) are supported by the benchmark but were not evaluated.
+\item \textbf{Budget emulation.} As in paper~1, the fast-memory budget emulates a smaller GPU; the operands live in
+  pinned host memory and the size estimate runs on the host CPU.
+\item \textbf{CPU comparison.} The OpenMP scaling study ran on a hybrid-core i5-1235U whose sequential baseline drifts
+  by about $\pm10\%$ between runs.
 \end{itemize}
 
-\section{Conclusion}\label{sec:conclusion}
-Both source papers measured the right thing and then fixed a choice. We made the choices at run time. For SpMV, a
-GPU feature pass, a small cross-validated tree and a break-even test reach \stat{p3-g2-tree}\x{} of the per-matrix
-oracle on unseen matrices while never costing more than cuSPARSE for a single call; on the way, ArgCSR's sensitivity
-to its chunk size reproduced while its advantage over the 2026 vendor library did not. For out-of-core SpGEMM, a
-planner that measures the PCIe link, simulates the copy/compute pipeline and re-plans from a probe block is
-\stat{p4-g6-AxP}\x{} and \stat{p4-g6-RxA}\x{} faster than paper~1's Algorithm~4 on the multigrid products.
-\todo{final sentence once Phase 4--5 results are in.}
-
-\paragraph{Reproducibility.} \texttt{scripts/run\_all.sh} rebuilds from a clean tree, runs every test and benchmark
-and regenerates every number, table and figure in this report (\texttt{scripts/make\_report\_assets.py}). Raw CSVs,
-with environment stamps, are in \texttt{results/}.
+\paragraph{Future scope.} The most direct improvement is to the SpGEMM planner: penalise the number of tiles in the
+cost model and allow re-partitioning of $B$ blocks, so that RASP stops losing to overlapped Algorithm~4 on $R\cdot A$.
+A custom hash SpGEMM with a column-range filter, as in \texttt{kkmem}, would remove cuSPARSE's host round trips and the
+full-height row pointers of $B$ blocks, and would make graph workloads such as triangle counting worth evaluating.
+Retraining the selector on a data-centre GPU (A100 or H100) and on native Linux would show how well its features
+transfer across architectures, and would let us measure unified-memory oversubscription, which WSL2 prevents. On the
+solver side, fusing CG's vector updates and reductions into fewer kernels would attack the larger part of each
+iteration, since SpMV is only \stat{p5-cg-spmv-share}\% of a solve. Finally, the same planning approach extends naturally to several GPUs or to an MPI cluster, where
+the link to optimise around is the network rather than PCIe.
